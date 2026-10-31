@@ -30,3 +30,16 @@
  .bundle-shelf .bundle-card{width:100%;max-width:none}
  .bundle-shelf .bundle-card .btn{width:100%}
 }
+
+/* Critical: minmax(0,1fr) prevents horizontal lesson shelves from widening the entire mobile page. */
+.shop-layout{grid-template-columns:230px minmax(0,1fr);width:100%;max-width:100%;min-width:0}
+.shop-layout > div,.catalog-direction,.shelf-head,.bundle-shelf,.lesson-shelf{min-width:0;max-width:100%}
+.shop-layout > div{width:100%}
+.lesson-shelf{overflow-x:auto;overflow-y:hidden}
+.bundle-shelf{width:100%;min-width:0}
+.bundle-shelf .bundle-card{width:100%;min-width:0;max-width:100%;overflow:hidden}
+.bundle-visual{min-width:0;max-width:100%;grid-template-columns:repeat(3,minmax(0,1fr));overflow:hidden}
+.bundle-visual-tile{min-width:0;overflow:hidden}
+.bundle-card .card-body{min-width:0;overflow-wrap:anywhere}
+@media(max-width:970px){.shop-layout{grid-template-columns:180px minmax(0,1fr)}}
+@media(max-width:690px){.shop-layout{grid-template-columns:minmax(0,1fr)}.bundle-shelf{grid-template-columns:minmax(0,1fr)}}
