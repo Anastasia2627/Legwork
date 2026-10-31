@@ -22,10 +22,13 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   assert.equal(ready,true,'API should launch. '+stderr);
   const catalog=await request(base,'/api/lessons');assert.equal(catalog.status,200);assert.equal(catalog.body.lessons.length,23);assert.equal('video_url' in catalog.body.lessons[0],false,'Public catalog must not reveal private URLs');
   assert.equal((await request(base,'/api/lessons/1/watch')).status,401,'Free lessons still require an account');
+  assert.equal((await request(base,'/api/learning/1')).status,401,'Course player requires a session');
   const first=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 1',email:'one@example.org',password:'LongUniquePassword-123'}});
   assert.equal(first.status,200);const student=first.cookie;assert.ok(student?.includes('legwork_session='));
   assert.equal((await request(base,'/api/lessons/1/watch',{cookie:student})).status,200);
+  const freeWorkspace=await request(base,'/api/learning/1',{cookie:student});assert.equal(freeWorkspace.status,200);assert.equal(freeWorkspace.body.syllabus.length,23);assert.equal(freeWorkspace.body.syllabus[0].accessible,true);assert.equal(freeWorkspace.body.syllabus[1].accessible,false);assert.equal(freeWorkspace.body.syllabus.some(x=>'video_url' in x),false,'Syllabus never discloses videos');
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,403);
+  assert.equal((await request(base,'/api/learning/2',{cookie:student})).status,403,'Course player enforces purchased access');
   assert.equal((await request(base,'/api/admin/overview',{cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/overview',{cookie:student,origin:'https://malicious.example'})).status,403);
   assert.equal((await request(base,'/api/orders',{method:'POST',cookie:student,origin:'invalid://',data:{kind:'course',item_id:1}})).status,403);
@@ -53,7 +56,9 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:staff})).status,200);
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,200);
+  const learning=await request(base,'/api/learning/2',{cookie:student});assert.equal(learning.status,200);assert.equal(learning.body.course.tier,'guru');assert.equal(learning.body.syllabus.every(l=>l.accessible),true,'Guru student may navigate enrolled lessons');
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:stranger})).status,403,'Other user cannot watch purchased course');
+  assert.equal((await request(base,'/api/learning/2',{cookie:stranger})).status,403,'Other user cannot load another user course player');
   const dash=await request(base,'/api/dashboard',{cookie:student});assert.equal(dash.body.enrollments[0].tier,'guru');
   const batch=await request(base,'/api/orders/batch',{method:'POST',cookie:stranger,data:{lesson_ids:[2,3]}});
   assert.equal(batch.status,201);assert.equal(batch.body.total,3000);assert.equal(batch.body.orders.length,2);
@@ -66,6 +71,7 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const hw=await request(base,'/api/admin/homework',{cookie:staff});assert.equal(hw.status,200);assert.equal(hw.body.homework.length,1);
   const feedback=await request(base,'/api/admin/homework/2/2/review',{method:'POST',cookie:staff,data:{feedback:'Good technique'}});assert.equal(feedback.status,200);
   const ownReview=await request(base,'/api/account/homework-reviews',{cookie:student});assert.equal(ownReview.body.reviews.length,1);
+  const learningFeedback=await request(base,'/api/learning/2',{cookie:student});assert.equal(learningFeedback.body.lesson.teacher_feedback,'Good technique');assert.equal(learningFeedback.body.lesson.homework_url,'https://example.org/homework');
   const otherReview=await request(base,'/api/account/homework-reviews',{cookie:stranger});assert.equal(otherReview.body.reviews.length,0);
   const badge=await request(base,'/api/account/achievements',{cookie:student});assert.equal(badge.body.badges.length,1);assert.equal(badge.body.streak,1);
   const change=await request(base,'/api/account/change-password',{method:'POST',cookie:student,data:{current_password:'LongUniquePassword-123',new_password:'ChangedPassword-45678'}});assert.equal(change.status,200);

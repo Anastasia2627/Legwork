@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl} from './lib/security.js';
 import {registerExtraRoutes} from './lib/features.js';
+import {registerLearningRoutes} from './lib/learning.js';
 const app=express(),port=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==='production',dbPath=process.env.DATABASE_PATH||'./data/legwork.sqlite';
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});const db=new Database(dbPath);db.pragma('journal_mode=WAL');db.pragma('foreign_keys=ON');
 const schema=[
@@ -69,5 +70,6 @@ app.patch('/api/admin/lessons/:id',auth,admin,(req,res)=>{const l=db.prepare('SE
 app.post('/api/admin/mentorships/:id/verify-payment',auth,admin,(req,res)=>{const r=db.prepare("UPDATE mentorships SET status='paid' WHERE id=? AND status='awaiting_payment'").run(req.params.id);res.status(r.changes?200:409).json(r.changes?{ok:true}:{error:'Not pending'})});
 app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{const feedback=cleanText(req.body.feedback,8000);if(!feedback)return res.status(400).json({error:'Feedback required'});const r=db.prepare("UPDATE mentorships SET feedback=?,status='answered' WHERE id=? AND status IN ('paid','answered')").run(feedback,req.params.id);res.status(r.changes?200:409).json(r.changes?{ok:true}:{error:'Verify payment first'})});
 registerExtraRoutes(app,db,{auth,admin,current,cleanText,hashPassword,verifyPassword,safeExternalUrl});
+registerLearningRoutes(app,db,{auth});
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 app.use(express.static('public',{extensions:['html']}));app.get('/health',(req,res)=>res.json({ok:true}));app.get('*',(req,res)=>res.sendFile(path.resolve('public/index.html')));app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})});app.listen(port,()=>console.log('Legwork listening on '+port));

@@ -29,7 +29,8 @@ Open http://localhost:3000. A SQLite database is created at `data/legwork.sqlite
 
 - Public About, Legwork Lab, Classes catalog, Mentorship, registration and login.
 - Direction shelves and filtered catalog (direction, level, type, teacher, equipment, focus, duration, hashtags); lesson detail; validated cart with atomic server-side order requests.
-- Student dashboard, paid lesson access, self/Guru course plans, lesson progress, homework review, mentorship answers, streaks and badges.
+- Student dashboard and a dedicated responsive course player: lesson syllabus, next/previous, private video playback, completion and homework links, instructor feedback, progress and achievement badges.
+- Paid lesson access, self/Guru course plans, mentorship answers and streaks.
 - Admin dashboard with course/lesson creation and editing, pricing, enrollment approval, purchase request list, mentorship queue, Guru homework feedback, and marketing waitlist.
 - Editable content in the admin dashboard; EN/ES navigation and core text.
 - Semantic layout, responsive styling, lazy media placeholders.
@@ -45,3 +46,9 @@ npm test
 ```
 
 Automated tests include integration checks for registration, session invalidation, student isolation, tier pricing, unauthorized video access, mentorship payment gating, homework feedback and atomic cart orders. They run with throwaway test credentials and a temporary SQLite database. See docs/architecture.md and docs/launch-checklist.md.
+
+## Browser checks
+
+Run `npm run test:e2e` after `npx playwright install chromium`. Tests start a separate local server with disposable test-only credentials and exercise the full student journey on desktop and mobile Chromium. They do not use production accounts.
+
+Private video URLs are only returned by `/api/learning/:id` after authorization; no purchased video URL is included in `/api/lessons` or the rest of the syllabus.
