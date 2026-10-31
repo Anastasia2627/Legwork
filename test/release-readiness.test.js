@@ -30,6 +30,7 @@ test('SEO is disabled before launch, with correct public pages and non-indexed p
    assert.match(body,/<h1>/);
    assert.equal(res.headers.get('cache-control'),'no-store');
   }
+  const rawIndex=await fetch(service.url+'/index.html');assert.equal(rawIndex.status,200);assert.match(rawIndex.headers.get('x-robots-tag')||'',/noindex/);
   const notFound=await fetch(service.url+'/forgot-route');assert.equal(notFound.status,404);
   assert.match(notFound.headers.get('x-robots-tag'),/noindex/);
   assert.equal((await fetch(service.url+'/health')).status,200);
