@@ -1,6 +1,7 @@
 import {translatePage} from './i18n.js';
 const $=s=>document.querySelector(s),app=$('#app');
-const state={user:null,courses:[],lessons:[],dashboard:null,admin:null,cart:JSON.parse(localStorage.getItem('legwork_cart')||'[]'),lang:localStorage.getItem('legwork_lang')||'en',tab:'overview'};
+const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
+const state={user:null,courses:[],lessons:[],dashboard:null,admin:null,cart:readCart(),lang:localStorage.getItem('legwork_lang')||'en',tab:'overview'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=c=>'$'+(c/100).toFixed(0);
 const t=(en,es)=>state.lang==='es'?es:en;
@@ -96,7 +97,7 @@ if(button.dataset.approve){if(confirm('Confirm payment was independently verifie
 if(button.dataset.pay){if(confirm('Confirm real payment verified outside the site?')){await api('/admin/mentorships/'+button.dataset.pay+'/verify-payment','POST');notice('Marked paid');await adminPanel()}}
 if(button.dataset.category){location.hash='#/shop?category='+encodeURIComponent(button.dataset.category);await navigate()}
 if(button.dataset.package){sessionStorage.setItem('legwork_package',button.dataset.package);setTimeout(()=>{const select=$('#mentorshipPackage');if(select){select.value=button.dataset.package;$('#deepFields')?.classList.toggle('hidden',button.dataset.package!=='Deep')}},0)}
-if(button.id==='requestCart'){if(!state.user){location.hash='#/login';notice('Log in to request purchase');return}const items=state.cart.slice();for(const id of items)await api('/orders','POST',{kind:'lesson',item_id:id});state.cart=[];updateCart();closeCart();notice('Requests saved. Payment not processed.');location.hash='#/account'}
+if(button.id==='requestCart'){if(!state.user){location.hash='#/login';notice('Log in to request purchase');return}const items=state.cart.slice();if(!items.length){notice('Your bag is empty');return}const result=await api('/orders/batch','POST',{lesson_ids:items});state.cart=[];updateCart();closeCart();notice(result.message);location.hash='#/account'}
 }catch(err){notice(err.message)}}
 document.addEventListener('click',action);document.addEventListener('submit',async e=>{if(e.target.id==='progressForm'){e.preventDefault();try{const d=formData(e.target);await api('/progress/'+d.lesson_id,'POST',{completed:true,homework_url:d.homework_url});notice('Progress saved')}catch(err){notice(err.message)}return}action(e)});
 $('#menuBtn').onclick=()=>$('#nav').classList.toggle('open');$('#cartBtn').onclick=showCart;$('#closeCart').onclick=closeCart;$('#shade').onclick=closeCart;$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
