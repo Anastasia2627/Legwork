@@ -12,7 +12,7 @@ const btn=(label,route,style='btn-red')=>'<a class="btn '+style+'" href="#/'+rou
 const card=(title,body,tag='')=>'<div class="card"><div class="card-body">'+(tag?'<p class="eyebrow">'+tag+'</p>':'')+'<h3>'+esc(title)+'</h3><p>'+body+'</p></div></div>';
 const visual=(label,type='dark')=>'<div class="visual '+type+'"><b>'+esc(label)+'</b></div>';
 const faq=(arr)=>'<div class="faq">'+arr.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('')+'</div>';
-const getId=(route)=>Number(route.split('/')[2]);
+const getId=(route)=>Number(route.split('/')[1]);
 const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar ↗':'Get started ↗';}
 function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,state.lang)}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
