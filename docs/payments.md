@@ -35,11 +35,11 @@ Do not enable checkout until the store owner approves a price policy, UAH conver
 1. Student requests course, individual lesson(s), or lesson bundle(s). The server creates pending orders with authoritative catalog prices; **no access yet**.
 2. Student selects owned pending orders and clicks PAY. Server ensures every ID belongs to the logged-in user, is still pending, is not already in an outstanding payment attempt, and has a valid amount.
 3. A payment_attempts record snapshots the order IDs, USD amount, store conversion rate and UAH amount. Each attempt has a unique orderReference.
-4. The server constructs signed WayForPay Purchase form fields. Browser posts directly to https://secure.wayforpay.com/pay. The merchant SecretKey is NOT included.
+4. The server constructs signed WayForPay Purchase form fields. The shopper confirms the exact UAH charge and exchange rate, then the browser posts directly to https://secure.wayforpay.com/pay. The merchant SecretKey is NOT included. The invoice remains available for 24 hours. If the browser tab closes, the shopper can continue the same payment attempt from their account without repricing or creating another order.
 5. WayForPay calls POST /api/payments/wayforpay/webhook. This endpoint is intentionally exempt from same-origin CSRF checks because it is a provider-to-provider request; it instead checks the merchant ID, known orderReference, provider HMAC-MD5 signature, amount, currency and payment status.
 6. Only an **Approved** callback changes orders to approved and grants course/lesson/bundle access in one SQLite transaction. Provider callback retries are recorded once, and repeat callbacks are acknowledged without duplicate access.
 7. The browser may return to /#/payment/{attempt_id}. This page checks the database status; browser redirects DO NOT approve orders.
-8. Declined/expired attempts do not grant access. Refunded/voided states are flagged for manual review; refunds and entitlement revocation need a separately reviewed accounting policy before public launch.
+8. Declined/expired attempts do not grant access. A pending payment older than 24 hours cannot be automatically reopened: a staff reconciliation is required so a delayed signed callback is not mistaken for a new charge. Refunded/voided states are flagged for manual review; refunds and entitlement revocation need a separately reviewed accounting policy before public launch.
 
 ## Operations & security
 
