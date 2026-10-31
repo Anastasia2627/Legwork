@@ -71,3 +71,7 @@ Guru students can download PDF certificates only after completing every course l
 ## Bilingual page editor
 
 Administrators can update the main hero heading, section label, intro, call-to-action, browser title and meta description on the home, course and mentorship pages. English and Spanish content are stored separately in SQLite. All changes are plain-text only, escaped in the client, protected by admin authentication and optimistic revision checks. These controls **do not yet translate all other site content**. See [docs/editorial-content.md](docs/editorial-content.md).
+
+## English / Spanish interface
+
+The navigation, storefront, filters, student classroom, account, payments, certificates, administration controls and common API messages have EN/ES translations. Switching language preserves option values, order IDs and prices. English remains the canonical stored language. Custom course text, student feedback and user content are not translated automatically and need approved Spanish versions for a fully bilingual launch. See docs/localization.md.
