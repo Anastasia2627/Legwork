@@ -75,3 +75,7 @@ Administrators can update the main hero heading, section label, intro, call-to-a
 ## English / Spanish interface
 
 The navigation, storefront, filters, student classroom, account, payments, certificates, administration controls and common API messages have EN/ES translations. Switching language preserves option values, order IDs and prices. English remains the canonical stored language. Custom course text, student feedback and user content are not translated automatically and need approved Spanish versions for a fully bilingual launch. See docs/localization.md.
+
+## Release readiness and accessibility
+
+Public routes /, /course, /shop and /mentorship have server-rendered fallback metadata, but indexing is disabled until PUBLIC_INDEXING_ENABLED=true on a public HTTPS production host. robots.txt disallows crawlers and sitemap.xml stays unavailable before launch. Keyboard navigation, accessible cart state and responsive layout tests cover small mobile widths. Read [docs/deployment.md](docs/deployment.md) before deploying; real payment and mail services are not configured in the repository.
