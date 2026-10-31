@@ -142,3 +142,25 @@ test('Certificate verification and staff issuance controls appear in the interfa
  await page.locator('[data-tab="achievements"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('COURSE CERTIFICATES');
 });
+
+test('Admin can edit mentorship copy in English without changing Spanish',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('[data-tab="admin"]').click();
+ const editor=page.locator('[data-editor-page="mentorship"][data-editor-lang="en"]');
+ await expect(editor).toHaveCount(1);
+ await editor.locator('xpath=..').locator('summary').click();
+ await editor.locator('[name="headline"]').fill('PERSONAL DANCE VIDEO REVIEW');
+ await editor.locator('[name="metaTitle"]').fill('Personal Mentorship · Legwork School');
+ await editor.locator('button[type="submit"]').click();
+ await expect(page.locator('#toast')).toContainText('Page text updated');
+ await page.goto('/#/mentorship');
+ await expect(page.locator('.hero h1')).toHaveText('PERSONAL DANCE VIDEO REVIEW');
+ await expect(page).toHaveTitle('Personal Mentorship · Legwork School');
+ await page.locator('#langBtn').click();
+ await expect(page.locator('.hero h1')).toContainText('RECIBE COMENTARIOS');
+ await expect(page).toHaveTitle('Mentoría | Svitlana Yurchak');
+});

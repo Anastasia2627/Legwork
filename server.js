@@ -13,6 +13,7 @@ import {registerBundleRoutes} from './lib/bundles.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes} from './lib/payments.js';
 import {createMailService} from './lib/mailing.js';
 import {registerCertificateRoutes} from './lib/certificates.js';
+import {registerEditorialRoutes} from './lib/editorial.js';
 const app=express(),port=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==='production',dbPath=process.env.DATABASE_PATH||'./data/legwork.sqlite';
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});const db=new Database(dbPath);db.pragma('journal_mode=WAL');db.pragma('foreign_keys=ON');
 const schema=[
@@ -83,6 +84,7 @@ app.post('/api/admin/mentorships/:id/verify-payment',auth,admin,(req,res)=>{cons
 app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{const feedback=cleanText(req.body.feedback,8000);if(!feedback)return res.status(400).json({error:'Feedback required'});const r=db.prepare("UPDATE mentorships SET feedback=?,status='answered' WHERE id=? AND status IN ('paid','answered')").run(feedback,req.params.id);if(r.changes){const buyer=db.prepare('SELECT u.email FROM mentorships m JOIN users u ON u.id=m.user_id WHERE m.id=?').get(req.params.id);if(buyer)mail.notify(buyer.email,'mentorship:feedback:'+req.params.id+':'+crypto.createHash('sha256').update(feedback).digest('hex'),'Legwork · Your mentorship feedback is ready','Your mentor has reviewed your video. Sign in to Legwork to see the feedback.')}res.status(r.changes?200:409).json(r.changes?{ok:true}:{error:'Verify payment first'})});
 registerExtraRoutes(app,db,{auth,admin,current,cleanText,hashPassword,verifyPassword,safeExternalUrl,mail});
 registerCertificateRoutes(app,db,{auth,admin,mail});
+registerEditorialRoutes(app,db,{auth,admin});
 registerLearningRoutes(app,db,{auth});
 registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
