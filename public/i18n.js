@@ -1,3 +1,6 @@
+import {esPublic} from './es-public.js';
+import {esAdmin} from './es-admin.js';
+import {esErrors} from './es-errors.js';
 /**
  * Spanish UI glossary for the editorial/commerce interface.
  * Lesson content and uploaded materials require editor-provided translations.
@@ -58,17 +61,53 @@ const dictionary = {
 'Your email':'Tu correo electrónico','JOIN WAITLIST':'UNIRME A LA LISTA',
 'Buy lessons':'Comprar clases'
 };
-export function translatePage(root,lang){
- if(!root||lang!=='es')return;
+
+// EN is the canonical stored content. ES applies to UI labels only;
+// never translate underlying product IDs, URLs, prices or form values.
+Object.assign(dictionary,esPublic,esAdmin,esErrors);
+const sourceNodes=new WeakMap();
+const sourceAttrs=new WeakMap();
+const counts=[
+ [/^(\d+) CLASSES FOUND$/,m=>m[1]+' CLASES ENCONTRADAS'],
+ [/^(\d+) lessons completed$/,m=>m[1]+' clases completadas'],
+ [/^(\d+) USERS$/,m=>m[1]+' USUARIOS'],
+ [/^(\d+) PENDING$/,m=>m[1]+' PENDIENTES'],
+ [/^(\d+) TO REVIEW$/,m=>m[1]+' POR REVISAR'],
+ [/^Payment #(\d+)$/,m=>'Pago n.º '+m[1]],
+ [/^Certificate issued on (\d{4}-\d{2}-\d{2})$/,m=>'Certificado emitido el '+m[1]],
+ [/^Certificate ID: (.+)$/,m=>'Número de certificado: '+m[1]],
+ [/^Completed: (\d+\/\d+) · Homework submitted: (\d+\/\d+) · Instructor approved: (\d+\/\d+)$/,m=>'Completadas: '+m[1]+' · Entregadas: '+m[2]+' · Aprobadas: '+m[3]],
+ [/^Requirements incomplete: (\d+\/\d+) lessons approved$/,m=>'Requisitos incompletos: '+m[1]+' clases aprobadas']
+];
+export function translateText(value,lang='en'){
+ const raw=String(value??'');
+ if(lang!=='es')return raw;
+ const trim=raw.trim(),start=raw.slice(0,raw.indexOf(trim)),end=raw.slice(raw.indexOf(trim)+trim.length);
+ if(!trim)return raw;
+ const exact=dictionary[trim];
+ if(typeof exact==='string')return start+exact+end;
+ const arrow=/^(.+?)(\s*[↗→↓✕▶])$/.exec(trim);
+ if(arrow&&dictionary[arrow[1]])return start+dictionary[arrow[1]]+arrow[2]+end;
+ for(const [pattern,format] of counts){const match=trim.match(pattern);if(match)return start+format(match)+end;}
+ return raw;
+}
+export function translatePage(root,lang='en'){
+ if(!root)return;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- let node;while((node=walker.nextNode())){
-  const raw=node.nodeValue,trimmed=raw.trim();
-  const suffix=trimmed.endsWith(' ↗')?' ↗':'';
-  const key=suffix?trimmed.slice(0,-suffix.length):trimmed;
-  const value=dictionary[key];
-  if(value){const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';node.nodeValue=lead+value+suffix+tail;}
+ let node;
+ while((node=walker.nextNode())){
+  if(!node.parentElement||node.parentElement.closest('[data-no-i18n],script,style,code,pre,textarea,[contenteditable="true"]'))continue;
+  if(!sourceNodes.has(node))sourceNodes.set(node,node.nodeValue);
+  node.nodeValue=translateText(sourceNodes.get(node),lang);
  }
- root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{
-  if(dictionary[el.placeholder])el.placeholder=dictionary[el.placeholder];
+ const attrs=['placeholder','title','aria-label'];
+ root.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el=>{
+  if(el.closest('[data-no-i18n]'))return;
+  if(!sourceAttrs.has(el)){
+   const originals={};
+   for(const attr of attrs)if(el.hasAttribute(attr))originals[attr]=el.getAttribute(attr);
+   sourceAttrs.set(el,originals);
+  }
+  for(const [key,original] of Object.entries(sourceAttrs.get(el)))el.setAttribute(key,translateText(original,lang));
  });
 }
