@@ -9,6 +9,7 @@ import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl
 import {registerExtraRoutes} from './lib/features.js';
 import {registerLearningRoutes} from './lib/learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
+import {initPayments,registerPaymentWebhook,registerPaymentRoutes} from './lib/payments.js';
 const app=express(),port=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==='production',dbPath=process.env.DATABASE_PATH||'./data/legwork.sqlite';
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});const db=new Database(dbPath);db.pragma('journal_mode=WAL');db.pragma('foreign_keys=ON');
 const schema=[
@@ -24,6 +25,7 @@ const schema=[
 ];for(const sql of schema)db.exec(sql);
 db.prepare('INSERT OR IGNORE INTO courses(slug,title,description,price) VALUES(?,?,?,?)').run('legwork-lab','Legwork Lab','Improve your legwork without exhausting stretching.',16000);
 const c=db.prepare('SELECT id FROM courses WHERE slug=?').get('legwork-lab');if(!db.prepare('SELECT COUNT(*) n FROM lessons').get().n){const add=db.prepare('INSERT INTO lessons(course_id,title,category,kind,level,duration,price,free,sort_order) VALUES(?,?,?,?,?,?,?,?,?)');['Prestart · The basics','Warm-up for ankles','Flexi Legs foundation','Point your feet','Knee Circle','Leg Wave','Hip mobility','Floorwork fundamentals','Beautiful transitions','Knee balance','Extended lines','Power and control','Advanced leg circles','Wave combinations','Floor flow','Musicality','Choreography practice','Signature movement','Final routine','Recovery','Technique notes','Practice checklist','Final challenge'].forEach((name,i)=>add.run(c.id,name,i<4?'Warm-up':i<14?'Legwork':'Floor work',i<4?'Warm-up':'Element',i<7?'Beginner':i<17?'Intermediate':'Advanced',10+i%8,1500,i===0?1:0,i+1))}
+initPayments(db);
 const secret=process.env.ADMIN_PASSWORD;if(secret&&secret.length>=12&&!secret.startsWith('REPLACE_')&&!db.prepare("SELECT 1 FROM users WHERE role='admin'").get())db.prepare('INSERT INTO users(email,name,password_hash,role) VALUES(?,?,?,?)').run('admin@legwork.local','Admin',hashPassword(secret),'admin');else if(!secret)console.warn('Set ADMIN_PASSWORD in environment to create admin');
 if(prod&&!process.env.SITE_ORIGIN)throw Error('SITE_ORIGIN must be set to the HTTPS public origin in production');
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32||process.env.SESSION_SECRET.startsWith('REPLACE_')))throw Error('Set a unique SESSION_SECRET of at least 32 characters for production');
@@ -32,6 +34,7 @@ const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit,standardHeaders:
 app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
 app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
+registerPaymentWebhook(app,db);
 app.use('/api',(req,res,next)=>{
  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
  const configured=process.env.SITE_ORIGIN;
@@ -76,5 +79,6 @@ app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{const feedback=cle
 registerExtraRoutes(app,db,{auth,admin,current,cleanText,hashPassword,verifyPassword,safeExternalUrl});
 registerLearningRoutes(app,db,{auth});
 registerBundleRoutes(app,db,{auth,admin,cleanText});
+registerPaymentRoutes(app,db,{auth,admin});
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 app.use(express.static('public',{extensions:['html']}));app.get('/health',(req,res)=>res.json({ok:true}));app.get('*',(req,res)=>res.sendFile(path.resolve('public/index.html')));app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})});app.listen(port,()=>console.log('Legwork listening on '+port));
