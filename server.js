@@ -129,7 +129,7 @@ app.get('/health',(req,res)=>{
  catch{res.status(503).json({ok:false})}
 });
 app.use(express.static('public',{extensions:['html'],index:false,setHeaders:(res,file)=>{
- if(file.endsWith('.html'))res.setHeader('Cache-Control','no-store');
+ if(file.endsWith('.html')){res.setHeader('Cache-Control','no-store');res.setHeader('X-Robots-Tag','noindex, nofollow')}
  else if(/\.(?:js|css)$/.test(file))res.setHeader('Cache-Control','public, max-age=300');
 }}));
 app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
