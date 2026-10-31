@@ -64,7 +64,7 @@ else if(form.id==='mentorshipForm'){const r=await api('/mentorships','POST',data
 else if(form.id==='profileForm'){await api('/profile','PATCH',data);state.user.name=data.name;state.user.instagram=data.instagram;notice('Profile saved');await account()}
 else if(form.id==='enrollForm'){await api('/admin/enroll','POST',{user_id:Number(data.user_id),course_id:Number(data.course_id)});notice('Access granted');await adminPanel()}
 else if(form.id==='courseForm'){await api('/admin/courses','POST',{...data,price:Number(data.price)||0});state.courses=(await api('/courses')).courses;notice('Course created');await adminPanel()}
-else if(form.id==='lessonForm'){await api('/admin/lessons','POST',{...data,course_id:Number(data.course_id),price:Number(data.price)||0,free=form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;notice('Lesson created');await adminPanel()}
+else if(form.id==='lessonForm'){await api('/admin/lessons','POST',{...data,course_id:Number(data.course_id),price:Number(data.price)||0,free:form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;notice('Lesson created');await adminPanel()}
 else if(form.dataset.editLesson){await api('/admin/lessons/'+form.dataset.editLesson,'PATCH',{video_url:data.video_url,free:form.querySelector('[name=free]').checked});notice('Lesson updated');await adminPanel()}
 else if(form.dataset.feedback){await api('/admin/mentorships/'+form.dataset.feedback,'PATCH',{feedback:data.feedback});notice('Feedback sent to student account');await adminPanel()}return}
 if(!button||e.type!=='click')return;
