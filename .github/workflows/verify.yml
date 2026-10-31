@@ -2,15 +2,20 @@ name: Verify Legwork
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --ignore-scripts
+      - name: Install dependencies (including native SQLite)
+        run: npm install --no-audit --no-fund
       - run: node --check server.js
+      - run: node --check lib/features.js
       - run: node --check public/app.js
       - run: npm test
