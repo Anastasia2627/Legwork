@@ -23,10 +23,24 @@ const schema=[
 db.prepare('INSERT OR IGNORE INTO courses(slug,title,description,price) VALUES(?,?,?,?)').run('legwork-lab','Legwork Lab','Improve your legwork without exhausting stretching.',16000);
 const c=db.prepare('SELECT id FROM courses WHERE slug=?').get('legwork-lab');if(!db.prepare('SELECT COUNT(*) n FROM lessons').get().n){const add=db.prepare('INSERT INTO lessons(course_id,title,category,kind,level,duration,price,free,sort_order) VALUES(?,?,?,?,?,?,?,?,?)');['Prestart · The basics','Warm-up for ankles','Flexi Legs foundation','Point your feet','Knee Circle','Leg Wave','Hip mobility','Floorwork fundamentals','Beautiful transitions','Knee balance','Extended lines','Power and control','Advanced leg circles','Wave combinations','Floor flow','Musicality','Choreography practice','Signature movement','Final routine','Recovery','Technique notes','Practice checklist','Final challenge'].forEach((name,i)=>add.run(c.id,name,i<4?'Warm-up':i<14?'Legwork':'Floor work',i<4?'Warm-up':'Element',i<7?'Beginner':i<17?'Intermediate':'Advanced',10+i%8,1500,i===0?1:0,i+1))}
 const secret=process.env.ADMIN_PASSWORD;if(secret&&secret.length>=12&&!secret.startsWith('REPLACE_')&&!db.prepare("SELECT 1 FROM users WHERE role='admin'").get())db.prepare('INSERT INTO users(email,name,password_hash,role) VALUES(?,?,?,?)').run('admin@legwork.local','Admin',hashPassword(secret),'admin');else if(!secret)console.warn('Set ADMIN_PASSWORD in environment to create admin');
+if(prod&&!process.env.SITE_ORIGIN)throw Error('SITE_ORIGIN must be set to the HTTPS public origin in production');
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32||process.env.SESSION_SECRET.startsWith('REPLACE_')))throw Error('Set a unique SESSION_SECRET of at least 32 characters for production');
 app.disable('x-powered-by');app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["\u0027self\u0027","https://fonts.googleapis.com"],fontSrc:["\u0027self\u0027","https://fonts.gstatic.com"],imgSrc:["'self'","data:","https:"],frameSrc:["'self'","https://www.youtube-nocookie.com"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:prod?[]:null}}}));app.use(express.json({limit:'100kb'}));
 app.use('/api/auth',rateLimit({windowMs:900000,limit:20,standardHeaders:'draft-7',legacyHeaders:false}));app.use('/api',rateLimit({windowMs:60000,limit:180,standardHeaders:'draft-7',legacyHeaders:false}));
-app.use('/api',(req,res,next)=>{if(!['GET','HEAD','OPTIONS'].includes(req.method)){const origin=req.get('origin'),expected=process.env.SITE_ORIGIN;if(origin&&expected&&origin!==expected)return res.status(403).json({error:'Invalid origin'});if(origin&&!expected&&new URL(origin).host!==req.get('host'))return res.status(403).json({error:'Invalid origin'})}next()});
+app.use('/api',(req,res,next)=>{
+ if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
+ const configured=process.env.SITE_ORIGIN;
+ let expected,source;
+ try{
+  expected=new URL(configured||'http://'+req.get('host')).origin;
+  const origin=req.get('origin'),referer=req.get('referer');
+  if(origin){if(origin==='null')return res.status(403).json({error:'Invalid origin'});source=new URL(origin).origin}
+  else if(referer)source=new URL(referer).origin;
+  else if(prod)return res.status(403).json({error:'Origin or Referer required'});
+ }catch{return res.status(403).json({error:'Invalid origin'})}
+ if(source&&source!==expected)return res.status(403).json({error:'Invalid origin'});
+ next();
+});
 const cookie=t=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800'+(prod?'; Secure':'');
 const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
 const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
