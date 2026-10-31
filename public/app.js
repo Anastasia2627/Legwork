@@ -2,7 +2,8 @@ import {translatePage} from './i18n.js';
 import {renderStudy} from './learning.js';
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
-const state={user:null,courses:[],lessons:[],dashboard:null,admin:null,cart:readCart(),lang:localStorage.getItem('legwork_lang')||'en',tab:'overview'};
+const readBundleCart=()=>{try{const ids=JSON.parse(localStorage.getItem('legwork_bundle_cart')||'[]');return Array.isArray(ids)?[...new Set(ids.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
+const state={user:null,courses:[],lessons:[],bundles:[],dashboard:null,admin:null,cart:readCart(),bundleCart:readBundleCart(),lang:localStorage.getItem('legwork_lang')||'en',tab:'overview'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=c=>'$'+(c/100).toFixed(0);
 const t=(en,es)=>state.lang==='es'?es:en;
@@ -13,7 +14,7 @@ const card=(title,body,tag='')=>'<div class="card"><div class="card-body">'+(tag
 const visual=(label,type='dark')=>'<div class="visual '+type+'"><b>'+esc(label)+'</b></div>';
 const faq=(arr)=>'<div class="faq">'+arr.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('')+'</div>';
 const getId=(route)=>Number(route.split('/')[1]);
-const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar ↗':'Get started ↗';}
+const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length+state.bundleCart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar ↗':'Get started ↗';}
 function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,state.lang)}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){layout('<section class="hero hero-dark"><div class="inner"><p class="eyebrow">SVITLANA YURCHAK · DANCE EDUCATION</p><h1>MOVE LIKE<br><span class="outline-text">A BOSS.</span></h1><p>'+t('Learn exotic pole dance with confidence, intention, and movement that feels unmistakably yours.','Aprende exotic pole dance con confianza, técnica y estilo propio.')+'</p>'+btn('EXPLORE COURSES','course')+'</div></section>'+
@@ -92,11 +93,19 @@ async function adminExtras(a){
 }
 
 function parseYouTube(url){try{const u=new URL(url);let id='';if(['youtu.be','www.youtu.be'].includes(u.hostname))id=u.pathname.slice(1);else if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com'].includes(u.hostname))id=u.searchParams.get('v')||u.pathname.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1]||'';return /^[\w-]{11}$/.test(id)?id:null}catch{return null}}
-function showCart(){const items=state.cart.map(id=>state.lessons.find(l=>l.id===id)).filter(Boolean);$('#cartBody').innerHTML=items.length?items.map(l=>'<div class="item-row row"><div><b>'+esc(l.title)+'</b><p>'+money(l.price)+'</p></div><button class="btn btn-small btn-outline" data-remove="'+l.id+'">REMOVE</button></div>').join('')+'<h3>Total: '+money(items.reduce((sum,l)=>sum+l.price,0))+'</h3><button class="btn btn-red" id="requestCart">REQUEST PURCHASE</button><p class="description">Checkout is not active yet. No money will be charged.</p>':'<p>Your bag is empty.</p>';$('#shade').hidden=false;$('#cartDrawer').classList.add('open')}
+function showCart(){
+ const lessons=state.cart.map(id=>state.lessons.find(l=>l.id===id)).filter(Boolean);
+ const bundles=state.bundleCart.map(id=>state.bundles.find(b=>b.id===id)).filter(Boolean);
+ const total=lessons.reduce((sum,l)=>sum+l.price,0)+bundles.reduce((sum,b)=>sum+b.price,0);
+ const lessonRows=lessons.map(l=>'<div class="item-row row"><div><b>'+esc(l.title)+'</b><p>Lesson · '+money(l.price)+'</p></div><button class="btn btn-small btn-outline" data-remove="'+l.id+'">REMOVE</button></div>').join('');
+ const bundleRows=bundles.map(b=>'<div class="item-row row"><div><b>'+esc(b.title)+'</b><p>Bundle · '+b.lesson_ids.length+' lessons · '+money(b.price)+'</p></div><button class="btn btn-small btn-outline" data-remove-bundle="'+b.id+'">REMOVE</button></div>').join('');
+ $('#cartBody').innerHTML=(lessons.length+bundles.length)?lessonRows+bundleRows+'<h3>Total: '+money(total)+'</h3><button class="btn btn-red" id="requestCart">REQUEST PURCHASE</button><p class="description">Purchase requests are manual. No money is charged at this stage.</p>':'<p>Your bag is empty.</p>';
+ $('#shade').hidden=false;$('#cartDrawer').classList.add('open');
+}
 function closeCart(){$('#shade').hidden=true;$('#cartDrawer').classList.remove('open')}
-function updateCart(){localStorage.setItem('legwork_cart',JSON.stringify(state.cart));syncHeader()}
+function updateCart(){localStorage.setItem('legwork_cart',JSON.stringify(state.cart));localStorage.setItem('legwork_bundle_cart',JSON.stringify(state.bundleCart));syncHeader()}
 async function navigate(){closeCart();window.scrollTo(0,0);const route=(location.hash.slice(2)||'').split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#'))course();else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship'))mentorship();else if(route==='login')authPage();else if(route==='register')authPage(true);else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){layout(section('Unable to load',esc(e.message)));}}
-async function init(){try{const [me,courses,lessons]=await Promise.all([api('/me'),api('/courses'),api('/lessons')]);state.user=me.user;state.courses=courses.courses;state.lessons=lessons.lessons;await navigate()}catch(e){layout(section('Connection error','<p>'+esc(e.message)+'</p>'))}}
+async function init(){try{const [me,courses,lessons,bundles]=await Promise.all([api('/me'),api('/courses'),api('/lessons'),api('/bundles')]);state.user=me.user;state.courses=courses.courses;state.lessons=lessons.lessons;state.bundles=bundles.bundles;await navigate()}catch(e){layout(section('Connection error','<p>'+esc(e.message)+'</p>'))}}
 const formData=form=>Object.fromEntries(new FormData(form));
 async function action(e){const target=e.target,form=target.closest('form'),button=target.closest('button,a');try{
 if(form&&e.type==='submit'){e.preventDefault();const data=formData(form);
@@ -126,7 +135,7 @@ if(button.dataset.approve){if(confirm('Confirm payment was independently verifie
 if(button.dataset.pay){if(confirm('Confirm real payment verified outside the site?')){await api('/admin/mentorships/'+button.dataset.pay+'/verify-payment','POST');notice('Marked paid');await adminPanel()}}
 if(button.dataset.category){location.hash='#/shop?category='+encodeURIComponent(button.dataset.category);await navigate()}
 if(button.dataset.package){sessionStorage.setItem('legwork_package',button.dataset.package);setTimeout(()=>{const select=$('#mentorshipPackage');if(select){select.value=button.dataset.package;$('#deepFields')?.classList.toggle('hidden',button.dataset.package!=='Deep')}},0)}
-if(button.id==='requestCart'){if(!state.user){location.hash='#/login';notice('Log in to request purchase');return}const items=state.cart.slice();if(!items.length){notice('Your bag is empty');return}const result=await api('/orders/batch','POST',{lesson_ids:items});state.cart=[];updateCart();closeCart();notice(result.message);location.hash='#/account'}
+if(button.id==='requestCart'){if(!state.user){location.hash='#/login';notice('Log in to request purchase');return}const items=state.cart.slice(),packages=state.bundleCart.slice();if(!items.length&&!packages.length){notice('Your bag is empty');return}const result=await api('/orders/batch','POST',{lesson_ids:items,bundle_ids:packages});state.cart=[];state.bundleCart=[];updateCart();closeCart();notice(result.message);location.hash='#/account'}
 }catch(err){notice(err.message)}}
 document.addEventListener('click',action);document.addEventListener('submit',async e=>{if(e.target.id==='progressForm'){e.preventDefault();try{const d=formData(e.target);await api('/progress/'+d.lesson_id,'POST',{completed:true,homework_url:d.homework_url});notice('Progress saved')}catch(err){notice(err.message)}return}action(e)});
 $('#menuBtn').onclick=()=>$('#nav').classList.toggle('open');$('#cartBtn').onclick=showCart;$('#closeCart').onclick=closeCart;$('#shade').onclick=closeCart;$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
