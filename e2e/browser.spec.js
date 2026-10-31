@@ -164,3 +164,33 @@ test('Admin can edit mentorship copy in English without changing Spanish',async(
  await expect(page.locator('.hero h1')).toContainText('RECIBE COMENTARIOS');
  await expect(page).toHaveTitle('Mentoría | Svitlana Yurchak');
 });
+
+test('English and Spanish interface is reversible in catalog, footer and cart',async({page})=>{
+ await page.goto('/#/shop');
+ await expect(page.locator('#filterLevel option').nth(1)).toHaveText('Beginner');
+ await expect(page.locator('footer')).toContainText('Online dance education');
+ await page.locator('#langBtn').click();
+ await expect(page.locator('html')).toHaveAttribute('lang','es');
+ await expect(page.locator('h1')).toContainText('CLASES');
+ await expect(page.locator('#filterLevel option').nth(1)).toHaveText('Principiante');
+ await expect(page.locator('#filterLevel option').nth(1)).toHaveAttribute('value','Beginner');
+ await expect(page.locator('footer')).toContainText('Formación de danza online');
+ await expect(page.locator('#nav [data-i18n="mentorship"]')).toHaveText('Mentoría');
+ await page.locator('#cartBtn').click();
+ await expect(page.locator('#cartDrawer')).toContainText('Tu cesta está vacía');
+ await page.locator('#closeCart').click();
+ await page.locator('#langBtn').click();
+ await expect(page.locator('html')).toHaveAttribute('lang','en');
+ await expect(page.locator('#filterLevel option').nth(1)).toHaveText('Beginner');
+ await expect(page.locator('footer')).toContainText('Online dance education');
+ await expect(page.locator('#nav [data-i18n="mentorship"]')).toHaveText('Mentorship');
+});
+test('Spanish sign-in feedback does not reveal authentication details',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#langBtn').click();
+ await expect(page.locator('html')).toHaveAttribute('lang','es');
+ await page.locator('#authForm [name="email"]').fill('unknown@example.test');
+ await page.locator('#authForm [name="password"]').fill('DefinitelyWrong123456');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page.locator('#toast')).toContainText('Credenciales incorrectas');
+});
