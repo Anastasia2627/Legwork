@@ -28,6 +28,7 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/overview',{cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/overview',{cookie:student,origin:'https://malicious.example'})).status,403);
+  assert.equal((await request(base,'/api/orders',{method:'POST',cookie:student,origin:'invalid://',data:{kind:'course',item_id:1}})).status,403);
   const order=await request(base,'/api/orders',{method:'POST',cookie:student,data:{kind:'course',item_id:1,plan:'guru',amount:1}});
   assert.equal(order.status,201);assert.equal(order.body.amount,36000,'Client must not control price');
   assert.equal((await request(base,'/api/orders',{method:'POST',cookie:student,data:{kind:'course',item_id:1,plan:'guru'}})).status,409,'Duplicate pending requests rejected');
@@ -35,6 +36,15 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const second=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 2',email:'two@example.org',password:'SecondPassword-12345'}});
   assert.equal(second.status,200);const stranger=second.cookie;
   const admin=await request(base,'/api/auth/login',{method:'POST',data:{email:'Admin',password:adminSecret}});assert.equal(admin.status,200);const staff=admin.cookie;
+  const deep=await request(base,'/api/mentorships',{method:'POST',cookie:student,data:{package:'Deep',video_url:'https://youtube.com/watch?v=abcdef12345',instagram:'@first',experience:'One year',goals:'Fluidity',training_frequency:'2-3 times a week',teaching:'No'}});assert.equal(deep.status,201);
+  assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:student,data:{feedback:'Unauthorized'}})).status,403);
+  assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:staff,data:{feedback:'Too early'}})).status,409,'Feedback must wait for payment verification');
+  const overview=await request(base,'/api/admin/overview',{cookie:staff});assert.equal(overview.body.mentorships[0].training_frequency,'2-3 times a week');
+  assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id+'/verify-payment',{method:'POST',cookie:staff})).status,200);
+  assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:staff,data:{feedback:'Practice your lines'}})).status,200);
+  const reviewed=await request(base,'/api/dashboard',{cookie:student});assert.equal(reviewed.body.mentorships[0].feedback,'Practice your lines');
+  const changedCourse=await request(base,'/api/admin/courses/1',{method:'PATCH',cookie:staff,data:{title:'Legwork Lab',slug:'legwork-lab',description:'New overview',price:17000,guru_price:39000}});assert.equal(changedCourse.status,200);
+  const newPricing=await request(base,'/api/courses');assert.equal(newPricing.body.courses[0].guru_price,39000);
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:staff})).status,200);
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,200);
