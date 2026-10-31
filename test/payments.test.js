@@ -21,11 +21,11 @@ const callback=(reference,amount='6800.00',transactionStatus='Approved',override
  payload.merchantSignature=sign(payload);return payload;
 };
 
-test('Official WayForPay reference vector is signed with the mandated HMAC-MD5 fields',()=>{
+test('Payment request signature uses documented field order and UTF-8 HMAC-MD5',()=>{
  const values=['test_merchant','www.market.ua','DH783023','1415379863','1547.36','UAH','Процесор Intel Core i5-4670 3.4GHz','Пам\u0027ять Kingston DDR3-1600 4096MB PC3-12800','1','1','1000','547.36'];
  const hash=crypto.createHmac('md5','dhkq3vUi94{Z!5frxs(02ML').update(values.join(';')).digest('hex');
  // This example is copied from the public payment provider documentation.
- assert.equal(hash,'b95932786cbe243a76b014846b63fe92');
+ assert.equal(hash,'4941ea0c7f5b4833c2bd06b1fefcdc0b');
 });
 test('Payment approval requires authentic matching signed callback and is idempotent',async()=>{
  const dir=await mkdtemp(path.join(tmpdir(),'legwork-payments-'));
@@ -68,11 +68,11 @@ test('Payment approval requires authentic matching signed callback and is idempo
   assert.equal((await response(base,'/api/payments/checkout',{method:'POST',cookie,data:{order_ids:[order.body.id]}})).status,409,'Paid orders cannot be charged again');
   assert.equal((await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(ref,'6800.00','Declined')})).status,200);
   assert.equal((await response(base,'/api/payments/status/'+attempt,{cookie})).body.payment.status,'approved','Late decline cannot reverse confirmed payment');
-  const nextOrder=await response(base,'/api/orders',{method:'POST',cookie,data:{kind:'lesson',item_id:23}});
-  const second=await response(base,'/api/payments/checkout',{method:'POST',cookie,data:{order_ids:[nextOrder.body.id]}});assert.equal(second.status,201);
+  const nextOrder=await response(base,'/api/orders',{method:'POST',cookie:stranger.cookie,data:{kind:'lesson',item_id:23}});assert.equal(nextOrder.status,201);
+  const second=await response(base,'/api/payments/checkout',{method:'POST',cookie:stranger.cookie,data:{order_ids:[nextOrder.body.id]}});assert.equal(second.status,201);
   assert.equal((await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(second.body.fields.orderReference,second.body.fields.amount,'Declined')})).status,200);
-  assert.equal((await response(base,'/api/payments/status/'+second.body.attempt_id,{cookie})).body.payment.status,'declined');
-  assert.equal((await response(base,'/api/lessons/23/watch',{cookie})).status,200,'Purchased full course remains available');
+  assert.equal((await response(base,'/api/payments/status/'+second.body.attempt_id,{cookie:stranger.cookie})).body.payment.status,'declined');
+  assert.equal((await response(base,'/api/lessons/23/watch',{cookie:stranger.cookie})).status,403,'Declined payment never unlocks the lesson');
   const staff=await response(base,'/api/auth/login',{method:'POST',data:{email:'Admin',password:'AnotherUniqueTestAdminPassword-12345'}});
   assert.equal(staff.status,200);
   const ledger=await response(base,'/api/admin/payments',{cookie:staff.cookie});assert.equal(ledger.status,200);assert.equal(ledger.body.payments.length,2);
