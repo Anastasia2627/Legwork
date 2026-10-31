@@ -138,7 +138,7 @@ app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
  const indexAllowed=indexingEnabled;
  const heading=escapeHtml(info.heading||info.title),intro=escapeHtml(info.intro||info.description);
  const tags=[
- '<meta name="robots" content="'+(indexAllowed?'index,follow':'noindex,nofollow')+'">',
+ '<meta name="robots" content="'+(indexAllowed?'index,follow':'noindex,nofollow')+'" data-index-enabled="'+String(indexAllowed)+'">',
  '<link rel="canonical" href="'+escapeHtml(canonical)+'">',
  '<meta property="og:type" content="website">',
  '<meta property="og:title" content="'+title+'">',
