@@ -98,3 +98,20 @@ test('Admin can publish a bundle, and it appears in the shop and cart',async({pa
  await expect(page.locator('#cartBody')).toContainText(title);
  await expect(page.locator('#cartBody')).toContainText('$32');
 });
+
+test('Payment controls stay disabled without merchant configuration',async({page},info)=>{
+ const email='payment-off-'+info.project.name+'-'+Date.now()+'@example.test';
+ await page.goto('/#/register');
+ await page.locator('#authForm [name="name"]').fill('Payment Preview');
+ await page.locator('#authForm [name="email"]').fill(email);
+ await page.locator('#authForm [name="password"]').fill('Strong-Temporary-Password-2026');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.goto('/#/course');
+ await page.locator('#prices [data-order="course"]').first().click();
+ await expect(page).toHaveURL(/#\/account/);
+ await expect(page.locator('.cabinet-main')).toContainText('PAYMENT CHECKOUT');
+ await expect(page.locator('.cabinet-main')).toContainText('Online checkout is not configured yet');
+ await expect(page.locator('#beginPayment')).toHaveCount(0);
+ await expect(page.locator('.payment-order-list input')).toBeDisabled();
+});
