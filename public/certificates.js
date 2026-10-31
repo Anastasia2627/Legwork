@@ -1,9 +1,11 @@
+const isSpanish=()=>document.documentElement.lang==='es';
+const say=(en,es)=>isSpanish()?es:en;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 export function studentCertificatesMarkup(items){
  if(!items.length)return '<p class="description">Certificates are offered with Guru course enrollments. Your courses will appear here when enrolled.</p>';
  return '<div class="stack">'+items.map(x=>{
   const c=x.certificate;
-  const body=c?(c.revoked_at?'<p class="notice">This certificate has been revoked. Contact the school for details.</p>':'<p class="certificate-success">Certificate issued on '+esc(c.issued_at.slice(0,10))+'</p><div class="row"><a class="btn btn-red" href="/api/certificates/'+encodeURIComponent(c.serial)+'/pdf">DOWNLOAD PDF ↓</a><a href="#/verify-certificate/'+encodeURIComponent(c.serial)+'" class="btn btn-outline">VERIFY ONLINE</a></div>'):
+  const body=c?(c.revoked_at?'<p class="notice">This certificate has been revoked. Contact the school for details.</p>':'<p class="certificate-success">'+say('Certificate issued on ','Certificado emitido el ')+esc(c.issued_at.slice(0,10))+'</p><div class="row"><a class="btn btn-red" href="/api/certificates/'+encodeURIComponent(c.serial)+'/pdf">DOWNLOAD PDF ↓</a><a href="#/verify-certificate/'+encodeURIComponent(c.serial)+'" class="btn btn-outline">VERIFY ONLINE</a></div>'):
     '<p class="description">Completed: '+x.completed+'/'+x.total+' · Homework submitted: '+x.submitted+'/'+x.total+' · Instructor approved: '+x.approved+'/'+x.total+'</p><p>'+(x.eligible?'All requirements approved. Waiting for final certificate issuance by the school.':'Complete every lesson, submit homework and receive instructor approval.')+'</p>';
   return '<div class="item-row certificate-item"><span class="eyebrow">GURU · COURSE CERTIFICATE</span><h3>'+esc(x.course_title)+'</h3>'+body+'</div>';
  }).join('')+'</div>';
