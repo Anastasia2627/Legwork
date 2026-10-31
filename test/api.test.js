@@ -42,6 +42,13 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const createdBundle=await request(base,'/api/admin/bundles',{method:'POST',cookie:staff,data:{title:'Legwork Essentials',slug:'legwork-essentials',description:'Three practice classes',direction:'Legwork',price:3400,original_price:4500,lesson_ids:[4,5,6]}});
   assert.equal(createdBundle.status,201);
   const bundleId=createdBundle.body.id;
+  const mixedCart=await request(base,'/api/orders/batch',{method:'POST',cookie:student,data:{lesson_ids:[7],bundle_ids:[bundleId],amount:1}});
+  assert.equal(mixedCart.status,201);
+  assert.equal(mixedCart.body.total,4900,'Mixed cart total must be calculated from the database');
+  assert.equal(mixedCart.body.orders.length,2);
+  assert.equal((await request(base,'/api/learning/7',{cookie:student})).status,403,'Cart request does not unlock lessons');
+  assert.equal((await request(base,'/api/orders/batch',{method:'POST',cookie:student,data:{lesson_ids:[4],bundle_ids:[bundleId]}})).status,409,'Overlapping cart lessons are rejected');
+
   const publicBundles=await request(base,'/api/bundles');
   assert.equal(publicBundles.status,200);
   assert.equal(publicBundles.body.bundles[0].lesson_ids.length,3);
