@@ -9,6 +9,7 @@ test('Public navigation and catalog filters',async({page},info)=>{
  await page.goto('/#/shop');
  await expect(page.locator('h1')).toContainText('CLASSES');
  await expect(page.locator('.catalog-direction')).toHaveCount(3);
+ await expect(page.locator('.lesson-card').nth(1).locator('a').first()).toHaveAttribute('href',/#\/lesson\//);
  await page.locator('#filterCategory').selectOption('Legwork');
  await expect(page).toHaveURL(/category=Legwork/);
  await expect(page.locator('.lesson-card').first()).toBeVisible();
