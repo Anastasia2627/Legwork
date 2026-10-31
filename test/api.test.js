@@ -45,6 +45,11 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const reviewed=await request(base,'/api/dashboard',{cookie:student});assert.equal(reviewed.body.mentorships[0].feedback,'Practice your lines');
   const changedCourse=await request(base,'/api/admin/courses/1',{method:'PATCH',cookie:staff,data:{title:'Legwork Lab',slug:'legwork-lab',description:'New overview',price:17000,guru_price:39000}});assert.equal(changedCourse.status,200);
   const newPricing=await request(base,'/api/courses');assert.equal(newPricing.body.courses[0].guru_price,39000);
+  const lessonEdit=await request(base,'/api/admin/lessons/2/full',{method:'PATCH',cookie:staff,data:{title:'Warm-up for ankles',category:'Waving',kind:'Element',level:'Intermediate',price:1500,duration:14,teacher:'Svitlana Yurchak',equipment:'Pole',focus:'Feet,Knees',tags:'#legwave'}});assert.equal(lessonEdit.status,200);
+  const publicLessons=await request(base,'/api/lessons');const edited=publicLessons.body.lessons.find(x=>x.id===2);assert.equal(edited.equipment,'Pole');assert.equal(edited.tags,'#legwave');assert.equal('video_url' in edited,false);
+  assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email:'reader@example.org',purpose:'book'}})).status,400,'Consent is required');
+  assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email:'reader@example.org',purpose:'book',consent:true}})).status,201);
+  const waitlist=await request(base,'/api/admin/waitlist',{cookie:staff});assert.equal(waitlist.body.entries[0].email,'reader@example.org');
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:student})).status,403);
   assert.equal((await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:staff})).status,200);
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,200);
