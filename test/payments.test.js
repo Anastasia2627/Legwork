@@ -49,6 +49,17 @@ test('Payment approval requires authentic matching signed callback and is idempo
   assert.equal(checkout.body.fields.serviceUrl,base+'/api/payments/wayforpay/webhook');
   assert.equal(checkout.body.fields.merchantSignature.length,32);
   assert.equal(JSON.stringify(checkout.body).includes(secret),false);
+  const resumed=await response(base,'/api/payments/continue',{method:'POST',cookie,data:{attempt_id:attempt}});
+  assert.equal(resumed.status,200);
+  assert.equal(resumed.body.fields.orderReference,ref);
+  assert.equal(resumed.body.fields.orderDate,checkout.body.fields.orderDate);
+  assert.equal(resumed.body.fields.merchantSignature,checkout.body.fields.merchantSignature);
+  assert.equal(resumed.body.price.uah_kopecks,checkout.body.price.uah_kopecks);
+  const ownedAttempts=await response(base,'/api/payments/mine',{cookie});
+  assert.equal(ownedAttempts.body.payments.length,1,'Continuing does not create a second charge attempt');
+  assert.equal((await response(base,'/api/payments/mine',{cookie:stranger.cookie})).body.payments.length,0);
+  assert.equal((await response(base,'/api/payments/continue',{method:'POST',cookie:stranger.cookie,data:{attempt_id:attempt}})).status,404);
+
   assert.equal((await response(base,'/api/payments/checkout',{method:'POST',cookie,data:{order_ids:[order.body.id]}})).status,409,'Second attempt for pending order is blocked');
   assert.equal((await response(base,'/api/payments/status/'+attempt,{cookie:stranger.cookie})).status,403,'Other student cannot read payment state');
   assert.equal((await response(base,'/api/payments/status/'+attempt)).status,401);
@@ -68,6 +79,12 @@ test('Payment approval requires authentic matching signed callback and is idempo
   assert.equal((await response(base,'/api/payments/checkout',{method:'POST',cookie,data:{order_ids:[order.body.id]}})).status,409,'Paid orders cannot be charged again');
   assert.equal((await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(ref,'6800.00','Declined')})).status,200);
   assert.equal((await response(base,'/api/payments/status/'+attempt,{cookie})).body.payment.status,'approved','Late decline cannot reverse confirmed payment');
+  const refunded=await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(ref,'6800.00','Refunded')});
+  assert.equal(refunded.status,200);
+  assert.equal((await response(base,'/api/payments/status/'+attempt,{cookie})).body.payment.status,'review_required','Refund triggers a staff review');
+  assert.equal((await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(ref)})).status,200);
+  assert.equal((await response(base,'/api/payments/status/'+attempt,{cookie})).body.payment.status,'review_required','Late approval must not hide a refund');
+
   const nextOrder=await response(base,'/api/orders',{method:'POST',cookie:stranger.cookie,data:{kind:'lesson',item_id:23}});assert.equal(nextOrder.status,201);
   const second=await response(base,'/api/payments/checkout',{method:'POST',cookie:stranger.cookie,data:{order_ids:[nextOrder.body.id]}});assert.equal(second.status,201);
   assert.equal((await response(base,'/api/payments/wayforpay/webhook',{method:'POST',data:callback(second.body.fields.orderReference,second.body.fields.amount,'Declined')})).status,200);
