@@ -127,3 +127,18 @@ test('Forgot password and invalid reset links show safe messages',async({page})=
  await page.goto('/#/reset-password/invalid');
  await expect(page.locator('main')).toContainText('INVALID RESET LINK');
 });
+
+test('Certificate verification and staff issuance controls appear in the interface',async({page})=>{
+ await page.goto('/#/verify-certificate/invalid');
+ await expect(page.locator('main')).toContainText('INVALID CERTIFICATE ID');
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('[data-tab="admin"]').click();
+ await expect(page.locator('#adminMount')).toContainText('COURSE CERTIFICATES');
+ await expect(page.locator('#adminMount')).toContainText('ISSUED CERTIFICATES');
+ await page.locator('[data-tab="achievements"]').click();
+ await expect(page.locator('.cabinet-main')).toContainText('COURSE CERTIFICATES');
+});

@@ -63,3 +63,7 @@ An administrator can create a bundle containing 2–30 lessons, set its discount
 The repository includes a WayForPay hosted payment form, a signed callback receiver, a payment-attempt ledger and automatic enrollment/lesson/bundle unlocking after an authenticated `Approved` callback. Payments are disabled until a legitimate merchant configures its own credentials, public HTTPS origin and approved UAH conversion rate. No real purchases or provider sandbox payments have been made. For required activation steps and restrictions, read [docs/payments.md](docs/payments.md).
 
 Customer payment history includes the signed-attempt status and a continue button for pending WayForPay invoices. A resumed invoice reuses its original reference and amount, not a new charge request.
+
+## Verified certificates
+
+Guru students can download PDF certificates only after completing every course lesson, submitting homework, and receiving explicit instructor approval on each assignment. The school administrator must issue each certificate. Certificates contain a unique verification reference and can be revoked; revocation disables the download. See [docs/certificates.md](docs/certificates.md). Certificates attest course completion, not professional accreditation.
