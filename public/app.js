@@ -1,3 +1,4 @@
+import {translatePage} from './i18n.js';
 const $=s=>document.querySelector(s),app=$('#app');
 const state={user:null,courses:[],lessons:[],dashboard:null,admin:null,cart:JSON.parse(localStorage.getItem('legwork_cart')||'[]'),lang:localStorage.getItem('legwork_lang')||'en',tab:'overview'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -10,8 +11,8 @@ const card=(title,body,tag='')=>'<div class="card"><div class="card-body">'+(tag
 const visual=(label,type='dark')=>'<div class="visual '+type+'"><b>'+esc(label)+'</b></div>';
 const faq=(arr)=>'<div class="faq">'+arr.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('')+'</div>';
 const getId=(route)=>Number(route.split('/')[2]);
-const syncHeader=()=>{$('#accountLink').textContent=state.user?'My account':'Log in';$('#cartCount').textContent=state.cart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang};
-function layout(markup){app.innerHTML=markup;syncHeader()}
+const syncHeader=()=>{$('#accountLink').textContent=state.user?'My account':'Log in';$('#cartCount').textContent=state.cart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar ↗':'Get started ↗';}
+function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,state.lang)}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){layout('<section class="hero hero-dark"><div class="inner"><p class="eyebrow">SVITLANA YURCHAK · DANCE EDUCATION</p><h1>MOVE LIKE<br><span class="outline-text">A BOSS.</span></h1><p>'+t('Learn exotic pole dance with confidence, intention, and movement that feels unmistakably yours.','Aprende exotic pole dance con confianza, técnica y estilo propio.')+'</p>'+btn('EXPLORE COURSES','course')+'</div></section>'+
 section('MY STORY','<div class="timeline">'+[['01','The beginning','Started pole dancing at 21 with no dance or sports background.'],['02','A new direction','Injuries led to exploring fluid floor movement and waves.'],['03','A signature method','Created Flexi Legs and a unique approach to legwork.'],['04','Around the world','Championships, workshops and international teaching.'],['05','Today','A community of 5,000+ students.']].map(([n,h,p])=>'<div class="timeline-item"><strong>'+n+'</strong><h3>'+h+'</h3><p>'+p+'</p></div>').join('')+'</div>','FROM FIRST STEPS TO SIGNATURE STYLE')+
