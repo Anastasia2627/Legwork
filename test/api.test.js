@@ -39,6 +39,25 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const second=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 2',email:'two@example.org',password:'SecondPassword-12345'}});
   assert.equal(second.status,200);const stranger=second.cookie;
   const admin=await request(base,'/api/auth/login',{method:'POST',data:{email:'Admin',password:adminSecret}});assert.equal(admin.status,200);const staff=admin.cookie;
+  const createdBundle=await request(base,'/api/admin/bundles',{method:'POST',cookie:staff,data:{title:'Legwork Essentials',slug:'legwork-essentials',description:'Three practice classes',direction:'Legwork',price:3400,original_price:4500,lesson_ids:[4,5,6]}});
+  assert.equal(createdBundle.status,201);
+  const bundleId=createdBundle.body.id;
+  const publicBundles=await request(base,'/api/bundles');
+  assert.equal(publicBundles.status,200);
+  assert.equal(publicBundles.body.bundles[0].lesson_ids.length,3);
+  assert.equal(JSON.stringify(publicBundles.body).includes('video_url'),false,'Public bundles never expose private video URLs');
+  assert.equal((await request(base,'/api/admin/bundles',{cookie:stranger})).status,403);
+  const bundleRequest=await request(base,'/api/orders/bundle',{method:'POST',cookie:stranger,data:{bundle_id:bundleId,amount:1}});
+  assert.equal(bundleRequest.status,201);
+  assert.equal(bundleRequest.body.amount,3400,'Bundle price is set by server');
+  assert.equal((await request(base,'/api/learning/4',{cookie:stranger})).status,403,'Pending bundle does not grant access');
+  assert.equal((await request(base,'/api/admin/orders/'+bundleRequest.body.id+'/approve',{method:'POST',cookie:staff})).status,200);
+  assert.equal((await request(base,'/api/learning/4',{cookie:stranger})).status,200);
+  assert.equal((await request(base,'/api/learning/6',{cookie:stranger})).status,200);
+  assert.equal((await request(base,'/api/learning/7',{cookie:stranger})).status,403,'Bundle does not unlock unbundled lessons');
+  assert.equal((await request(base,'/api/orders/bundle',{method:'POST',cookie:stranger,data:{bundle_id:bundleId}})).status,409);
+  assert.equal((await request(base,'/api/admin/bundles/'+bundleId,{method:'PATCH',cookie:staff,data:{lesson_ids:[4,5,7]}})).status,409,'Sold bundle contents must be immutable');
+
   const deep=await request(base,'/api/mentorships',{method:'POST',cookie:student,data:{package:'Deep',video_url:'https://youtube.com/watch?v=abcdef12345',instagram:'@first',experience:'One year',goals:'Fluidity',training_frequency:'2-3 times a week',teaching:'No'}});assert.equal(deep.status,201);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:student,data:{feedback:'Unauthorized'}})).status,403);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:staff,data:{feedback:'Too early'}})).status,409,'Feedback must wait for payment verification');
