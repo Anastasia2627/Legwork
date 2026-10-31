@@ -50,6 +50,11 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,200);
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:stranger})).status,403,'Other user cannot watch purchased course');
   const dash=await request(base,'/api/dashboard',{cookie:student});assert.equal(dash.body.enrollments[0].tier,'guru');
+  const batch=await request(base,'/api/orders/batch',{method:'POST',cookie:stranger,data:{lesson_ids:[2,3]}});
+  assert.equal(batch.status,201);assert.equal(batch.body.total,3000);assert.equal(batch.body.orders.length,2);
+  assert.equal((await request(base,'/api/orders/batch',{method:'POST',cookie:stranger,data:{lesson_ids:[2,3]}})).status,409,'Cannot duplicate a pending cart');
+  assert.equal((await request(base,'/api/orders/batch',{method:'POST',cookie:stranger,data:{lesson_ids:[4,9999]}})).status,409,'Invalid cart is rejected atomically');
+  assert.equal((await request(base,'/api/lessons/2/watch',{cookie:stranger})).status,403,'Pending cart never grants access');
   const progress=await request(base,'/api/progress/2',{method:'POST',cookie:student,data:{completed:true,homework_url:'https://example.org/homework'}});assert.equal(progress.status,200);
   assert.equal((await request(base,'/api/account/activity',{method:'POST',cookie:stranger,data:{lesson_id:2}})).status,403);
   assert.equal((await request(base,'/api/account/activity',{method:'POST',cookie:student,data:{lesson_id:2}})).status,200);
