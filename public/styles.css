@@ -43,3 +43,16 @@
 .bundle-card .card-body{min-width:0;overflow-wrap:anywhere}
 @media(max-width:970px){.shop-layout{grid-template-columns:180px minmax(0,1fr)}}
 @media(max-width:690px){.shop-layout{grid-template-columns:minmax(0,1fr)}.bundle-shelf{grid-template-columns:minmax(0,1fr)}}
+
+/* Purchase requests, payment handoff and reconciliation status. */
+.payment-order-list{display:grid;gap:10px;margin:18px 0}
+.payment-order{display:flex;gap:14px;align-items:center;cursor:pointer}
+.payment-order input{width:18px;height:18px;accent-color:var(--red);flex:none}
+.payment-order span:nth-child(2){flex:1;overflow-wrap:anywhere}
+.payment-page{max-width:760px;margin:0 auto}
+.payment-page h1{font-size:clamp(2.3rem,5vw,4.2rem)}
+.payment-page .price-card{margin-top:30px;background:white}
+.payment-page .price-card p{overflow-wrap:anywhere}
+.payment-success .price-card{border-color:#56aa87}
+.payment-warning .price-card{border-color:#d4a752}
+@media(max-width:550px){.payment-order{align-items:flex-start;flex-wrap:wrap}.payment-order .badge-label{margin-left:28px}}
