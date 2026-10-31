@@ -115,3 +115,15 @@ test('Payment controls stay disabled without merchant configuration',async({page
  await expect(page.locator('#beginPayment')).toHaveCount(0);
  await expect(page.locator('.payment-order-list input')).toBeDisabled();
 });
+
+test('Forgot password and invalid reset links show safe messages',async({page})=>{
+ await page.goto('/#/login');
+ await expect(page.locator('a[href="#/forgot-password"]')).toBeVisible();
+ await page.locator('a[href="#/forgot-password"]').click();
+ await expect(page.locator('h2').first()).toContainText('RESET YOUR PASSWORD');
+ await page.locator('#forgotPasswordForm [name="email"]').fill('unknown-student@example.test');
+ await page.locator('#forgotPasswordForm button').click();
+ await expect(page.locator('#toast')).toContainText('If the address is registered');
+ await page.goto('/#/reset-password/invalid');
+ await expect(page.locator('main')).toContainText('INVALID RESET LINK');
+});

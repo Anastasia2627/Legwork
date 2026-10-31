@@ -23,12 +23,13 @@ Open http://localhost:3000. A SQLite database is created at `data/legwork.sqlite
 - Checkout defaults to manual purchase requests until a verified WayForPay merchant is configured. Optional signed hosted checkout grants access only after a server-verified provider callback; never from a browser return page. See docs/payments.md.
 - Uploads are represented by external links for now; configure a private object-storage provider before allowing file uploads.
 - The repository must remain free of credentials, payment secrets, real customer recordings and other private data.
-- For production use HTTPS, backups, persistent disk, email provider, payment provider with webhook verification, and production security review.
+- For production use HTTPS, backups, persistent disk, configured SMTP provider, payment provider with webhook verification, and production security review.
 
 ## Features
 
 - Public About, Legwork Lab, Classes catalog, Mentorship, registration and login.
 - Direction shelves and filtered catalog (direction, level, type, teacher, equipment, focus, duration, hashtags); lesson and bundle detail; configurable multi-lesson bundles; validated mixed cart with atomic server-side orders.
+- Email verification, password recovery via single-use links, encrypted retryable transactional email queue (SMTP configured separately).
 - Student dashboard and a dedicated responsive course player: lesson syllabus, next/previous, private video playback, completion and homework links, instructor feedback, progress and achievement badges.
 - Paid lesson access, self/Guru course plans, mentorship answers and streaks.
 - Admin dashboard with course/lesson creation and editing, pricing, enrollment approval, purchase request list, mentorship queue, Guru homework feedback, and marketing waitlist.
