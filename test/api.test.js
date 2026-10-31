@@ -26,7 +26,8 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const first=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 1',email:'one@example.org',password:'LongUniquePassword-123'}});
   assert.equal(first.status,200);const student=first.cookie;assert.ok(student?.includes('legwork_session='));
   assert.equal((await request(base,'/api/lessons/1/watch',{cookie:student})).status,200);
-  const freeWorkspace=await request(base,'/api/learning/1',{cookie:student});assert.equal(freeWorkspace.status,200);assert.equal(freeWorkspace.body.syllabus.length,23);assert.equal(freeWorkspace.body.syllabus[0].accessible,true);assert.equal(freeWorkspace.body.syllabus[1].accessible,false);assert.equal(freeWorkspace.body.syllabus.some(x=>'video_url' in x),false,'Syllabus never discloses videos');
+  const freeWorkspace=await request(base,'/api/learning/1',{cookie:student});assert.equal(freeWorkspace.status,200);assert.equal(freeWorkspace.body.syllabus.length,23);
+  assert.equal((await request(base,'/api/progress/1',{method:'POST',cookie:student,data:{completed:true}})).status,200); const freeAchievements=await request(base,'/api/account/achievements',{cookie:student});assert.equal(freeAchievements.body.completed,1);assert.equal(freeWorkspace.body.syllabus[0].accessible,true);assert.equal(freeWorkspace.body.syllabus[1].accessible,false);assert.equal(freeWorkspace.body.syllabus.some(x=>'video_url' in x),false,'Syllabus never discloses videos');
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,403);
   assert.equal((await request(base,'/api/learning/2',{cookie:student})).status,403,'Course player enforces purchased access');
   assert.equal((await request(base,'/api/admin/overview',{cookie:student})).status,403);
