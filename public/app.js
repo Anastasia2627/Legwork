@@ -121,7 +121,7 @@ async function adminExtras(a){
 }
 
 async function adminMailPanel(){
- const response=await api('/api/admin/email-outbox'.replace('/api',''));
+ const response=await api('/admin/email-outbox');
  const root=$('#adminMount');if(!root)return;
  const values=Object.fromEntries(response.stats.map(x=>[x.status,x.n]));
  root.insertAdjacentHTML('beforeend','<h3>EMAIL DELIVERY HEALTH</h3><div class="grid grid-3">'+card('Email '+(response.enabled?'READY':'NOT CONFIGURED'),'SMTP configuration is stored on the server; passwords and message text are never shown here.','DELIVERY')+card(String(values.sent||0)+' SENT','Emails delivered successfully to the configured mail transport.','OUTBOX')+card(String(values.pending||0)+' PENDING / '+String(values.failed||0)+' FAILED','Unsent emails are retried by the server up to eight attempts.','QUEUE')+'</div>');
