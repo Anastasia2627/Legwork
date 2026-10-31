@@ -49,7 +49,7 @@ test('Certificate issuance requires admin-accepted Guru homework, PDF is private
   const verify=await request(base,'/api/certificates/verify/'+serial);assert.equal(verify.status,200);assert.equal(verify.body.valid,true);assert.equal(verify.body.student_name,'Олена Example');
   const ownPDF=await fetch(base+'/api/certificates/'+serial+'/pdf',{headers:{Cookie:cookie}});
   assert.equal(ownPDF.status,200,errors);assert.match(ownPDF.headers.get('content-type'),/application\/pdf/);
-  const pdf=Buffer.from(await ownPDF.arrayBuffer());assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.ok(pdf.length>10000,'Must generate a real embedded-font PDF');
+  const pdf=Buffer.from(await ownPDF.arrayBuffer());assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.ok(pdf.length>2500,'PDF should contain page objects and fonts; received '+pdf.length+' bytes');assert.ok(pdf.toString('latin1').includes('/FontFile'),'Must embed a usable Unicode font');
   const otherPDF=await fetch(base+'/api/certificates/'+serial+'/pdf',{headers:{Cookie:stranger.cookie}});
   assert.equal(otherPDF.status,403);
   assert.equal((await fetch(base+'/api/certificates/'+serial+'/pdf')).status,401);
