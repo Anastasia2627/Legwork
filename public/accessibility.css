@@ -1,0 +1,44 @@
+/* Legwork accessibility and small-screen hardening */
+.skip-link{position:fixed;left:14px;top:12px;padding:13px 18px;background:#171717;color:white;z-index:500;transform:translateY(-180%);border-radius:4px;font-weight:700}
+.skip-link:focus{transform:none}
+:where(a,button,input,textarea,select,summary,[tabindex]):focus-visible{outline:3px solid #1677a8;outline-offset:3px}
+:where(a,button,input,textarea,select):focus:not(:focus-visible){outline:none}
+button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.64}
+.drawer[inert]{visibility:hidden;pointer-events:none}
+.drawer.open{visibility:visible}
+#app:focus{outline:none}
+#app:focus-visible{outline:3px solid #1677a8;outline-offset:-3px}
+#toast{max-width:min(560px,94vw);overflow-wrap:anywhere}
+:where(.section,.hero,.cabinet-main,.shop-layout,.bundle-shelf,.study-content){min-width:0}
+:where(h1,h2,h3,p,.btn,.logo,.card-body,.item-row,.study-row-title){overflow-wrap:anywhere}
+button,.btn,input,select,textarea{max-width:100%}
+@media(max-width:690px){
+ .header{gap:9px}
+ #menuBtn{min-width:40px;min-height:44px;font-size:1.15rem}
+ #nav.open{max-height:calc(100dvh - 66px);overflow-y:auto;box-shadow:0 12px 22px #0002}
+ #nav a{padding:8px 2px}
+ .actions{gap:7px}
+ #cartBtn,#langBtn{min-height:44px}
+ .hero{overflow:hidden}
+ .hero .inner{max-width:100%}
+ .hero h1,.course-hero h1{overflow-wrap:anywhere}
+ .study-content,.section-inner,.cabinet-main{min-width:0}
+ .drawer{width:min(430px,100vw);padding:22px 18px}
+ .drawer .row{flex-wrap:wrap}
+}
+@media(max-width:360px){
+ .header{padding-inline:9px}
+ .logo{font-size:.74rem}
+ .logo small{font-size:.38rem}
+ .actions{gap:3px}
+ .actions .icon-btn{font-size:.68rem}
+ h1{font-size:clamp(2.3rem,13vw,3rem)}
+ .hero{min-height:520px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+@media(forced-colors:active){
+ :where(a,button,input,textarea,select,summary):focus-visible{outline:3px solid Highlight}
+ .study-lesson.selected{border-left:4px solid Highlight}
+}
