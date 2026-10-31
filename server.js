@@ -28,7 +28,10 @@ const secret=process.env.ADMIN_PASSWORD;if(secret&&secret.length>=12&&!secret.st
 if(prod&&!process.env.SITE_ORIGIN)throw Error('SITE_ORIGIN must be set to the HTTPS public origin in production');
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32||process.env.SESSION_SECRET.startsWith('REPLACE_')))throw Error('Set a unique SESSION_SECRET of at least 32 characters for production');
 app.disable('x-powered-by');app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["\u0027self\u0027","https://fonts.googleapis.com"],fontSrc:["\u0027self\u0027","https://fonts.gstatic.com"],styleSrcAttr:["\u0027unsafe-inline\u0027"],imgSrc:["'self'","data:","https:"],frameSrc:["'self'","https://www.youtube-nocookie.com"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:prod?[]:null}}}));app.use(express.json({limit:'100kb'}));
-app.use('/api/auth',rateLimit({windowMs:900000,limit:20,standardHeaders:'draft-7',legacyHeaders:false}));app.use('/api',rateLimit({windowMs:60000,limit:180,standardHeaders:'draft-7',legacyHeaders:false}));
+const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit,standardHeaders:'draft-7',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:'Too many requests. Please try again in a moment.'})});
+app.use('/api/auth',jsonRateLimit(30,15*60*1000));
+const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
+app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
 app.use('/api',(req,res,next)=>{
  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
  const configured=process.env.SITE_ORIGIN;
