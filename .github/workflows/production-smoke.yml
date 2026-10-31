@@ -1,0 +1,14 @@
+name: Production Docker Smoke
+on:
+  pull_request:
+  push:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify production image and durable data
+        run: bash scripts/ci-production-smoke.sh
