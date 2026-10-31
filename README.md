@@ -60,3 +60,5 @@ An administrator can create a bundle containing 2–30 lessons, set its discount
 ## Payment operations
 
 The repository includes a WayForPay hosted payment form, a signed callback receiver, a payment-attempt ledger and automatic enrollment/lesson/bundle unlocking after an authenticated `Approved` callback. Payments are disabled until a legitimate merchant configures its own credentials, public HTTPS origin and approved UAH conversion rate. No real purchases or provider sandbox payments have been made. For required activation steps and restrictions, read [docs/payments.md](docs/payments.md).
+
+Customer payment history includes the signed-attempt status and a continue button for pending WayForPay invoices. A resumed invoice reuses its original reference and amount, not a new charge request.
