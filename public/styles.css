@@ -12,3 +12,12 @@
 .bundle-visual-tile:nth-child(3){background:linear-gradient(145deg,#fac98b,#bd5025);color:#fff}
 .bundle-card s{color:#868686;margin-right:8px}.bundle-card .eyebrow{margin:0 0 10px}.bundle-card .row{align-items:center;margin-top:16px}
 @media(max-width:690px){.lesson-shelf .bundle-card{flex-basis:82vw}.bundle-visual{height:150px}.bundle-card .row{align-items:flex-start}}
+
+/* Prevent horizontal scroll snapping from fighting touch buttons and auto-scroll. */
+.lesson-shelf{scroll-behavior:auto}
+@media(max-width:690px){
+ .lesson-shelf{scroll-snap-type:none;scroll-behavior:auto}
+ .lesson-shelf .lesson-card,.lesson-shelf .bundle-card{scroll-snap-align:none}
+ .bundle-card .row{flex-direction:column;align-items:stretch;gap:12px}
+ .bundle-card [data-cart-bundle]{width:100%}
+}
