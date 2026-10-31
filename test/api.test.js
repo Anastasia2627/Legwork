@@ -26,7 +26,8 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const first=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 1',email:'one@example.org',password:'LongUniquePassword-123'}});
   assert.equal(first.status,200);const student=first.cookie;assert.ok(student?.includes('legwork_session='));
   assert.equal((await request(base,'/api/lessons/1/watch',{cookie:student})).status,200);
-  const freeWorkspace=await request(base,'/api/learning/1',{cookie:student});assert.equal(freeWorkspace.status,200);assert.equal(freeWorkspace.body.syllabus.length,23);assert.equal(freeWorkspace.body.syllabus[0].accessible,true);assert.equal(freeWorkspace.body.syllabus[1].accessible,false);assert.equal(freeWorkspace.body.syllabus.some(x=>'video_url' in x),false,'Syllabus never discloses videos');
+  const freeWorkspace=await request(base,'/api/learning/1',{cookie:student});assert.equal(freeWorkspace.status,200);assert.equal(freeWorkspace.body.syllabus.length,23);
+  assert.equal((await request(base,'/api/progress/1',{method:'POST',cookie:student,data:{completed:true}})).status,200); const freeAchievements=await request(base,'/api/account/achievements',{cookie:student});assert.equal(freeAchievements.body.completed,1);assert.equal(freeWorkspace.body.syllabus[0].accessible,true);assert.equal(freeWorkspace.body.syllabus[1].accessible,false);assert.equal(freeWorkspace.body.syllabus.some(x=>'video_url' in x),false,'Syllabus never discloses videos');
   assert.equal((await request(base,'/api/lessons/2/watch',{cookie:student})).status,403);
   assert.equal((await request(base,'/api/learning/2',{cookie:student})).status,403,'Course player enforces purchased access');
   assert.equal((await request(base,'/api/admin/overview',{cookie:student})).status,403);
@@ -39,6 +40,32 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   const second=await request(base,'/api/auth/register',{method:'POST',data:{name:'Student 2',email:'two@example.org',password:'SecondPassword-12345'}});
   assert.equal(second.status,200);const stranger=second.cookie;
   const admin=await request(base,'/api/auth/login',{method:'POST',data:{email:'Admin',password:adminSecret}});assert.equal(admin.status,200);const staff=admin.cookie;
+  const createdBundle=await request(base,'/api/admin/bundles',{method:'POST',cookie:staff,data:{title:'Legwork Essentials',slug:'legwork-essentials',description:'Three practice classes',direction:'Legwork',price:3400,original_price:4500,lesson_ids:[4,5,6]}});
+  assert.equal(createdBundle.status,201);
+  const bundleId=createdBundle.body.id;
+  const mixedCart=await request(base,'/api/orders/batch',{method:'POST',cookie:student,data:{lesson_ids:[7],bundle_ids:[bundleId],amount:1}});
+  assert.equal(mixedCart.status,201);
+  assert.equal(mixedCart.body.total,4900,'Mixed cart total must be calculated from the database');
+  assert.equal(mixedCart.body.orders.length,2);
+  assert.equal((await request(base,'/api/learning/7',{cookie:student})).status,403,'Cart request does not unlock lessons');
+  assert.equal((await request(base,'/api/orders/batch',{method:'POST',cookie:student,data:{lesson_ids:[4],bundle_ids:[bundleId]}})).status,409,'Overlapping cart lessons are rejected');
+
+  const publicBundles=await request(base,'/api/bundles');
+  assert.equal(publicBundles.status,200);
+  assert.equal(publicBundles.body.bundles[0].lesson_ids.length,3);
+  assert.equal(JSON.stringify(publicBundles.body).includes('video_url'),false,'Public bundles never expose private video URLs');
+  assert.equal((await request(base,'/api/admin/bundles',{cookie:stranger})).status,403);
+  const bundleRequest=await request(base,'/api/orders/bundle',{method:'POST',cookie:stranger,data:{bundle_id:bundleId,amount:1}});
+  assert.equal(bundleRequest.status,201);
+  assert.equal(bundleRequest.body.amount,3400,'Bundle price is set by server');
+  assert.equal((await request(base,'/api/learning/4',{cookie:stranger})).status,403,'Pending bundle does not grant access');
+  assert.equal((await request(base,'/api/admin/orders/'+bundleRequest.body.id+'/approve',{method:'POST',cookie:staff})).status,200);
+  assert.equal((await request(base,'/api/learning/4',{cookie:stranger})).status,200);
+  assert.equal((await request(base,'/api/learning/6',{cookie:stranger})).status,200);
+  assert.equal((await request(base,'/api/learning/7',{cookie:stranger})).status,403,'Bundle does not unlock unbundled lessons');
+  assert.equal((await request(base,'/api/orders/bundle',{method:'POST',cookie:stranger,data:{bundle_id:bundleId}})).status,409);
+  assert.equal((await request(base,'/api/admin/bundles/'+bundleId,{method:'PATCH',cookie:staff,data:{lesson_ids:[4,5,7]}})).status,409,'Sold bundle contents must be immutable');
+
   const deep=await request(base,'/api/mentorships',{method:'POST',cookie:student,data:{package:'Deep',video_url:'https://youtube.com/watch?v=abcdef12345',instagram:'@first',experience:'One year',goals:'Fluidity',training_frequency:'2-3 times a week',teaching:'No'}});assert.equal(deep.status,201);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:student,data:{feedback:'Unauthorized'}})).status,403);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:staff,data:{feedback:'Too early'}})).status,409,'Feedback must wait for payment verification');

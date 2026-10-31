@@ -25,6 +25,7 @@ const el=(tag,attrs,children)=>{
 };
 export async function renderStudy(id,{api,layout,notice,lang}){
  const model=await api('/learning/'+encodeURIComponent(id));
+ if(window.location.hash!=='#/study/'+id)return;
  const l=model.lesson,course=model.course,lessons=model.syllabus;
  const index=lessons.findIndex(x=>x.id===l.id);
  const accessible=lessons.filter(x=>x.accessible);

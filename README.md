@@ -28,7 +28,7 @@ Open http://localhost:3000. A SQLite database is created at `data/legwork.sqlite
 ## Features
 
 - Public About, Legwork Lab, Classes catalog, Mentorship, registration and login.
-- Direction shelves and filtered catalog (direction, level, type, teacher, equipment, focus, duration, hashtags); lesson detail; validated cart with atomic server-side order requests.
+- Direction shelves and filtered catalog (direction, level, type, teacher, equipment, focus, duration, hashtags); lesson and bundle detail; configurable multi-lesson bundles; validated mixed cart with atomic server-side orders.
 - Student dashboard and a dedicated responsive course player: lesson syllabus, next/previous, private video playback, completion and homework links, instructor feedback, progress and achievement badges.
 - Paid lesson access, self/Guru course plans, mentorship answers and streaks.
 - Admin dashboard with course/lesson creation and editing, pricing, enrollment approval, purchase request list, mentorship queue, Guru homework feedback, and marketing waitlist.
@@ -52,3 +52,7 @@ Automated tests include integration checks for registration, session invalidatio
 Run `npm run test:e2e` after `npx playwright install chromium`. Tests start a separate local server with disposable test-only credentials and exercise the full student journey on desktop and mobile Chromium. They do not use production accounts.
 
 Private video URLs are only returned by `/api/learning/:id` after authorization; no purchased video URL is included in `/api/lessons` or the rest of the syllabus.
+
+## Lesson bundles
+
+An administrator can create a bundle containing 2–30 lessons, set its discounted/current and original prices, publish it or hide it. Shoppers can combine bundles with non-overlapping individual lessons in one cart. The server calculates totals, checks availability and does not grant access until the order is manually verified. After a bundle has been sold, its included lessons cannot be changed: create a new bundle version.

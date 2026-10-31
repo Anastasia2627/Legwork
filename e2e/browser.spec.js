@@ -9,6 +9,7 @@ test('Public navigation and catalog filters',async({page},info)=>{
  await page.goto('/#/shop');
  await expect(page.locator('h1')).toContainText('CLASSES');
  await expect(page.locator('.catalog-direction')).toHaveCount(3);
+ await expect(page.locator('.lesson-card').nth(1).locator('a').first()).toHaveAttribute('href',/#\/lesson\//);
  await page.locator('#filterCategory').selectOption('Legwork');
  await expect(page).toHaveURL(/category=Legwork/);
  await expect(page.locator('.lesson-card').first()).toBeVisible();
@@ -66,4 +67,34 @@ test('Admin sign-in opens staff dashboard',async({page})=>{
  await page.locator('[data-tab="admin"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('ADMIN STUDIO');
  await expect(page.locator('#adminMount')).toContainText('GURU HOMEWORK REVIEW QUEUE');
+});
+
+test('Admin can publish a bundle, and it appears in the shop and cart',async({page},info)=>{
+ const suffix=info.project.name.replace(/[^a-z0-9-]/g,'-');
+ const title='Practice bundle '+suffix;
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('[data-tab="admin"]').click();
+ await expect(page.locator('#bundleCreateForm')).toBeVisible();
+ const form=page.locator('#bundleCreateForm');
+ await form.locator('[name="title"]').fill(title);
+ await form.locator('[name="slug"]').fill('practice-bundle-'+suffix);
+ await form.locator('[name="direction"]').fill('Legwork');
+ await form.locator('[name="description"]').fill('Three technique lessons');
+ await form.locator('[name="price"]').fill('3200');
+ await form.locator('[name="original_price"]').fill('4500');
+ await form.locator('[name="lesson_ids"]').selectOption(['4','5','6']);
+ await form.locator('button').click();
+ await expect(page.locator('#adminMount')).toContainText(title);
+ await page.goto('/#/shop');
+ const card=page.locator('.bundle-card').filter({hasText:title}).first();
+ await expect(card).toBeVisible();
+ await card.locator('[data-cart-bundle]').click();
+ await page.locator('#cartBtn').click();
+ await expect(page.locator('#cartDrawer')).toHaveClass(/open/);
+ await expect(page.locator('#cartBody')).toContainText(title);
+ await expect(page.locator('#cartBody')).toContainText('$32');
 });
