@@ -137,7 +137,9 @@ if(button.dataset.message){e.preventDefault();notice(button.dataset.message)}
 if(button.dataset.tab){state.tab=button.dataset.tab;await account()}
 if(button.id==='logout'){await api('/auth/logout','POST');state.user=null;state.tab='overview';location.hash='#/';await navigate()}
 if(button.dataset.order){if(!state.user){location.hash='#/login';notice('Log in before requesting course access');return}const result=await api('/orders','POST',{kind:button.dataset.order,item_id:Number(button.dataset.id),plan:button.dataset.plan||'self'});notice(result.message);state.tab='overview';location.hash='#/account';await navigate();return}
-if(button.dataset.cart){const id=Number(button.dataset.cart);if(!state.cart.includes(id))state.cart.push(id);updateCart();notice('Added to bag')}
+if(button.dataset.cart){const id=Number(button.dataset.cart);if(state.bundleCart.some(bid=>state.bundles.find(b=>b.id===bid)?.lesson_ids.includes(id))){notice('This lesson is already included in a bundle in your bag');return}if(!state.cart.includes(id))state.cart.push(id);updateCart();notice('Lesson added to bag')}
+if(button.dataset.cartBundle){const id=Number(button.dataset.cartBundle),b=state.bundles.find(x=>x.id===id);if(!b){notice('Bundle unavailable');return}if(state.bundleCart.includes(id)){showCart();return}if(state.bundleCart.some(bid=>state.bundles.find(x=>x.id===bid)?.lesson_ids.some(lid=>b.lesson_ids.includes(lid)))){notice('This bundle overlaps another bundle already in your bag');return}state.cart=state.cart.filter(lid=>!b.lesson_ids.includes(lid));state.bundleCart.push(id);updateCart();notice('Complete bundle added to bag')}
+if(button.dataset.removeBundle){state.bundleCart=state.bundleCart.filter(id=>id!==Number(button.dataset.removeBundle));updateCart();showCart()}
 if(button.dataset.remove){state.cart=state.cart.filter(id=>id!==Number(button.dataset.remove));updateCart();showCart()}
 if(button.dataset.watch){if(!state.user){location.hash='#/login';notice('Create a free account or log in to watch lessons.');return}location.hash='#/study/'+Number(button.dataset.watch);return}
 
