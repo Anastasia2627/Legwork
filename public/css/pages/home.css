@@ -53,3 +53,6 @@
 @media(max-width:920px){.hero-portrait .media-photo{height:410px}}
 @media(max-width:670px){.hero-portrait .media-photo{height:400px}}
 @media(max-width:420px){.hero-portrait .media-photo{height:315px}}
+.ref-upcoming h3{font:700 clamp(17px,2vw,23px)/1.2 var(--font-body);letter-spacing:-.035em}
+.ref-featured p{font-weight:400}
+.ref-awards-list p{font-weight:400}
