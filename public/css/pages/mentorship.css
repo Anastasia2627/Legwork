@@ -24,3 +24,9 @@
 .mentorship-reassurance strong{font:700 25px/1.2 var(--font-body)}
 @media(max-width:720px){.ref-mentor-hero{padding:50px 5%}.ref-mentor-intro,.ref-mentor-sample{grid-template-columns:1fr}.ref-mentor-intro .mentor-photo{height:410px;max-width:360px}.ref-step-pills{flex-wrap:wrap}}
 @media(max-width:430px){.ref-mentor-intro .mentor-photo{height:320px}.ref-mentor-form{padding:20px}}
+
+.mentor-photo{margin:0;height:auto;background:transparent;overflow:visible}
+.mentor-photo .media-photo{width:100%;height:360px;object-fit:cover;object-position:center 47%;border-radius:8px}
+.mentor-photo .photo-credit{margin-top:7px}
+@media(max-width:720px){.mentor-photo .media-photo{height:420px;max-width:360px}}
+@media(max-width:430px){.mentor-photo .media-photo{height:320px}}
