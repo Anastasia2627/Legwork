@@ -29,10 +29,13 @@ jobs:
           mkdir -p dist
           cp preview/index.html dist/index.html
           cp preview/demo.js dist/demo.js
+          cp preview/reference.js preview/reference.css dist/
           cp public/styles.css public/learning.css public/accessibility.css dist/
           touch dist/.nojekyll
           test -s dist/index.html
           test -s dist/demo.js
+          test -s dist/reference.js
+          test -s dist/reference.css
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
