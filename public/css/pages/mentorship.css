@@ -1,0 +1,26 @@
+.ref-mentor-hero{background:#f2eeed;padding:70px 6%}
+.ref-mentor-hero h1{font-size:clamp(38px,5.4vw,70px);max-width:900px}
+.ref-mentor-hero p{font-size:16px;max-width:540px;color:var(--muted);margin:15px 0 23px}
+.ref-mentor-intro{display:grid;grid-template-columns:300px 1fr;gap:50px;align-items:center}
+.ref-mentor-intro .mentor-photo{height:360px;overflow:hidden;background:#e0a4b0;border-radius:8px}
+.ref-mentor-intro .mentor-photo img{width:100%;height:100%;object-fit:cover}
+.ref-mentor-intro>div:last-child p{font-size:15px;margin:14px 0}
+.ref-mentor-sample{display:grid;grid-template-columns:.7fr 1.3fr;gap:27px;background:#f4f1f0;padding:30px;border-radius:8px}
+.feedback-symbol{background:#1f1e21;min-height:225px;border-radius:5px;color:white;padding:25px;display:flex;flex-direction:column;justify-content:space-between}
+.feedback-symbol strong{color:#e56586;font:400 54px var(--font-display)}
+.feedback-symbol span{font:400 27px/1.1 var(--font-display)}
+.ref-mentor-sample h3{font-size:22px}
+.ref-mentor-sample p{font-size:14px;color:var(--muted)}
+.ref-recommended{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ref-recommended a{background:white;border-radius:4px;padding:15px;font-size:13px;font-weight:700}
+.ref-step-pills{display:flex;justify-content:center;gap:8px;margin:0 0 16px}
+.ref-step-pills span{background:#fff;padding:8px 15px;border-radius:24px;font-size:12px}
+.ref-step-pills span:first-child{background:#212022;color:white}
+.ref-mentor-form{width:100%;max-width:660px;padding:32px;margin:auto;background:#fff;border-radius:7px}
+.ref-mentor-form form{width:100%}
+.ref-mentor-form .field,.ref-mentor-form select,.ref-mentor-form textarea{width:100%}
+.ref-mentor-form .btn{width:100%}
+.mentorship-reassurance{padding:30px 0;border-top:1px solid var(--border)}
+.mentorship-reassurance strong{font:700 25px/1.2 var(--font-body)}
+@media(max-width:720px){.ref-mentor-hero{padding:50px 5%}.ref-mentor-intro,.ref-mentor-sample{grid-template-columns:1fr}.ref-mentor-intro .mentor-photo{height:410px;max-width:360px}.ref-step-pills{flex-wrap:wrap}}
+@media(max-width:430px){.ref-mentor-intro .mentor-photo{height:320px}.ref-mentor-form{padding:20px}}
