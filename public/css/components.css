@@ -6,7 +6,7 @@
 .lesson-cover{background:#272326;color:white;height:170px;display:flex;flex-direction:column;justify-content:space-between;padding:19px;position:relative;overflow:hidden}
 .lesson-cover:after{content:"";position:absolute;right:-35px;top:-55px;width:150px;height:150px;border:1px solid #ffffff45;border-radius:50%}
 .lesson-cover-top,.lesson-cover-foot{font-size:10px;letter-spacing:.09em;font-weight:700}
-.lesson-cover-title{font:400 clamp(18px,2vw,28px)/1.1 var(--font-display);letter-spacing:-.05em;max-width:90%;overflow-wrap:anywhere}
+.lesson-cover-title{font:700 clamp(16px,1.75vw,22px)/1.21 var(--font-body);letter-spacing:-.035em;max-width:90%;overflow-wrap:anywhere}
 .lesson-card:nth-child(3n+2) .lesson-cover{background:#d8e3e5;color:#17343e}
 .lesson-card:nth-child(3n+3) .lesson-cover{background:#f1d5da;color:#6d1631}
 .lesson-card .card-body{padding:15px}
@@ -15,7 +15,7 @@
 .lesson-card .btn-small{font-size:11px;min-height:32px;padding:8px 11px}
 .bundle-cover{background:#f3e9e8;min-height:140px;padding:16px;display:flex;flex-direction:column;justify-content:space-between}
 .bundle-cover span{font-size:10px;letter-spacing:.08em}
-.bundle-cover strong{font:400 clamp(20px,2.1vw,30px)/1.1 var(--font-display);letter-spacing:-.05em;color:#ad0733}
+.bundle-cover strong{font:700 clamp(17px,1.6vw,22px)/1.22 var(--font-body);letter-spacing:-.045em;color:#442b33}
 .ref-lesson-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .ref-lesson-grid .card{min-width:0}
 .ref-program-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}
