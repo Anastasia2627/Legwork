@@ -1,0 +1,35 @@
+.cabinet{display:grid;grid-template-columns:210px minmax(0,1fr);background:#fff;min-height:calc(100vh - 76px)}
+.cabinet-nav{background:#f4f2f1;border-right:1px solid var(--border);padding:30px 17px}
+.cabinet-nav button{font:600 13px var(--font-body);border-radius:5px;text-align:left;padding:13px 15px}
+.cabinet-nav button.active{background:white;border-left:3px solid var(--red);color:var(--ink)}
+.cabinet-main{padding:clamp(30px,5vw,70px);max-width:1400px}
+.cabinet-main>h2{font-size:clamp(27px,3vw,39px)}
+.account-continue{background:#222024;color:#fff;border-radius:9px;padding:24px;min-height:185px;display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:25px;align-items:center}
+.account-continue-art{background:#393339;height:140px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between;padding:17px}
+.account-continue-art span{font-size:10px;letter-spacing:.1em}
+.account-continue-art strong{font:400 23px/1.05 var(--font-display)}
+.account-continue h3{font-size:20px;color:white}
+.account-continue .progress-bar,.account-course .progress-bar{background:#696365;height:7px;overflow:hidden;border-radius:4px;margin:12px 0 7px}
+.account-continue .progress-bar i,.account-course .progress-bar i{background:var(--red);height:100%;display:block}
+.account-continue small{font-size:11px;color:#d6cbd1}
+.account-section-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:38px 0 17px}
+.account-section-head h3{font:700 13px var(--font-body);margin:0;letter-spacing:.08em}
+.account-section-head .tiny-link{background:none;border:0;font-size:11px;text-decoration:underline}
+.account-course{border:1px solid var(--border);border-radius:7px;overflow:hidden;display:block}
+.account-course-cover{background:#e8e1e1;padding:20px;min-height:140px;display:flex;flex-direction:column;justify-content:space-between}
+.account-course-cover span{font-size:10px;letter-spacing:.1em}
+.account-course-cover strong{font:400 25px/1.09 var(--font-display)}
+.account-course-info{padding:15px}
+.account-course h3{font-size:15px}
+.account-course .progress-bar{background:#e5dfe0}
+.account-course small,.account-course span{font-size:11px}
+.account-feedback-entry{display:grid;grid-template-columns:95px 1fr;gap:16px;border:1px solid var(--border);border-radius:7px;padding:15px}
+.account-feedback-visual{background:#222024;color:white;display:grid;place-items:center;padding:10px}
+.account-feedback-visual span{font:400 13px/1.2 var(--font-display)}
+.account-feedback-entry p{font-size:12px;color:var(--muted)}
+.account-achievements{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;border:1px solid var(--border);padding:20px;border-radius:7px}
+.account-achievements>div{text-align:center;display:flex;align-items:center;flex-direction:column;gap:7px}
+.account-achievements strong{background:var(--red);border-radius:50%;width:45px;height:45px;display:grid;place-items:center;color:#fff;font:400 19px var(--font-display)}
+.account-achievements span{font-size:11px;color:var(--muted)}
+@media(max-width:850px){.cabinet{grid-template-columns:1fr}.cabinet-nav{display:flex;overflow-x:auto;gap:8px;padding:12px}.cabinet-nav button{white-space:nowrap}.account-continue{grid-template-columns:125px 1fr}.account-continue .btn{grid-column:2;justify-self:start}.account-continue-art{height:130px}}
+@media(max-width:550px){.cabinet-main{padding:25px 5%}.account-continue{grid-template-columns:1fr}.account-continue-art{display:none}.account-continue .btn{grid-column:1}.account-achievements{padding:12px;gap:5px}.account-achievements strong{width:36px;height:36px;font-size:16px}}
