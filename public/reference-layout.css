@@ -170,3 +170,35 @@
 .cabinet-main .item-row{border:1px solid #ece9e9;padding:20px;margin:8px 0}
 @media(max-width:950px){.bundle-card{grid-template-columns:1fr}.bundle-card .bundle-visual{min-height:120px;height:120px}.lesson-shelf{grid-auto-columns:minmax(185px,45%)}.shop-layout{gap:20px}}
 @media(max-width:690px){.shop-layout{grid-template-columns:1fr}.shop-layout .filter-panel{position:static;max-height:none;overflow:visible;border-right:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.shop-layout .filter-panel>div{min-width:0}.catalog-direction h2{font-size:2rem}.lesson-shelf{grid-auto-columns:minmax(185px,68%)}.bundle-shelf{grid-template-columns:1fr}.bundle-card{grid-template-columns:36% 1fr}.cabinet{grid-template-columns:1fr}.cabinet-nav{display:flex;flex-direction:row;gap:5px;overflow-x:auto;border:0;padding:13px}.cabinet-nav button{white-space:nowrap}.cabinet-main>.dark-card{display:block}.cabinet-main>.dark-card .progress-bar{margin:12px 0}.cabinet-main>.dark-card .btn{margin-top:15px}}
+
+/* Student dashboard reference composition. */
+.account-continue{background:#1e1d1e;color:#fff;min-height:205px;display:grid;grid-template-columns:minmax(135px,195px) minmax(0,1fr) auto;align-items:center;gap:25px;padding:23px 28px;border-radius:5px}
+.account-continue-art{height:155px;background:#444244;border-radius:3px}
+.account-continue-content{min-width:0}
+.account-continue .eyebrow{color:#b1abad;margin-bottom:10px}
+.account-continue h3{font-size:clamp(1.1rem,2vw,1.75rem);margin:0 0 17px}
+.account-continue .progress-bar{height:7px;background:#666266;border-radius:3px;overflow:hidden;max-width:460px}
+.account-continue .progress-bar i{display:block;height:100%;background:var(--red)}
+.account-continue small{font-size:.67rem;color:#c3bdc0}
+.account-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:35px 0 17px}
+.account-section-head h3{font-family:'DM Sans',sans-serif;font-size:.78rem;letter-spacing:.1em;font-weight:800;margin:0}
+.account-section-head .tiny-link{border:0;background:none;text-decoration:underline;text-underline-offset:3px;font-size:.7rem;font-weight:700}
+.account-course{border:1px solid #e6e2e2;background:white;display:block;border-radius:5px;overflow:hidden}
+.account-course-image{height:150px;background:#e1dfdf}
+.account-course-info{padding:15px}
+.account-course h3{font-family:'DM Sans',sans-serif;font-size:1rem;letter-spacing:0;margin:0 0 4px}
+.account-course span{font-size:.69rem;color:#777}
+.account-course .progress-bar{height:7px;background:#e9e6e6;border-radius:1px;overflow:hidden;margin:13px 0 5px}
+.account-course .progress-bar i{display:block;background:var(--red);height:100%}
+.account-course small{font-size:.66rem;color:#777}
+.account-panels{margin-top:10px;gap:23px}
+.account-feedback-entry{display:flex;gap:15px;border:1px solid #e5e2e2;border-radius:5px;padding:15px;align-items:start}
+.account-feedback-visual{background:#1e1d1e;min-width:110px;min-height:100px}
+.account-feedback-entry strong{font-size:.84rem}
+.account-feedback-entry p{font-size:.8rem;color:#777;margin:8px 0}
+.account-achievements{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid #e5e2e2;border-radius:5px;padding:23px;gap:10px}
+.account-achievements>div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.account-achievements strong{display:grid;place-items:center;width:59px;height:59px;border-radius:50%;background:var(--red);color:white;font-family:'Archivo Black';font-size:1.3rem}
+.account-achievements span{font-size:.65rem;color:#777;line-height:1.35}
+@media(max-width:950px){.account-continue{grid-template-columns:120px 1fr;gap:15px}.account-continue .btn{grid-column:2;justify-self:start}.account-continue-art{height:140px}}
+@media(max-width:600px){.account-continue{grid-template-columns:1fr;padding:21px}.account-continue-art{display:none}.account-continue .btn{grid-column:1}.account-achievements{padding:14px}.account-achievements strong{width:45px;height:45px;font-size:1.05rem}.account-feedback-visual{min-width:70px}}
