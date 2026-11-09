@@ -34,7 +34,7 @@ Open http://localhost:3000. A SQLite database is created at `data/legwork.sqlite
 - Paid lesson access, self/Guru course plans, mentorship answers and streaks.
 - Admin dashboard with course/lesson creation and editing, pricing, enrollment approval, purchase request list, mentorship queue, Guru homework feedback, and marketing waitlist.
 - Editable content in the admin dashboard; EN/ES navigation and core text.
-- Semantic layout, responsive styling, lazy media placeholders.
+- Semantic layout, responsive modular styling, real-media preview sourcing and admin-editable lesson cover images.
 
 ## Missing inputs for production
 
@@ -79,3 +79,7 @@ The navigation, storefront, filters, student classroom, account, payments, certi
 ## Release readiness and accessibility
 
 Public routes /, /course, /shop and /mentorship have server-rendered fallback metadata, but indexing is disabled until PUBLIC_INDEXING_ENABLED=true on a public HTTPS production host. robots.txt disallows crawlers and sitemap.xml stays unavailable before launch. Keyboard navigation, accessible cart state and responsive layout tests cover small mobile widths. Read [docs/deployment.md](docs/deployment.md) before deploying; real payment and mail services are not configured in the repository.
+
+## Frontend ownership and photography
+
+See [Frontend architecture](docs/frontend-architecture.md) for the CSS ownership map, image editing, safety notes and test checklist. The page styles now live in `public/css/core.css`, `public/css/components.css` and `public/css/pages/`. Legacy `public/styles.css` remains only for pre-existing features; don't add new design overrides there. Two verified editorial photos are used only as credited development examples until media permissions and approved owner assets are provided. Admins can set each lesson's public HTTPS `cover_url` without touching code.
