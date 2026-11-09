@@ -21,5 +21,8 @@ export function mediaFigure(key, className='photo-frame'){
  const asset=MEDIA[key];
  if(!asset)return '';
  const safeClass=className.replace(/[^a-zA-Z0-9\s_-]/g,'');
- return '<figure class="'+safeClass+'"><img class="media-photo" loading="lazy" decoding="async" src="'+asset.src+'" alt="'+asset.alt+'"><figcaption class="photo-credit">Image: <a href="'+asset.source+'" target="_blank" rel="noopener noreferrer">'+asset.credit+'</a></figcaption></figure>';
+ const firstScreen=safeClass.includes('hero-portrait');
+ const mode=firstScreen?' loading="eager" fetchpriority="high"':' loading="lazy"';
+ const dimensions=key==='portrait'?' width="683" height="1024"':' width="1200" height="630"';
+ return '<figure class="'+safeClass+'"><img class="media-photo"'+mode+dimensions+' decoding="async" src="'+asset.src+'" alt="'+asset.alt+'"><figcaption class="photo-credit">Image: <a href="'+asset.source+'" target="_blank" rel="noopener noreferrer">'+asset.credit+'</a></figcaption></figure>';
 }
