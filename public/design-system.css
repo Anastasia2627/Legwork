@@ -1,0 +1,98 @@
+/* Legwork visual system — editorial design layer.
+   Two typefaces only: Archivo Black for display, DM Sans for interface. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700;800&display=swap');
+:root{--red:#cd0737;--black:#1a1b1d;--ink:#1a1b1d;--muted:#706e70;--line:#e8e5e5;--cream:#f7f6f4;--light:#f0efed;--cyan:#247f95;--radius:6px}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',Arial,sans-serif;background:#fff;color:var(--ink);font-size:15px;line-height:1.54;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.logo,.display,.number,.price{font-family:'Archivo Black',Impact,sans-serif;letter-spacing:-.055em}
+h1{letter-spacing:-.065em;line-height:.99}
+h2{letter-spacing:-.055em;line-height:1.045}
+h3{line-height:1.15}
+p{overflow-wrap:break-word}
+.header{min-height:82px;height:auto;padding:14px clamp(24px,5vw,84px);gap:25px;background:#fffffff2;backdrop-filter:blur(18px);border-bottom:1px solid #ece9e8}
+.logo{font-size:1.04rem;letter-spacing:-.055em;line-height:1}
+.logo span{color:var(--black)}
+.logo small{letter-spacing:.21em;font-size:.47rem;color:var(--red);margin-top:7px}
+.header nav{gap:clamp(13px,2vw,32px);font-size:.81rem;letter-spacing:.01em}
+.header nav a{position:relative;padding:9px 0}
+.header nav a:after{content:"";height:1px;position:absolute;left:0;right:100%;bottom:4px;background:var(--red);transition:right .22s ease}
+.header nav a:hover:after,.header nav a:focus-visible:after{right:0}
+.actions{gap:clamp(10px,1.5vw,20px)}
+.btn{border-radius:3px;box-shadow:none;transition:background .2s,transform .2s,border-color .2s;padding:13px 22px;letter-spacing:.01em}
+.btn:hover{transform:translateY(-2px)}
+.btn-red{background:var(--red);border-color:var(--red)}
+.btn-red:hover{background:#ae0730;border-color:#ae0730}
+.btn-outline:hover{border-color:var(--red);color:var(--red)}
+.section{padding:clamp(65px,8vw,122px) clamp(25px,6vw,108px)}
+.section-inner{max-width:1340px}
+.eyebrow{font-size:.71rem;letter-spacing:.18em;line-height:1.6;font-weight:800;color:var(--red);margin-bottom:24px}
+.section h2{max-width:1000px;margin-bottom:30px}
+.hero{min-height:clamp(600px,84vh,900px);padding:90px clamp(25px,6vw,108px);isolation:isolate}
+.hero-dark{background:#1e1c1e}
+.hero:after{width:clamp(260px,35vw,520px);height:clamp(400px,65vh,690px);right:-3%;top:12%;opacity:.65;border-radius:48% 48% 5% 5%;background:linear-gradient(152deg,#5e0923 8%,#ca0938 56%,#ee6f6d 105%);transform:rotate(13deg);filter:saturate(.85)}
+.hero .inner{max-width:1260px}
+.hero .eyebrow{color:#e7aab9}
+.hero h1{max-width:950px;font-size:clamp(3.15rem,7.2vw,8.1rem);text-wrap:balance}
+.hero p{font-size:clamp(1rem,1.3vw,1.18rem);max-width:500px;color:#eee7e7}
+.hero .btn{margin-top:28px}
+.muted-section{background:var(--cream)}
+.grid{gap:clamp(12px,1.65vw,23px)}
+.card{border:1px solid var(--line);border-radius:4px;transition:transform .2s,box-shadow .2s;background:#fff}
+.card:hover{box-shadow:0 18px 45px #1c171314;transform:translateY(-3px)}
+.card-body{padding:clamp(17px,2vw,30px)}
+.card h3{margin:8px 0 13px}
+.card p{font-size:.87rem;color:#69676a;line-height:1.6}
+.visual{border-radius:2px;background:linear-gradient(140deg,#dcd9d6,#a7a7a8)}
+.visual:before{border-radius:0}
+.visual b{letter-spacing:-.05em}
+.visual.dark{background:linear-gradient(135deg,#282427,#575056)}
+.visual.pink{background:linear-gradient(135deg,#a30d39,#f0748d)}
+.visual.blue{background:linear-gradient(135deg,#12657f,#85c4d4)}
+.feature{gap:16px;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr)}
+.feature .visual{min-height:410px}
+.feature-stack{gap:16px}
+.feature-stack .visual{min-height:198px;height:auto}
+.feature-stack .visual b{font-size:clamp(1.6rem,2.5vw,3.1rem)}
+.timeline{gap:15px}
+.timeline-item{border-top:1px solid #b9b2b2;padding:23px 12px 0 0}
+.timeline-item strong{font-size:.88rem;letter-spacing:.05em}
+.timeline-item h3{font-size:1rem;margin:17px 0 10px}
+.timeline-item p{font-size:.84rem}
+.number{font-size:clamp(2rem,3vw,3.25rem)}
+.course-hero{background:var(--cream)}
+.course-hero:after{opacity:.12}
+.course-hero h1{max-width:1160px}
+.course-logo{letter-spacing:-.06em}
+.lesson-card .visual{height:185px}
+.lesson-card .card-body{padding:17px}
+.lesson-card .meta{font-size:.75rem}
+.price-card{border-radius:5px;padding:clamp(23px,3vw,42px)}
+.price-card.featured{border:2px solid var(--red);box-shadow:0 15px 40px #cd07370b}
+.price{font-size:clamp(1.9rem,3vw,3rem)}
+.faq details{padding:23px 0}
+.faq summary{font-size:1.04rem}
+.faq summary:hover{color:var(--red)}
+.strip{background:var(--black);padding:55px clamp(25px,6vw,108px)}
+.strip .btn-red{background:#fff;border-color:#fff;color:#191919}
+.shop-layout{gap:clamp(24px,3vw,48px);grid-template-columns:minmax(195px,235px) minmax(0,1fr)}
+.filter-panel{border-right:1px solid var(--line);padding-right:20px}
+.field,select,textarea{border-radius:3px;min-height:45px}
+.pill{background:#f2f0ef;border:1px solid transparent;transition:background .17s,color .17s}
+.pill:hover{background:#e8e4e3}
+.pill.active{background:#1a1b1d;border-color:#1a1b1d;color:#fff}
+.bundle-card,.lesson-shelf .card{border-radius:4px}
+.cabinet{grid-template-columns:220px minmax(0,1fr)}
+.cabinet-nav{background:#f7f6f4;padding:28px 18px}
+.cabinet-nav button{border-radius:3px}
+.cabinet-nav button.active{border-left:3px solid var(--red);color:var(--black)}
+.cabinet-main{padding:clamp(30px,4.5vw,70px) clamp(23px,5vw,80px)}
+.dark-card{background:#202022;border-radius:4px}
+.study-video-host{border-radius:4px;box-shadow:none}
+.study-content{padding-top:55px}
+.study-feedback{border-radius:2px;background:#f7f1f0}
+.drawer{box-shadow:-15px 0 50px #00000018}
+.toast{border-radius:4px}
+@media(max-width:1050px){.header{gap:12px}.header nav{gap:12px}.actions{gap:10px}.header-cta{padding:11px 13px}.feature .visual{min-height:300px}}
+@media(max-width:690px){.header{padding:13px 5%;min-height:69px}.hero{min-height:600px;padding:85px 5%}.hero h1{font-size:clamp(3rem,11vw,5.4rem)}.hero:after{opacity:.23;right:-32%;top:26%}.section{padding:65px 5%}.feature{grid-template-columns:1fr}.feature .visual{min-height:280px}.feature-stack .visual{min-height:160px}.timeline{grid-template-columns:1fr 1fr;row-gap:24px}.shop-layout{grid-template-columns:minmax(0,1fr)}.filter-panel{border-right:0;padding-right:0}.cabinet{grid-template-columns:1fr}.cabinet-main{padding:30px 5%}.section h2{max-width:100%}}
+@media(max-width:430px){.timeline{grid-template-columns:1fr}.hero h1{font-size:clamp(2.6rem,11vw,4.3rem)}.grid-4{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.btn,.card,.header nav a:after{transition:none}.card:hover,.btn:hover{transform:none}}
