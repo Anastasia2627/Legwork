@@ -20,7 +20,16 @@ const visual=(label,type='dark')=>'<div class="visual '+type+'"><b>'+esc(label)+
 const faq=(arr)=>'<div class="faq">'+arr.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('')+'</div>';
 const getId=(route)=>Number(route.split('/')[1]);
 const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length+state.bundleCart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;const cartLabel=$('#cartBtn')?.firstChild;if(cartLabel)cartLabel.nodeValue=(state.lang==='es'?'Cesta ':'Bag ');$('#cartDrawer')?.setAttribute('aria-label',state.lang==='es'?'Cesta de compra':'Shopping cart');document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases'],mentorship:['Mentorship','Mentoría']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar ↗':'Get started ↗';}
-const editorial=(page,key)=>esc(state.content?.[page]?.[state.lang]?.[key]??'');
+const editorial=(page,key)=>{
+ const value=state.content?.[page]?.[state.lang]?.[key]??'';
+ // Old locally seeded editorial values can outlive a redesign.
+ // Replace only the original legacy slogans; keep genuine admin edits intact.
+ const outdated={
+  en:{home:{headlineTop:{'MOVE LIKE':'HI THERE! SVITLANA YURCHAK,'},headlineAccent:{'A BOSS.':'EXOTIC POLE ARTIST & COACH'},intro:{'Learn exotic pole dance with confidence, intention, and movement that feels unmistakably yours.':'Online exotic pole dance lessons from the basics to advanced technique.'}}},
+  es:{home:{headlineTop:{'MUÉVETE COMO':'HOLA, SOY SVITLANA YURCHAK,'},headlineAccent:{'UNA JEFA.':'ARTISTA Y PROFESORA DE EXOTIC POLE'}}}
+ };
+ return esc(outdated[state.lang]?.[page]?.[key]?.[value]??value)
+};
 const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash.slice(2):(location.pathname.replace(/^\//,'')||'')).split(/[?#]/)[0];const page=route===''?'home':route==='course'?'course':route==='mentorship'?'mentorship':null;const values=page?state.content?.[page]?.[state.lang]:null;const shop=route==='shop';document.title=values?.metaTitle||(shop?'Online Dance Classes & Bundles | Legwork':'Legwork · Online Dance School');const description=document.querySelector('meta[name="description"]');if(description)description.setAttribute('content',values?.metaDescription||(shop?'Browse individual pole dance technique classes and lesson bundles.':'Online dance lessons and mentorship at Legwork.'));
  const publicPath=route===''?'/':['course','shop','mentorship'].includes(route)?'/'+route:null;
  const canonical=document.querySelector('link[rel="canonical"]');
