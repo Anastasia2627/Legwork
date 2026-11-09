@@ -269,3 +269,9 @@ footer p,footer span,footer a{font-size:11px}
 .account-feedback-visual span{font:11px/1.2 'Archivo Black';color:white}
 @media(max-width:850px){.masterclass-editorial{grid-template-columns:1fr 1fr}.masterclass-editorial a{grid-column:1/-1}.ref-course-art{height:210px}}
 @media(max-width:680px){.ref-hero:before{right:-65%;width:100vw;opacity:.5}.masterclass-editorial{grid-template-columns:1fr;gap:12px}.masterclass-editorial a{grid-column:1}.ref-shows{display:block}.ref-show-monogram{margin-bottom:20px}.ref-course-art{height:210px}.bundle-cover{min-height:120px}}
+
+.lesson-detail-cover{background:#222326;color:#fff;min-height:360px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.lesson-detail-cover:after{content:"";position:absolute;border:1px solid #a4a5ac66;width:310px;height:310px;border-radius:50%;right:-95px;top:-110px}
+.lesson-detail-cover span{font-size:10px;letter-spacing:.14em;color:#c5bcc0;position:relative;z-index:1}
+.lesson-detail-cover strong{font:clamp(32px,5vw,70px)/1.05 'Archivo Black';letter-spacing:-.06em;max-width:85%;overflow-wrap:anywhere;position:relative;z-index:1}
+@media(max-width:680px){.lesson-detail-cover{min-height:270px}}
