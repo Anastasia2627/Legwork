@@ -1,0 +1,23 @@
+{
+  "name": "Legwork full-stack test",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Legwork • full stack",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "postCreateCommand": "npm install --no-audit --no-fund",
+  "postStartCommand": "bash .devcontainer/start.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
