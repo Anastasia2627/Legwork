@@ -40,29 +40,28 @@ const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash
 function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){
- const awards=['TOP-15 UPA','EXOTIC DANCER OF THE YEAR 2016','UKRAINE’S GOT TALENT · SEMIFINALIST','CREATOR OF YURCHAK'];
- const timeline=[
- ['01','THE BEGINNING','Started pole dancing at 21 with no sports or dance background.'],
- ['02','A NEW DIRECTION','An injury changed the approach: movement, waves and floorwork.'],
- ['03','OWN TECHNIQUE','Created a signature approach to legwork and Flexi Legs.'],
- ['04','THE WORLD','Championships, teaching and workshops across countries.'],
- ['05','TODAY','5,000+ students and an online school.']];
- layout('<section class="hero hero-editorial"><div class="inner"><p class="eyebrow">'+editorial('home','eyebrow')+'</p><h1>'+editorial('home','headlineTop')+' '+editorial('home','headlineAccent')+'</h1><p>'+editorial('home','intro')+'</p>'+btn(editorial('home','cta'),'course')+'</div><div class="hero-side-note">EXOTIC POLE · FLOORWORK · LEGWORK</div></section>'+
- section('MY STORY','<div class="story-track">'+timeline.map(([n,h,p])=>'<article class="story-moment"><div class="story-photo"><span>'+n+'</span></div><div class="story-index">'+n+' / 05</div><h3>'+h+'</h3><p>'+p+'</p></article>').join('')+'</div>','THE STORY BEHIND THE MOVEMENT')+
- section('WHY LEARN WITH ME?','<div class="grid grid-4 reasons-grid">'+[
- ['01','I STARTED FROM ZERO','A teaching approach built for dancers who are learning from the beginning.'],
- ['02','A METHOD WITH A STORY','The technique grew from real restrictions, not just ideal flexibility.'],
- ['03','5,000+ STUDENTS','An international community of dancers with different experiences.'],
- ['04','ALWAYS EVOLVING','Lessons develop from the feedback of real students.']
- ].map(([n,h,p])=>'<article class="reason-tile"><span>'+n+'</span><h3>'+h+'</h3><p>'+p+'</p></article>').join('')+'</div>','THE METHOD','muted-section')+
- section('FIND YOUR MOVEMENT','<div class="courses-composition"><a class="flagship-tile" href="#/course"><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><p>Technique, confidence and expressive movement — in one program.</p><span class="btn btn-dark">TO COURSE PAGE ↗</span></a><div class="future-courses"><div class="future-course wave"><h3>WAVE LIKE A <b>BOSS</b></h3><span>COMING SOON</span></div><div class="future-course split-course"><h3>SPLIT LIKE A <b>BOSS</b></h3><span>COMING SOON</span></div></div></div>','EXPLORE THE COURSES')+
- section('BEYOND THE STUDIO','<div class="awards-layout"><div class="awards-list">'+awards.map((a,i)=>'<div class="award-row"><span>0'+(i+1)+'</span><strong>'+a+'</strong></div>').join('')+'</div><div class="shows-block"><div class="pills"><button class="pill active" type="button" data-showtab="championships">Championships</button><button class="pill" type="button" data-showtab="shows">Shows</button><button class="pill" type="button" data-showtab="judging">Judging & PoleCon</button></div><div class="shows-panel" id="showsPanel"><h3>CHAMPIONSHIPS</h3><p>Competition experience and achievements.</p></div></div></div>','AWARDS, CHAMPIONSHIPS & SHOWS','muted-section')+
- section('MASTERCLASSES AROUND THE WORLD','<div class="editorial-carousel"><div class="editorial-media">01 <span>MASTERCLASS MEDIA</span></div><div class="editorial-media">02 <span>WORKSHOP MEDIA</span></div><div class="editorial-media">03 <span>WORKSHOP MEDIA</span></div></div>','TEACHING & TRAVEL')+
- section('WORDS FROM MY STUDENTS','<div class="editorial-carousel reviews-track"><div class="quote-tile"><b>“</b><p>Student reviews will appear here once approved for publication.</p></div><div class="quote-tile"><b>“</b><p>Real student stories, not stock testimonials.</p></div><div class="quote-tile"><b>“</b><p>Movement is a personal journey.</p></div></div>','STUDENT STORIES','muted-section')+
- '<div class="email-strip"><div><p class="eyebrow">START HERE</p><h2>GET YOUR FREE LESSON</h2></div><form class="email-strip-form" id="subscribeForm"><input type="email" class="field" name="email" required placeholder="Your email"><input type="hidden" name="purpose" value="free-lesson"><label class="email-consent"><input type="checkbox" name="consent" required> I agree to receive emails about the school.</label><button class="btn btn-dark" type="submit">GET FREE LESSON</button></form></div>'+
- section('LET’S STAY CONNECTED','<div class="grid grid-3"><a class="social-tile" href="#/course"><span>01 / EDUCATION</span><h3>LEGWORK LAB</h3><p>Discover the flagship course ↗</p></a><a class="social-tile" href="#/mentorship"><span>02 / FEEDBACK</span><h3>PERSONAL MENTORSHIP</h3><p>Get a fresh perspective on your movement ↗</p></a><a class="social-tile" href="#/shop"><span>03 / LESSONS</span><h3>THE CLASS LIBRARY</h3><p>Choose what you want to practice ↗</p></a></div>','EXPLORE')+
- section('FREQUENT QUESTIONS',faq([['Do I need experience?','No. The course starts with foundations.'],['Can I learn at home?','Many lessons work at home. See equipment details for each class.'],['How do I access purchased lessons?','Purchased lessons appear in your account after payment verification.']]),'FAQ')+
- '<div class="strip"><h2>MAKE YOUR MOVEMENT YOUR OWN.</h2>'+btn('START LEARNING','course','btn-white')+'</div>');
+const path=[
+['[YEAR]','Started pole dancing at 21, with no dance or sports background.'],
+['[YEAR]','Shoulder injuries — only waves and floorwork.'],
+['[YEAR]','Created original elements and her own technique.'],
+['[YEAR]','Championships and masterclasses around the world.'],
+['NOW','5,000+ students and an online school.']];
+const benefits=[
+['01','I KNOW WHAT IT IS TO START FROM ZERO'],
+['02','A METHOD BORN FROM LIMITATIONS'],
+['03','5,000+ STUDENTS'],
+['04','COURSES THAT KEEP GETTING BETTER']];
+layout('<section class="ref-hero"><div class="ref-wrap"><h1>HI THERE! SVITLANA<br>YURCHAK, EXOTIC POLE<br>ARTIST & COACH</h1><p>Online courses from beginner to advanced.</p>'+btn('Explore courses','course')+'</div></section>'+
+section('MY STORY','<div class="ref-timeline">'+path.map(([year,txt])=>'<div class="ref-time-item"><div class="ref-picture" aria-hidden="true"></div><b>'+year+'</b><p>'+txt+'</p></div>').join('')+'</div>','MY JOURNEY')+
+section('','<div class="ref-benefits">'+benefits.map(([n,t])=>'<div><strong>'+n+'</strong><h3>'+t+'</h3></div>').join('')+'</div>','WHY MY COURSES','muted-section')+
+section('','<div class="ref-courses"><a class="ref-featured" href="#/course"><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><p>[A sentence about the course]</p><span class="btn btn-dark">To course page</span></a><div class="ref-upcoming"><div><h3><span class="violet">WAVE</span> LIKE A <em>BOSS</em></h3><p>Soon</p></div><div><h3><span class="gold">SPLIT</span> LIKE A <em>BOSS</em></h3><p>Soon</p></div></div></div>','COURSES · THE FLAGSHIP COURSE FIRST')+
+section('','<div class="ref-awards"><div><p class="eyebrow">TITLES & AWARDS</p><div class="ref-awards-list"><p>🏆 TOP-15 UPA</p><p>Exotic dancer of the Year 2016</p><p>Semifinalist of Ukraine’s Got Talent</p><p>Creator of YURCHAK brand</p></div></div><div><p class="eyebrow">CHAMPIONSHIPS / SHOWS / JUDGING</p><div class="pills"><button class="pill active" data-showtab="championships">Championships</button><button class="pill" data-showtab="shows">Shows</button><button class="pill" data-showtab="judging">Judge & PoleCon</button></div><div id="showsPanel" class="ref-picture ref-shows"></div></div></div>','','muted-section')+
+section('','<div class="ref-slider">'+[1,2,3].map(i=>'<div class="ref-picture" aria-label="Masterclass photo or video placeholder"></div>').join('')+'</div><div class="ref-slider-controls">‹ <span>1 / 7</span> ›</div>','MASTERCLASSES · PHOTO / VIDEO SLIDER')+
+section('','<div class="ref-reviews">'+[1,2,3,4].map(i=>'<div class="ref-review-slot"></div>').join('')+'</div>','STUDENT REVIEWS · SLIDER','muted-section')+
+'<section class="ref-free-strip"><div class="ref-wrap"><div><span>FREE LESSON</span><h2>GET YOUR FREE LESSON</h2></div><form id="subscribeForm"><input required class="field" type="email" name="email" placeholder="Email"><input type="hidden" name="purpose" value="free-lesson"><label><input type="checkbox" name="consent" required> I agree to receive school emails.</label><button class="btn btn-dark">Get free lesson</button></form></div></section>'+
+section('INTERVIEWS & SOCIALS','<div class="ref-slider">'+[1,2,3].map(i=>'<div class="ref-picture"></div>').join('')+'</div>','FOLLOW THE JOURNEY')+
+section('FAQ',faq([['Who are the courses for?','From beginners to experienced dancers.'],['How do I access lessons?','Access is available in your account after payment confirmation.'],['Do I need a pole?','Equipment is specified for each lesson.'],['Is the course suitable for beginners?','The course includes foundational lessons.']]),'FREQUENT QUESTIONS','muted-section')+
+'<div class="ref-end"><h2>READY TO START?</h2>'+btn('Start now','course','btn-red')+'</div>');
 }
 function course(){
  const c=state.courses[0],price=c?money(c.price):'$160';
