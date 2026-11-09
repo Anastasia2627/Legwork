@@ -41,10 +41,10 @@ function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,stat
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){
 const path=[
-['[YEAR]','Started pole dancing at 21, with no dance or sports background.'],
-['[YEAR]','Shoulder injuries — only waves and floorwork.'],
-['[YEAR]','Created original elements and her own technique.'],
-['[YEAR]','Championships and masterclasses around the world.'],
+['THE BEGINNING','Started pole dancing at 21, with no dance or sports background.'],
+['A NEW DIRECTION','Shoulder injuries — only waves and floorwork.'],
+['OWN METHOD','Created original elements and her own technique.'],
+['WORLDWIDE','Championships and masterclasses around the world.'],
 ['NOW','5,000+ students and an online school.']];
 const benefits=[
 ['01','I KNOW WHAT IT IS TO START FROM ZERO'],
@@ -152,7 +152,7 @@ async function verifyEmailPage(token){
 async function account(){if(!state.user)return authPage(false);const expectedHash=location.hash;const [d,achievement,homeworkReviews,paymentConfig,paymentHistory,emailStatus,certificateData]=await Promise.all([api('/dashboard'),api('/account/achievements'),api('/account/homework-reviews'),api('/payments/config'),api('/payments/mine'),api('/account/email-status'),api('/account/certificates')]);if(location.hash!==expectedHash)return;state.dashboard=d;const completed=d.progress.filter(x=>x.completed).length,owned=state.lessons.filter(l=>l.free||d.enrollments.some(c=>c.id===l.course_id)||d.lessonAccess.includes(l.id));const nextOwned=owned.find(l=>!d.progress.some(p=>p.lesson_id===l.id&&p.completed))||owned[0];const tab=state.tab;const nav=['overview','lessons','reviews','achievements','profile',...(state.user.role==='admin'?['admin']:[])];let body='';
 if(tab==='overview'){
  const percent=owned.length?Math.round(completed/owned.length*100):0;
- const ownedCourses=d.enrollments.map(c=>'<a class="account-course" href="#/course"><div class="account-course-image"></div><div class="account-course-info"><h3>'+esc(c.title)+'</h3><span>'+(c.tier==='guru'?'GURU · WITH FEEDBACK':'SELF-PACED')+'</span><div class="progress-bar"><i style="width:'+percent+'%"></i></div><small>'+percent+'% COMPLETE</small></div></a>').join('');
+ const ownedCourses=d.enrollments.map(c=>'<a class="account-course" href="#/course"><div class="account-course-cover"><span>LEGWORK / ONLINE SCHOOL</span><strong>'+esc(c.title)+'</strong><span>YOUR PERSONAL PRACTICE ↗</span></div><div class="account-course-info"><h3>'+esc(c.title)+'</h3><span>'+(c.tier==='guru'?'GURU · WITH FEEDBACK':'SELF-PACED')+'</span><div class="progress-bar"><i style="width:'+percent+'%"></i></div><small>'+percent+'% COMPLETE</small></div></a>').join('');
  const feedbackSummary=d.mentorships.slice(0,2).map(m=>'<div class="account-feedback-entry"><div class="account-feedback-visual"><span>PRIVATE<br>FEEDBACK</span></div><div><strong>'+esc(m.package)+' REVIEW</strong><p>'+esc(m.feedback||'Waiting for your mentor’s response.')+'</p><span class="badge-label">'+esc(m.status)+'</span></div></div>').join('')||'<p class="description">Your personal reviews will appear here. <a href="#/mentorship">Explore mentorship ↗</a></p>';
  body='<h2>HI, '+esc(state.user.name).toUpperCase()+'!</h2><div class="account-continue"><div class="account-continue-art"><span>LEGWORK</span><strong>LIKE A<br>BOSS.</strong></div><div class="account-continue-content"><p class="eyebrow">CONTINUE YOUR PRACTICE</p><h3>'+(nextOwned?esc(nextOwned.title):'Your next lesson awaits')+'</h3><div class="progress-bar"><i style="width:'+percent+'%"></i></div><small>'+percent+'% OF ACCESSIBLE LESSONS COMPLETE</small></div>'+(nextOwned?'<a class="btn btn-red" href="#/study/'+nextOwned.id+'">CONTINUE ↗</a>':btn('EXPLORE LESSONS','shop'))+'</div>'+
  '<div class="account-section-head"><h3>MY COURSES & LESSONS</h3><button data-tab="lessons" class="tiny-link">VIEW ALL ↗</button></div><div class="grid grid-3 account-course-grid">'+(ownedCourses||'<p class="description">No courses purchased yet. <a href="#/course">Discover Legwork Lab ↗</a></p>')+'</div>'+
