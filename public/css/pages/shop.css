@@ -1,0 +1,21 @@
+.shop-heading{background:#f0eeee;padding:52px 6%}
+.shop-heading h1{font:400 clamp(39px,5vw,61px) var(--font-display);margin:0 0 7px}
+.shop-heading p{color:var(--muted);font-size:15px}
+.shop-heading + .strip{background:var(--red);padding:13px 6%!important}
+.shop-heading + .strip b{font-size:11px;letter-spacing:.07em}
+.shop-layout{display:grid;grid-template-columns:215px minmax(0,1fr);gap:36px;align-items:start}
+.filter-panel{padding-right:23px;border-right:1px solid var(--border);position:sticky;top:110px}
+.filter-panel label{font-size:12px;font-weight:700;color:#565052}
+.filter-panel select{width:100%;min-height:40px;background:#fff;border:1px solid #ded9d8;font-size:12px}
+#shopSearch{width:100%;min-height:46px;border:1px solid var(--border);border-radius:30px;padding:10px 20px}
+.catalog-direction{padding:32px 0 20px;border-bottom:1px solid var(--border)}
+.catalog-direction h2{font:700 25px var(--font-body);margin:0}
+.catalog-direction .shelf-head{margin:26px 0 15px}
+.catalog-direction .shelf-head h3{font:700 14px var(--font-body)}
+.catalog-direction .shelf-head a{font-size:12px;text-decoration:underline}
+.lesson-shelf{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,calc((100% - 48px)/4));overflow-x:auto;gap:16px;padding-bottom:12px}
+.bundle-shelf{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bundle-card .card-body{padding:16px}
+.bundle-card h3{font-size:17px}
+@media(max-width:1000px){.lesson-shelf{grid-auto-columns:minmax(190px,43%)}}
+@media(max-width:700px){.shop-layout{grid-template-columns:1fr}.filter-panel{position:static;border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}.lesson-shelf{grid-auto-columns:minmax(175px,70%)}.bundle-shelf{grid-template-columns:1fr}}
