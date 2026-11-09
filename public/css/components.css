@@ -33,3 +33,8 @@
 .lesson-detail-cover strong{font:400 clamp(30px,4vw,60px)/1.08 var(--font-display);letter-spacing:-.055em;overflow-wrap:anywhere}
 @media(max-width:900px){.ref-lesson-grid,.ref-targets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:530px){.ref-program-head{display:block}.ref-program-head small{display:block;margin-top:7px}}
+.lesson-cover.has-image{background:#201d20;isolation:isolate}
+.lesson-cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.lesson-cover.has-image:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#10101161 0%,#10101110 40%,#101011b8 100%);z-index:-1}
+.lesson-cover.has-image:after{display:none}
+.lesson-cover.has-image .lesson-cover-top,.lesson-cover.has-image .lesson-cover-title,.lesson-cover.has-image .lesson-cover-foot{color:white;text-shadow:0 1px 12px #0008}
