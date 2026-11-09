@@ -33,3 +33,5 @@
 .account-achievements span{font-size:11px;color:var(--muted)}
 @media(max-width:850px){.cabinet{grid-template-columns:1fr}.cabinet-nav{display:flex;overflow-x:auto;gap:8px;padding:12px}.cabinet-nav button{white-space:nowrap}.account-continue{grid-template-columns:125px 1fr}.account-continue .btn{grid-column:2;justify-self:start}.account-continue-art{height:130px}}
 @media(max-width:550px){.cabinet-main{padding:25px 5%}.account-continue{grid-template-columns:1fr}.account-continue-art{display:none}.account-continue .btn{grid-column:1}.account-achievements{padding:12px;gap:5px}.account-achievements strong{width:36px;height:36px;font-size:16px}}
+.account-course-cover strong{font:700 21px/1.2 var(--font-body);letter-spacing:-.04em}
+.account-continue-art strong{font-size:20px}
