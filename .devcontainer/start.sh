@@ -11,6 +11,10 @@ export PORT=3000
 export DATABASE_PATH="./data/legwork.sqlite"
 # The developer preview deliberately has no payment processor or live email.
 export PAYMENT_PROVIDER=disabled
+# Origin must match the HTTPS forwarded URL for login and registration POST requests.
+if [[ -n "${CODESPACE_NAME:-}" ]]; then
+  export SITE_ORIGIN="https://${CODESPACE_NAME}-3000.app.github.dev"
+fi
 # Admin authentication is only configured if you set ADMIN_PASSWORD in Codespaces secrets.
 nohup npm start > /tmp/legwork-codespace.log 2>&1 < /dev/null &
 echo "Legwork started in Codespaces. Logs: /tmp/legwork-codespace.log"
