@@ -125,3 +125,48 @@
 @media(max-width:1000px){.story-track{grid-template-columns:repeat(3,1fr)}.courses-composition{grid-template-columns:1.5fr 1fr}.editorial-media,.quote-tile{min-width:47%}.email-strip{flex-wrap:wrap}.mentorship-intro{gap:30px}}
 @media(max-width:700px){.hero-editorial{min-height:570px}.hero-editorial h1{font-size:clamp(2.5rem,10vw,5.5rem)}.hero-side-note{position:static;padding:0 5% 20px}.story-track{grid-template-columns:repeat(2,minmax(0,1fr))}.story-photo{height:180px}.courses-composition,.awards-layout,.results-grid,.course-opening-grid,.free-class-grid,.feedback-sample{grid-template-columns:1fr}.flagship-tile{min-height:300px}.future-courses{grid-template-columns:1fr 1fr;grid-template-rows:1fr}.future-course{min-height:160px;padding:15px}.editorial-media,.quote-tile{min-width:78%}.email-strip{padding:35px 5%}.email-strip-form{grid-template-columns:1fr;width:100%}.email-consent{grid-column:1}.course-sticky{top:69px;padding:8px 5%}.course-sticky .course-logo{font-size:.8rem}.course-sticky-inner>span{display:none}.course-opening{padding:43px 5%}.course-opening h1{font-size:clamp(2.4rem,9vw,4.2rem)}.course-opening-media{min-height:230px}.course-steps{grid-template-columns:repeat(2,1fr)}.creator-strip{grid-template-columns:60px 1fr;padding:18px 5%}.creator-photo{width:54px;height:54px}.creator-strip>a{grid-column:2}.program-heading{display:block}.free-class-player{min-height:230px}.mentorship-hero{padding:55px 5%}.mentorship-hero h1{font-size:clamp(2.6rem,9vw,5.6rem)}.mentorship-intro{grid-template-columns:1fr}.mentorship-intro-portrait{height:210px}.feedback-sample-media{min-height:190px}}
 @media(max-width:430px){.story-track{grid-template-columns:1fr}.story-photo{height:170px}.future-courses{grid-template-columns:1fr}.course-steps{grid-template-columns:1fr 1fr;gap:7px}.course-step{padding:17px;font-size:.7rem}}
+
+/* Functional catalog and student/admin area, aligned with the references. */
+.course-sticky{opacity:0;pointer-events:none;transform:translateY(-100%);transition:opacity .18s,transform .18s;margin-bottom:0}
+.course-sticky.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
+.shop-heading{padding-top:58px;padding-bottom:58px;background:#edebeb}
+.shop-heading h1{font-size:clamp(3.3rem,5vw,5rem);margin:0 0 12px}
+.shop-heading p{font-size:.93rem;color:#555}
+.shop-heading + .strip{background:#cb0637;padding:13px clamp(24px,6vw,108px)!important}
+.shop-heading + .strip b{font-size:.76rem;letter-spacing:.11em}
+.shop-layout{grid-template-columns:minmax(175px,220px) minmax(0,1fr);align-items:start;gap:35px}
+.shop-layout .filter-panel{position:sticky;top:115px;max-height:calc(100vh - 130px);overflow-y:auto;padding:0 23px 0 0;border-right:1px solid #e5e1e1;scrollbar-width:thin}
+.filter-panel label{font-size:.7rem;letter-spacing:.08em}
+.filter-panel select{width:100%;min-height:44px;margin-top:8px;font-size:.79rem;border:1px solid #ddd;background:#fff;border-radius:3px}
+#shopSearch{height:48px;border-radius:28px;font-size:.85rem;padding:13px 20px}
+.catalog-direction{padding:25px 0 12px;border-bottom:1px solid #e5e1e1}
+.catalog-direction h2{font-size:clamp(1.8rem,2.5vw,2.8rem)}
+.catalog-direction .shelf-head{margin:24px 0 14px}
+.catalog-direction .shelf-head h3{font-size:.93rem;font-family:'DM Sans',sans-serif;letter-spacing:0}
+.catalog-direction .shelf-head a{font-size:.77rem;text-decoration:underline;text-underline-offset:3px}
+.lesson-shelf{display:grid;grid-auto-columns:minmax(185px,calc((100% - 36px)/4));grid-auto-flow:column;overflow-x:auto;gap:12px;padding-bottom:14px}
+.lesson-shelf .card{min-width:0}
+.lesson-shelf .visual{height:145px}
+.lesson-shelf .card-body{padding:15px}
+.lesson-shelf .card h3{font-size:.92rem}
+.lesson-shelf .btn{padding:8px 11px}
+.bundle-shelf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.bundle-card{display:grid;grid-template-columns:40% 1fr;align-items:stretch;min-width:0;background:#f6f4f3}
+.bundle-card .bundle-visual{height:100%;min-height:155px}
+.bundle-card .card-body{padding:16px}
+.bundle-card h3{font-size:1rem}
+.bundle-card .price{font-size:1.2rem}
+.cabinet{background:white;min-height:calc(100vh - 82px);grid-template-columns:minmax(170px,225px) minmax(0,1fr)}
+.cabinet-nav{background:#f5f4f3;padding:35px 16px;border-right:1px solid #ebe7e6}
+.cabinet-nav button{font-family:'DM Sans',sans-serif;font-size:.83rem;padding:15px 14px;border-radius:0}
+.cabinet-main{max-width:1450px;width:100%;padding:clamp(30px,5vw,70px) clamp(22px,5vw,85px)}
+.cabinet-main>h2{font-size:clamp(2rem,3vw,3rem);margin-bottom:30px}
+.cabinet-main>.dark-card{display:grid;grid-template-columns:1fr auto;gap:4px 20px;padding:35px;background:#1c1c1d;color:white}
+.cabinet-main>.dark-card h3{font-size:1.4rem}
+.cabinet-main>.dark-card .progress-bar{grid-column:1;height:7px;background:#606065;border-radius:2px;overflow:hidden;max-width:520px}
+.cabinet-main>.dark-card .progress-bar i{background:var(--red);height:100%;display:block}
+.cabinet-main>.dark-card .btn{grid-column:2;grid-row:1/5;align-self:center}
+.cabinet-main>.grid .card{min-height:180px}
+.cabinet-main .item-row{border:1px solid #ece9e9;padding:20px;margin:8px 0}
+@media(max-width:950px){.bundle-card{grid-template-columns:1fr}.bundle-card .bundle-visual{min-height:120px;height:120px}.lesson-shelf{grid-auto-columns:minmax(185px,45%)}.shop-layout{gap:20px}}
+@media(max-width:690px){.shop-layout{grid-template-columns:1fr}.shop-layout .filter-panel{position:static;max-height:none;overflow:visible;border-right:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.shop-layout .filter-panel>div{min-width:0}.catalog-direction h2{font-size:2rem}.lesson-shelf{grid-auto-columns:minmax(185px,68%)}.bundle-shelf{grid-template-columns:1fr}.bundle-card{grid-template-columns:36% 1fr}.cabinet{grid-template-columns:1fr}.cabinet-nav{display:flex;flex-direction:row;gap:5px;overflow-x:auto;border:0;padding:13px}.cabinet-nav button{white-space:nowrap}.cabinet-main>.dark-card{display:block}.cabinet-main>.dark-card .progress-bar{margin:12px 0}.cabinet-main>.dark-card .btn{margin-top:15px}}
