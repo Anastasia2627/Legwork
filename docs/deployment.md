@@ -41,7 +41,3 @@ The interface includes a keyboard skip link, focus styles, a mobile menu with AR
 The native image uploader stores files under a public-media subdirectory beside the SQLite database by default. MEDIA_UPLOAD_DIR may override this, but must point to secure persistent storage. Keep the directory out of public static serving, source control and ephemeral containers. Back up both database and stored WebP files and test restoring a referenced image. Administrators remain responsible for copyright and privacy permissions. Only images assigned to public media or lesson covers are served. Unassigned files are removed after 48 hours.
 
 Public image uploads are not private lesson video hosting, homework uploads, or a DRM system.
-
-## Protected lesson and practice video storage
-
-`PRIVATE_VIDEO_DIR` defaults to `private-videos` alongside the configured SQLite database. Set it to a **private persistent** volume, not under `public/` or any web server static directory. Include it in secure backups together with SQLite; restoration must preserve the correspondence between database filenames and files on disk. The application serves videos only through authenticated and entitlement-checked endpoints, with byte-range support for HTML5 seeking. Unreferenced files are cleaned up after 48 hours. Uploaded clips are limited to 40 MiB and checked for MP4/WebM signatures, but are **not transcoded, malware-scanned or DRM-protected**. Use private media hosting/CDN with a suitable storage lifecycle for large paid course content, and test real browser codec playback before launch.

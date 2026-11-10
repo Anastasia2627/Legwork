@@ -38,13 +38,3 @@
 @media(max-width:900px){.study-shell{grid-template-columns:minmax(220px,245px) 1fr}.study-content{padding:35px 24px 60px}}
 @media(max-width:680px){.study-shell{display:block;min-height:calc(100vh - 66px)}.study-sidebar{display:none;height:auto;position:relative;top:auto;border-right:0;border-bottom:1px solid #ddd}.study-sidebar.open{display:flex}.study-outline{max-height:50vh}.study-content{padding:23px 5% 65px}.study-toggle{display:inline-flex}.study-topline{margin-bottom:32px}.study-title{font-size:clamp(2rem,8vw,3.5rem)}.study-controls{margin-bottom:40px}.study-controls .btn{padding:12px 14px;font-size:.77rem}.study-homework .form .btn{justify-self:stretch}}
 @media(prefers-reduced-motion:reduce){.study-lesson{transition:none}}
-
-
-.study-private-video{display:block;width:100%;height:100%;object-fit:contain;background:#101010}
-.study-upload-field{max-width:710px;display:grid;gap:12px;margin-top:23px;padding:22px 0 4px;border-top:1px solid #e2dfdd}
-.study-upload-field>label{font:600 14px/1.5 var(--font-body)}
-.study-upload-field>input{display:block;max-width:100%;font:400 13px/1.5 var(--font-body)}
-.study-upload-field>.btn{justify-self:start}
-.study-uploaded{font:600 14px/1.5 var(--font-body)}
-.study-uploaded a{color:var(--red);text-decoration:underline;text-underline-offset:3px}
-@media(max-width:680px){.study-upload-field>.btn{width:100%}}
