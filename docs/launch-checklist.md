@@ -30,3 +30,7 @@ For an exact implementation inventory, see [Functional Status](functional-status
 
 ## Important
 ADMIN_PASSWORD is seeded only on the first creation of the admin account. After that, use the **Change password** form in Admin's profile to rotate it. Do not put passwords, YouTube URLs, payment secrets or customer uploads in Git.
+
+## YouTube lesson access and commercial policy
+
+The school uses YouTube URL-only lessons. Admin Studio validates that lesson URLs are proper HTTPS YouTube videos; public catalog APIs never include those IDs. Purchased lesson URLs are returned only to authorized student sessions, and users can revoke other logged-in devices. This protects Legwork endpoints, **not** the transferable YouTube Unlisted link or screen recording. Review [YouTube security](youtube-security.md), the official YouTube commercial restrictions and the site's final customer terms before selling access.
