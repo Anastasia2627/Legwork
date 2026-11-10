@@ -79,14 +79,11 @@ function course(){
   ['Musicality','Make technique look and feel like dance.']
  ];
  const lessons=state.lessons.filter(l=>!c||!l.course_id||l.course_id===c.id).slice(0,4);
- const tiles=lessons.map(l=>'<a class="course-lesson-tile" href="#/lesson/'+l.id+'">'+
-  (l.cover_url?'<img loading="lazy" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+'">':'<span class="course-lesson-tile-art" aria-hidden="true"></span>')+
-  '<span class="course-lesson-title"><strong>'+esc(l.title)+'</strong><span>'+esc(l.level||'Technique')+' · '+Number(l.duration||12)+' min</span></span></a>').join('');
+ const tiles=lessons.map((l,i)=>'<a class="course-lesson-row" href="#/lesson/'+l.id+'"><span class="course-lesson-number">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(l.title)+'</strong><span class="course-lesson-meta">'+esc(l.level||'Technique')+' · '+Number(l.duration||12)+' min</span></a>').join('');
  const faqItems=[
   ['Do I have to be flexible?','No. Start at a comfortable range of motion; this course focuses on control and technique.'],
   ['Do I need a pole?','Some lessons use a pole or stable support. Check the equipment information in each class.'],
   ['How will I access the course?','After payment confirmation, open My Courses in your account. The access period is shown at checkout.'],
-  ['What is the difference between the packages?','Both include the course library. Guru adds homework submissions and teacher feedback.'],
   ['Can I get a refund?','Review the refund terms before payment and contact the school about a specific order.']
  ];
  layout(
@@ -94,7 +91,7 @@ function course(){
  '<section class="ref-course-hero"><div class="ref-wrap"><p class="course-kicker">LEGWORK LIKE A BOSS · ONLINE COURSE</p><div class="course-hero-layout"><div class="course-hero-copy"><h1>IMPROVE YOUR LEGWORK WITHOUT EXHAUSTING STRETCHING, EVEN IF YOU STARTED TO DANCE JUST YESTERDAY</h1><p>Learn the technique behind clean leg lines and fluid transitions with Svitlana Yurchak, creator of the Flexi Legs method.</p><div class="course-hero-actions"><a href="#/course#prices" class="btn btn-red">View packages</a>'+btn('Watch free lesson','lesson/1','btn-outline')+'</div></div>'+mediaFigure('stage','course-photo')+'</div></div></section>'+
  section('Is this course for you?','<div class="course-fit-list">'+audience.map(([title,desc])=>'<div class="course-fit-item"><h3>'+title+'</h3><p>'+desc+'</p></div>').join('')+'</div>')+
  section('What you’ll learn','<div class="course-essentials"><div class="course-skills">'+skills.map(([title,desc])=>'<div class="course-skill"><h3>'+title+'</h3><p>'+desc+'</p></div>').join('')+'</div><div class="course-method"><h3>How it works</h3><ol><li>Start with a warm-up and basic technique.</li><li>Practise each element at your own pace.</li><li>Bring movements together in combinations.</li></ol><p>With Guru, you can also send homework for feedback.</p></div></div>','','muted-section')+
- section('Explore the lessons','<div class="course-preview-head"><p>A look inside the course. Select a lesson to see the details.</p><a class="course-text-link" href="#/shop">View all classes</a></div><div class="course-lesson-grid">'+(tiles||'<p class="course-empty">Lessons will appear here when added to the library.</p>')+'</div><a href="#/lesson/1" class="course-free-link">Start with the free introductory lesson</a>')+
+ section('Inside the course','<div class="course-preview-head"><a class="course-text-link" href="#/shop">View all classes</a></div><div class="course-lesson-grid">'+(tiles||'<p class="course-empty">Lessons will appear here when added to the library.</p>')+'</div>')+
  '<section class="section course-pricing-section" id="prices"><div class="section-inner"><h2>Choose your format</h2><p class="course-pricing-intro">Study independently or get feedback on homework.</p><div class="ref-prices"><div class="price-card"><h3>Independent</h3><p class="price">'+price+'</p><ul class="course-includes"><li>Full course library</li><li>Learn at your own pace</li><li>Track your progress</li></ul><button class="btn btn-dark" data-order="course" data-id="'+(c?.id||1)+'">Choose independent</button></div><div class="price-card featured"><span class="course-featured-label">WITH FEEDBACK</span><h3>Guru</h3><p class="price">'+guruPrice+'</p><ul class="course-includes"><li>Everything in Independent</li><li>Submit homework</li><li>Get teacher feedback</li><li>Certificate pathway after completion</li></ul><button class="btn btn-red" data-order="course" data-plan="guru" data-id="'+(c?.id||1)+'">Choose Guru</button></div></div><p class="course-pricing-note">Final access and payment conditions are shown before checkout.</p></div></section>'+
  section('Frequently asked questions',faq(faqItems),'','course-faq')
  );
