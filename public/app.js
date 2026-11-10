@@ -104,28 +104,28 @@ function shop(){
  const equipment=[...new Set(state.lessons.map(x=>x.equipment).filter(Boolean))];
  const focuses=[...new Set(state.lessons.flatMap(x=>(x.focus||'').split(',').map(v=>v.trim())).filter(Boolean))];
  const active=Object.values(query).some(Boolean);
+ const advancedActive=Boolean(query.teacher||query.equipment||query.focus||query.duration);
  const lessons=state.lessons.filter(l=>{
   const terms=(l.title+' '+l.category+' '+(l.tags||'')+' '+(l.teacher||'')).toLowerCase();
   return (!query.search||terms.includes(query.search.toLowerCase()))&&(!query.category||l.category===query.category)&&(!query.level||l.level===query.level)&&(!query.kind||l.kind===query.kind)&&(!query.teacher||l.teacher===query.teacher)&&(!query.equipment||l.equipment===query.equipment)&&(!query.focus||(l.focus||'').toLowerCase().includes(query.focus.toLowerCase()))&&(!query.duration||l.duration<=Number(query.duration));
  });
- const select=(id,label,values,selected,empty)=>'<div><label>'+label+'</label><select id="'+id+'"><option value="">'+empty+'</option>'+values.map(v=>'<option value="'+esc(v)+'" '+(selected===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></div>';
- const categoryMenu=select('filterCategory','Direction',categories,query.category,'All directions');
- const typeMenu=select('filterKind','Type',['Element','Preparation','Warm-up','Bundle'],query.kind,'All types');
- const levelMenu=select('filterLevel','Level',['Beginner','Intermediate','Advanced'],query.level,'All levels');
- const teacherMenu=select('filterTeacher','Teacher',teachers,query.teacher,'Any teacher');
- const equipmentMenu=select('filterEquipment','Equipment',equipment,query.equipment,'Any equipment');
- const focusMenu=select('filterFocus','Training focus',focuses,query.focus,'Any focus');
- const durationMenu=select('filterDuration','Maximum duration',['15','30','60'],query.duration,'Any duration');
  const filteredBundles=state.bundles.filter(b=>(!query.category||b.direction===query.category)&&(!query.kind||query.kind==='Bundle')&&(!query.search||(b.title+' '+b.description).toLowerCase().includes(query.search.toLowerCase()))&&!query.level&&!query.teacher&&!query.equipment&&!query.focus&&!query.duration);
- const shelves=categories.map(category=>{
-  const grouped=state.lessons.filter(l=>l.category===category);
-  const types=[...new Set(grouped.map(l=>l.kind))];
-  return '<div class="catalog-direction"><div class="row"><h2>'+esc(category).toUpperCase()+'</h2><a class="tiny-link" href="#/shop?category='+encodeURIComponent(category)+'">See all</a></div>'+
-   (state.bundles.some(b=>b.direction===category)?'<div class="shelf-head row"><h3>BUNDLES · ELEMENT + PREPARATION + WARM-UP</h3></div><div class="bundle-shelf">'+state.bundles.filter(b=>b.direction===category).map(bundleCard).join('')+'</div>':'')+types.map(kind=>{const group=grouped.filter(l=>l.kind===kind);return '<div class="shelf-head row"><h3>'+esc(kind)+'</h3><a href="#/shop?category='+encodeURIComponent(category)+'&kind='+encodeURIComponent(kind)+'">See all</a></div><div class="lesson-shelf">'+group.map(lessonCard).join('')+'</div>'}).join('')+'</div>';
- }).join('');
- layout('<section class="section muted-section shop-heading"><div class="section-inner"><h1>CLASSES</h1><p>Learn only what you need right now</p></div></section><div class="strip" style="padding:18px 6%"><b>BUY 3 — GET 1 FREE</b></div>'+
- section('','<div class="shop-layout"><div class="filter-panel">'+categoryMenu+typeMenu+levelMenu+teacherMenu+equipmentMenu+focusMenu+durationMenu+'</div><div><input class="field" id="shopSearch" aria-label="Search lessons" placeholder="Search by title or hashtag (#kneecircle)…" value="'+esc(query.search)+'"><div class="pills">'+categories.map(x=>'<button class="pill '+(query.category===x?'active':'')+'" data-category="'+esc(x)+'">'+esc(x)+'</button>').join('')+(active?'<a class="pill" href="#/shop">Clear filters ✕</a>':'')+'</div>'+(active?'<p class="eyebrow">'+(lessons.length+filteredBundles.length)+' CLASSES FOUND</p><div class="grid grid-3">'+(lessons.map(lessonCard).join('')+filteredBundles.map(bundleCard).join('')||'<p>No lessons match these filters.</p>')+'</div>':shelves)+'</div></div>','')+
- '<div class="strip"><h2>WANT IT ALL? THE FULL COURSE IS A BETTER DEAL</h2>'+btn('See course','course','btn-white')+'</div>'+section('',''+faq([['Access','All purchased lessons appear in your account.'],['Duration','See each lesson card.'],['Equipment','Each lesson shows its requirements.']]),'FAQ'));
+ const select=(id,label,values,selected,empty)=>'<label class="shop-filter-label" for="'+id+'">'+label+'</label><select id="'+id+'"><option value="">'+empty+'</option>'+values.map(v=>'<option value="'+esc(v)+'" '+(selected===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select>';
+ const filters=
+  '<div class="shop-filter">'+select('filterCategory','Direction',categories,query.category,'All directions')+'</div>'+
+  '<div class="shop-filter">'+select('filterLevel','Level',['Beginner','Intermediate','Advanced'],query.level,'All levels')+'</div>'+
+  '<div class="shop-filter">'+select('filterKind','Lesson type',['Element','Preparation','Warm-up','Bundle'],query.kind,'All types')+'</div>'+
+  '<details class="shop-more-filters" '+(advancedActive?'open':'')+'><summary>More filters</summary><div class="shop-more-filter-grid">'+
+  '<div>'+select('filterTeacher','Teacher',teachers,query.teacher,'Any teacher')+'</div>'+
+  '<div>'+select('filterEquipment','Equipment',equipment,query.equipment,'Any equipment')+'</div>'+
+  '<div>'+select('filterFocus','Focus',focuses,query.focus,'Any focus')+'</div>'+
+  '<div>'+select('filterDuration','Max. duration',['15','30','60'],query.duration,'Any duration')+'</div></div></details>';
+ const results=lessons.map(lessonCard).join('')+filteredBundles.map(bundleCard).join('');
+ layout(
+ '<section class="shop-heading"><div class="section-inner"><h1>Classes</h1><p>Find a class for your next practice.</p></div></section>'+
+ '<section class="section shop-main"><div class="section-inner"><div class="shop-search"><label for="shopSearch">Search lessons</label><input class="field" id="shopSearch" type="search" placeholder="Search by name or technique" value="'+esc(query.search)+'"></div><div class="shop-filter-bar">'+filters+'</div><div class="shop-results-head"><h2>'+(active?'Search results':'Browse classes')+'</h2><div class="shop-results-meta"><span>'+(lessons.length+filteredBundles.length)+' available</span>'+(active?'<a href="#/shop">Clear filters</a>':'')+'</div></div><div class="shop-results-grid">'+(results||'<p class="shop-empty">No classes match these filters. Try a different level or direction.</p>')+'</div></div></section>'+
+ '<section class="shop-course-link"><div class="section-inner"><div><h2>Prefer a complete program?</h2><p>Legwork Like a Boss brings the lessons together in a structured course.</p></div><a class="btn btn-dark" href="#/course">Explore the course</a></div></section>'
+ );
 }
 function lesson(route){const l=state.lessons.find(x=>x.id===getId(route));if(!l)return layout(section('Lesson not found','<p>Return to the library.</p>'+btn('CLASSES','shop')));layout(section('','<p class="eyebrow"><a href="#/shop">CLASSES</a> / '+esc(l.category)+' / '+esc(l.title)+'</p><div class="grid grid-2"><div>'+'<div class="lesson-detail-cover"><span>SVITLANA YURCHAK / CLASS LIBRARY</span><strong>'+esc(l.title)+'</strong><span>TECHNIQUE · CONTROL · FLOW</span></div>'+'<p class="description">Video is provided only when you have access.</p></div><div><h1 style="font-size:clamp(2.6rem,5vw,5rem)">'+esc(l.title)+'</h1><p>'+esc(l.level)+' · '+l.duration+' minutes · '+esc(l.category)+'</p><p class="price">'+(l.free?'FREE':money(l.price))+'</p><div class="row"><button class="btn btn-red" data-watch="'+l.id+'">WATCH LESSON ▶</button>'+(l.free?'':'<button class="btn btn-outline" data-cart="'+l.id+'">ADD TO BAG</button>')+'</div><p class="description">Practice guidance and downloadable materials will be published by your teacher.</p></div></div><div id="playerMount" style="margin-top:35px"></div>','LESSON DETAIL')+section('PART OF LEGWORK LAB','<p>Get access to the full program and a structured learning journey.</p>'+btn('EXPLORE THE COURSE','course'),'CONTINUE LEARNING','muted-section'))}
 function mentorship(){
