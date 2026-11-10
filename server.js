@@ -172,7 +172,7 @@ app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
  res.type('html').set('Cache-Control','no-store').set('X-Robots-Tag',indexAllowed?'index, follow':'noindex, nofollow').send(html);
 });
 app.get('*',(req,res)=>res.status(404).set('X-Robots-Tag','noindex, nofollow').type('text/plain').send('Page not found'));
-app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})});
+app.use((err,req,res,next)=>{if(err?.type==='entity.too.large')return res.status(413).json({error:'Uploaded file exceeds the allowed size'});console.error(err);res.status(500).json({error:'Internal server error'})});
 const server=app.listen(port,()=>console.log('Legwork listening on '+port));
 function shutdown(signal){
  console.log('Shutting down Legwork after '+signal);
