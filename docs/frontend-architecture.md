@@ -37,3 +37,9 @@ Express runs public pages and API together on localhost:3000. `server.js` uses a
 ## Verification
 
 Run `npm test` and `npm run test:e2e` (after installing the Playwright browser with `npx playwright install chromium`) from your project directory. Inspect home, course, shop, mentorship and account at desktop and mobile widths. Confirm the Network tab loads every CSS file with HTTP 200. Check the browser console for JavaScript and CSP errors. External photos may be blocked by their hosting sites; test with properly licensed local assets before release.
+
+## Admin-editable media URLs
+
+The public media registry is backed by the `site_media` SQLite table and `GET /api/media`. An authenticated school administrator edits the allowed photo/video URL slots in **Admin Studio → Public Media Library**. The site loads them for the home hero (public video/poster), timeline, workshops, approved reviews, course hero/preview, mentorship photo/example, shop bundle cover, and student course thumbnail. Lesson covers remain in `lessons.cover_url` and can be set separately.
+
+This feature stores **public HTTPS URLs, alternative text and optional attribution**, not binary files. It does not establish licensing rights or validate remote-file content. Only use material you control or are permitted to publish. The school must never put private homework videos, private student footage or paid lesson recordings in these public slots. If a URL is empty, the original placeholder is retained.
