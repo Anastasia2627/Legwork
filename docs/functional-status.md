@@ -43,3 +43,10 @@ No browser redirect can grant purchased access. Provider payment status is valid
 ## Release gate
 
 Before charging real clients: verify deployed SMTP flows and a real provider-supported test payment end-to-end, provide original licensed imagery and lesson video URLs, approve final course/package prices and legal documents, establish backup and privacy-retention procedures, and finish the outstanding integrations. Never treat a successful mock webhook test as live merchant approval.
+
+
+## Additional working functionality
+
+- Administrators can upload JPEG, PNG and WebP images directly into persistent local storage instead of manually hosting them. The server resizes, re-encodes and strips metadata. Only assigned files are publicly served; unassigned images expire after 48 hours.
+- Students can download a JSON export of their own account data: profile, orders, progress, homework links, mentorship, certificates and marketing preferences. Other users' data and paid video URLs are excluded.
+- Students may request account closure after password confirmation. Staff receive a queue of requests and can mark one under review. This is NOT automated deletion; legal and payment retention requirements need a documented process first.
