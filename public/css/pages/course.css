@@ -19,7 +19,7 @@
 .course-photo{margin:0;min-width:0}
 .course-photo .media-photo{height:178px;width:100%;object-fit:cover;object-position:center 42%;border-radius:var(--course-radius)}
 .course-photo .photo-credit{margin-top:5px;font:400 10px/1.3 var(--font-body);color:#686868}
-.ref-course-bar{display:none;position:sticky;top:64px;z-index:40;background:#181818;color:white;padding:7px max(24px,6vw)}
+.ref-course-bar{display:none;position:sticky;top:76px;z-index:40;background:#181818;color:white;padding:7px max(24px,6vw)}
 .ref-course-bar.visible{display:block}
 .ref-course-bar .ref-wrap{display:flex;gap:20px;align-items:center;justify-content:flex-end}
 .ref-course-bar .course-logo{margin-right:auto;font:400 18px var(--font-display);letter-spacing:-.05em}
