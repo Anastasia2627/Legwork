@@ -134,12 +134,13 @@ function shop(){
  const bundles=state.bundles.filter(b=>(!query.category||b.direction===query.category)&&(!query.kind||query.kind==='Bundle')&&(!query.search||(b.title+' '+b.description).toLowerCase().includes(query.search.toLowerCase()))&&!query.level&&!query.teacher&&!query.equipment&&!query.focus&&!query.duration);
  const option=(key,value)=>'<button type="button" class="shop-filter-option '+(query[key]===value?'is-selected':'')+'" data-shop-filter="'+key+'" data-shop-value="'+esc(value)+'" aria-pressed="'+(query[key]===value?'true':'false')+'"><span class="shop-check" aria-hidden="true"></span><span>'+esc(value)+'</span></button>';
  const filterGroup=(heading,key,values)=>values.length?'<fieldset class="shop-filter-group"><legend>'+heading+'</legend><div class="shop-option-list">'+values.map(v=>option(key,v)).join('')+'</div></fieldset>':'';
+ const selectGroup=(heading,id,values,selected)=>'<fieldset class="shop-filter-group"><legend>'+heading+'</legend><select class="shop-filter-select" id="'+id+'" size="'+(values.length+1)+'" aria-label="'+heading+'"><option value="" '+(!selected?'selected':'')+'>All</option>'+values.map(v=>'<option value="'+esc(v)+'" '+(selected===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></fieldset>';
  const sidebar=
   '<aside class="shop-sidebar" id="shopFilterPanel" aria-label="Filter classes"><div class="shop-filter-panel-head"><strong>Filters</strong><button id="shopFiltersClose" type="button" aria-label="Close filters">✕</button></div>'+
-  filterGroup('Direction','category',categories)+
+  selectGroup('Direction','filterCategory',categories,query.category)+
   filterGroup('Lesson type','kind',['Element','Preparation','Warm-up','Bundle'])+
   filterGroup('Equipment','equipment',equipment)+
-  filterGroup('Level','level',['Beginner','Intermediate','Advanced'])+
+  selectGroup('Level','filterLevel',['Beginner','Intermediate','Advanced'],query.level)+
   filterGroup('Training focus','focus',focuses)+
   filterGroup('Teacher','teacher',teachers)+
   filterGroup('Max. duration','duration',['15','30','60'])+
