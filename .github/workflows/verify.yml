@@ -20,6 +20,8 @@ jobs:
       - run: node --check lib/learning.js
       - run: node --check lib/bundles.js
       - run: node --check lib/payments.js
+      - run: node --check lib/image-upload.js
+      - run: node --check lib/account-data.js
       - run: node --check lib/mailing.js
       - run: node --check lib/certificates.js
       - run: node --check lib/editorial.js
