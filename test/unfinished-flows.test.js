@@ -41,9 +41,9 @@ test('Independent marketing opt-ins, unsubscribe, and safe cancellation of unpai
   assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'newsletter',consent:false}})).status,400);
   assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'unknown',consent:true}})).status,400);
   const newsletter=await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'newsletter',consent:true}});
-  assert.equal(newsletter.status,200);
+  assert.equal(newsletter.status,201);
   assert.equal(newsletter.body.delivery_enabled,true);
-  assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'free-lesson',consent:true}})).status,200);
+  assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'free-lesson',consent:true}})).status,201);
   assert.equal((await request(base,'/api/subscribe',{method:'POST',data:{email,purpose:'newsletter',consent:true}})).status,200);
   const admin=await request(base,'/api/auth/login',{method:'POST',data:{email:'Admin',password:adminPassword}});
   assert.equal(admin.status,200);
