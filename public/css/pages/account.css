@@ -92,10 +92,3 @@
 .account-privacy-request{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
 .account-privacy-request .meta{margin:4px 0 0;color:var(--muted);font-size:12px}
 @media(max-width:520px){.account-privacy-request{flex-direction:column;align-items:flex-start}.account-data-tools .btn{width:100%}}
-
-
-.lesson-upload-field{display:flex;align-items:center;flex-wrap:wrap;gap:12px 15px;padding:18px;border:1px solid var(--border);border-radius:5px;background:#f9f8f8}
-.lesson-upload-field .description{width:100%;margin:0}
-.lesson-upload-field input[type=file]{flex:1 1 200px;max-width:100%;font:400 13px/1.4 var(--font-body)}
-.lesson-upload-field .badge-label{color:#2b5a46}
-@media(max-width:560px){.lesson-upload-field{align-items:stretch;flex-direction:column}.lesson-upload-field .btn{width:100%}}
