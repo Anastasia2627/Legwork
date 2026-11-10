@@ -158,8 +158,10 @@
  .course-steps span{font-size:26px;margin-bottom:10px}
  .course-result{grid-template-columns:26px minmax(0,1fr);gap:10px}
  .course-result h3{font-size:18px}
- .course-preview-screen{min-height:190px}
+ .course-preview-screen{min-height:0;width:100%}
  .ref-course-bar .ref-wrap{gap:10px}
  .ref-course-bar .course-sticky-title{font-size:12px}
  .ref-course-bar .btn{padding:10px 12px;font-size:12px}
 }
+
+@media(max-width:700px){.course-free-section .course-preview-screen{min-height:0}.ref-course-bar .ref-wrap{min-width:0}.course-sticky-title{min-width:0;overflow-wrap:anywhere}}
