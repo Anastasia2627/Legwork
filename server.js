@@ -12,6 +12,7 @@ import {registerRequestRoutes} from './lib/requests.js';
 import {registerMarketingRoutes} from './lib/marketing.js';
 import {registerSiteMediaRoutes} from './lib/site-media.js';
 import {registerImageUploads,safePublicImageUrl} from './lib/image-upload.js';
+import {registerAccountDataRoutes} from './lib/account-data.js';
 import {registerLearningRoutes} from './lib/learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes} from './lib/payments.js';
@@ -103,6 +104,7 @@ registerEditorialRoutes(app,db,{auth,admin});
 registerLearningRoutes(app,db,{auth});
 registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
+registerAccountDataRoutes(app,db,{auth,admin,verifyPassword,mail});
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 // Public, crawlable paths are deliberately limited to editorial landing pages.
 // Never expose payments, classroom, certificates or admin URLs to a sitemap.
