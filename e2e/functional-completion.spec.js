@@ -1,0 +1,57 @@
+import {test,expect} from '@playwright/test';
+
+test('Student can cancel a pending order from the account and request again',async({page},info)=>{
+ const email='cancel-ui-'+info.project.name+'-'+Date.now()+'@example.test';
+ await page.goto('/#/register');
+ await page.locator('#authForm [name="name"]').fill('Cancellation Student');
+ await page.locator('#authForm [name="email"]').fill(email);
+ await page.locator('#authForm [name="password"]').fill('TestStudentPassword-Safe-9951');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.goto('/#/course');
+ await page.locator('#prices [data-order="course"]').first().click();
+ await expect(page).toHaveURL(/#\/account/);
+ const cancel=page.locator('[data-cancel-order]').first();
+ await expect(cancel).toBeVisible();
+ page.once('dialog',dialog=>dialog.accept());
+ await cancel.click();
+ await expect(page.locator('.account-order-row')).toContainText('cancelled');
+ await expect(page.locator('[data-cancel-order]')).toHaveCount(0);
+ await page.goto('/#/course');
+ await page.locator('#prices [data-order="course"]').first().click();
+ await expect(page).toHaveURL(/#\/account/);
+ await expect(page.locator('[data-cancel-order]')).toHaveCount(1);
+});
+
+test('Administrator can replace and clear public home media without editing source',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('.cabinet-nav [data-tab="admin"]').click();
+ const group=page.locator('details.media-admin-row').filter({has:page.locator('[data-media-slot="home_timeline_1"]')});
+ await expect(group).toHaveCount(1);
+ await group.locator('summary').click();
+ const form=group.locator('[data-media-slot="home_timeline_1"]');
+ await form.locator('[name="url"]').fill('https://example.org/approved-home-timeline.jpg');
+ await form.locator('[name="alt"]').fill('An exotic pole dancer practising');
+ await form.locator('[name="credit"]').fill('School archive');
+ await form.locator('button[type="submit"]').click();
+ await expect(page.locator('#toast')).toContainText('Media updated');
+ await page.goto('/#/');
+ await expect(page.locator('.home-story img.ref-time-thumb').first()).toHaveAttribute('src','https://example.org/approved-home-timeline.jpg');
+ await page.goto('/#/account');
+ await page.locator('.cabinet-nav [data-tab="admin"]').click();
+ const groupAgain=page.locator('details.media-admin-row').filter({has:page.locator('[data-media-slot="home_timeline_1"]')});
+ await groupAgain.locator('summary').click();
+ const clearForm=groupAgain.locator('[data-media-slot="home_timeline_1"]');
+ await clearForm.locator('[name="url"]').fill('');
+ await clearForm.locator('[name="alt"]').fill('');
+ await clearForm.locator('[name="credit"]').fill('');
+ await clearForm.locator('[name="source_url"]').fill('');
+ await clearForm.locator('button[type="submit"]').click();
+ await expect(page.locator('#toast')).toContainText('Media updated');
+ await page.goto('/#/');
+ await expect(page.locator('.home-story img.ref-time-thumb')).toHaveCount(0);
+});
