@@ -150,3 +150,11 @@ body:has(.home-hero) .header{min-height:65px;height:65px}
  .home-free-strip form label{grid-column:1}
 }
 @media(prefers-reduced-motion:reduce){.home-carousel-track{scroll-behavior:auto}}
+
+/* Admin-managed imagery preserves the PDF layout when real photos are supplied. */
+img.ref-time-thumb{display:block;aspect-ratio:1.56;object-fit:cover}
+img.home-carousel-placeholder{display:block;object-fit:cover;aspect-ratio:1.85/1}
+.home-review-carousel img.home-carousel-placeholder{aspect-ratio:1/1.06}
+.home-hero-photo.media-slot{margin:0}
+.free-lesson-next{margin:16px auto 0;max-width:1240px;font:600 14px/1.5 var(--font-body);color:white}
+.free-lesson-next a{text-decoration:underline;text-underline-offset:4px}

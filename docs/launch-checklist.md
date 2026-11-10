@@ -17,14 +17,16 @@ Status: development preview, **NOT ready to charge real customers**.
 5. Do not enable commercial sales before a payment provider with verified webhooks is connected.
 
 ## Priorities before public launch
-- Payment integration: pick merchant/provider, verify signed webhook server side, record external event IDs and implement idempotency; never trust redirects or browser-supplied price.
-- Configure a transactional email provider for registration recovery, confirmations and mentorship reviews. The current admin feedback is available in the student account only.
-- Provide real videos, optimized original media, real course copy and package prices, instructor bio, testimonials and legally approved policies.
-- For strict video protection, migrate from YouTube to a licensed DRM-capable streaming platform; a browser cannot hide an embedded YouTube ID or prevent physical screen capture.
-- Move to a managed PostgreSQL and object storage service for multi-instance scaling; SQLite is intentionally a single-node development backend.
-- Audit authorization, privacy/consent, passwords, backups and payment accounting; add E2E tests against a deployed preview.
-- Complete the Spanish content and per-route indexable SEO/structured data. The current translation is partial, and hash routing is not a production SEO solution.
-- Real certificates, certificates issued only after teacher-approved homework, checkout discount mechanics, real shop bundles, Shopify gifts and videos uploads are not implemented.
+- **WayForPay:** the hosted form, HMAC signature validation, attempt ledger, idempotent webhook and access grant are already coded. Register a real merchant, supply exact credentials and explicit approved UAH pricing rate, then run legitimate provider-supported end-to-end tests. Do not approve pending provider invoices by hand.
+- **SMTP:** email verification, password reset, queue, notifications, separate consent signups and unsubscribe are coded. Configure a verified sender, transport secrets and DNS records; exercise delivery and bounce/error handling.
+- **Media:** staff can replace public HTTPS URLs in Admin Studio → Public Media Library. Provide owner-approved hero footage, five story photos, gallery images, lesson covers and public previews. Private video binaries, malware scanning and protected uploads are not supplied.
+- **Course and mentorship data:** publish real lesson recordings, prices, copy, delivery times and approved testimonials. Student homework currently uses external HTTPS links.
+- **Payments and policy:** decide refunds/chargebacks, tax receipts, commercial terms, privacy/consent, deletion/retention and backups before selling. Automatic refunds are not implemented.
+- **Shop promotions:** the 3+1 and Shopify rules have not been activated because eligibility, pricing, dates and external integration details are not confirmed. Do not advertise an enforceable offer until they are approved.
+- **Localization and SEO:** the client has EN/ES common interface strings; translate owner-authored custom content, complete SEO/structured data and audit mobile accessibility.
+- **Deployment:** persistent SQLite and a backup/restore plan are required. Migrating to a distributed database and object storage is separate follow-on work.
+
+For an exact implementation inventory, see [Functional Status](functional-status.md).
 
 ## Important
 ADMIN_PASSWORD is seeded only on the first creation of the admin account. After that, use the **Change password** form in Admin's profile to rotate it. Do not put passwords, YouTube URLs, payment secrets or customer uploads in Git.

@@ -1,6 +1,6 @@
 # LEGWORK — Svitlana Yurchak online school
 
-Custom full-stack school website built from the supplied brief. English/Spanish storefront, student and admin dashboards, lesson catalog, progress, mentorship requests and manually managed enrollment.
+Custom full-stack school website built from the supplied brief. English/Spanish storefront, student and admin dashboards, lesson catalog, progress, mentorship requests and payment-controlled enrollment. See [current functional status](docs/functional-status.md) for implemented features and release prerequisites.
 
 ## Start
 
@@ -33,12 +33,14 @@ Open http://localhost:3000. A SQLite database is created at `data/legwork.sqlite
 - Student dashboard and a dedicated responsive course player: lesson syllabus, next/previous, private video playback, completion and homework links, instructor feedback, progress and achievement badges.
 - Paid lesson access, self/Guru course plans, mentorship answers and streaks.
 - Admin dashboard with course/lesson creation and editing, pricing, enrollment approval, purchase request list, mentorship queue, Guru homework feedback, and marketing waitlist.
-- Editable content in the admin dashboard; EN/ES navigation and core text.
+- Editable content and public media URL slots in Admin Studio (Home, course, shop bundle, mentorship, student course cards); EN/ES navigation and core text.
+- Separate newsletter/free lesson/book mailing preferences, opt-in receipts and tokenized unsubscribe links when email delivery is enabled.
+- Cancellation of unpaid customer orders and pending mentorship requests, with server-side safeguards against cancelling active payment attempts.
 - Semantic layout, responsive modular styling, real-media preview sourcing and admin-editable lesson cover images.
 
 ## Missing inputs for production
 
-Real lesson video URLs, visuals, finalized copy, mentorship pricing/turnaround, real merchant enrollment/credentials for the integrated but disabled-by-default WayForPay checkout, transactional email provider, full legal documents, and the exact Shopify promotion integration.
+Real lesson video URLs, owner-approved visuals, finalized copy, mentorship pricing/turnaround, merchant credentials for the integrated but disabled-by-default WayForPay checkout, transactional email provider, full legal documents and confirmed Shopify promotion terms. Public media URLs are editable in the admin; file uploads, direct refund automation and bulk newsletter campaigns are not included.
 
 ## Tests
 
@@ -82,4 +84,4 @@ Public routes /, /course, /shop and /mentorship have server-rendered fallback me
 
 ## Frontend ownership and photography
 
-See [Frontend architecture](docs/frontend-architecture.md) for the CSS ownership map, image editing, safety notes and test checklist. The page styles now live in `public/css/core.css`, `public/css/components.css` and `public/css/pages/`. Legacy `public/styles.css` remains only for pre-existing features; don't add new design overrides there. Two verified editorial photos are used only as credited development examples until media permissions and approved owner assets are provided. Admins can set each lesson's public HTTPS `cover_url` without touching code.
+See [Frontend architecture](docs/frontend-architecture.md) for the CSS ownership map, image editing, safety notes and test checklist. The page styles now live in `public/css/core.css`, `public/css/components.css` and `public/css/pages/`. Legacy `public/styles.css` remains only for pre-existing features; don't add new design overrides there. Two credited editorial photos are used only as development previews until owner-approved original media is supplied. Admins can edit fixed public media slots through **Admin Studio → Public Media Library** and set each lesson's public HTTPS `cover_url` separately. This is URL management, not binary uploading.
