@@ -428,4 +428,17 @@ export const esPublic = {
   "Previous reviews": "Opiniones anteriores",
   "Next reviews": "Opiniones siguientes",
   "I agree to receive school emails.": "Acepto recibir correos de la escuela."
+,
+  "Cancel request": "Cancelar solicitud",
+  "Cancel this unpaid order request?": "¿Cancelar este pedido no pagado?",
+  "Cancel this mentorship request before payment?": "¿Cancelar esta solicitud de mentoría antes del pago?",
+  "Open your free introductory lesson →": "Abrir la clase introductoria gratuita →",
+  "EMAIL PREFERENCES": "PREFERENCIAS DE CORREO",
+  "YOUR CHOICE": "TU ELECCIÓN",
+  "Unsubscribe": "Cancelar suscripción",
+  "Unsubscribe from the mailing list connected to this link. This does not delete your course account or purchases.": "Cancela la suscripción asociada a este enlace. No elimina tu cuenta ni tus compras.",
+  "Return to the school": "Volver a la escuela",
+  "Back to school": "Volver a la escuela",
+  "INVALID UNSUBSCRIBE LINK": "ENLACE DE BAJA NO VÁLIDO",
+  "This email preference link is invalid.": "Este enlace de preferencias de correo no es válido."
 };
