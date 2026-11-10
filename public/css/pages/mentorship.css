@@ -9,13 +9,13 @@
 .mentor-photo .photo-credit{font-size:11px;line-height:1.4;color:#796f72;margin-top:7px}
 .ref-mentor-intro h3{font:700 clamp(24px,2.5vw,34px)/1.25 var(--font-body);letter-spacing:-.04em;margin:0 0 18px}
 .ref-mentor-intro>div:last-child p{font:400 16px/1.7 var(--font-body);color:#655e61;max-width:460px;margin:0 0 16px}
-.ref-prices{display:grid;grid-template-columns:1fr 1fr;max-width:930px;gap:21px;margin:0 auto}
-.ref-prices .price-card{background:#fff;border:1px solid #e6dfe1;border-radius:var(--radius);padding:clamp(25px,3.5vw,43px);min-height:330px;display:flex;flex-direction:column}
-.ref-prices .price-card.featured{border:1px solid var(--red)}
-.ref-prices .price-card h3{font:700 25px/1.25 var(--font-body);letter-spacing:-.04em;margin:0 0 18px}
-.ref-prices .price-card>p:not(.mentor-price-status){font:400 16px/1.65 var(--font-body);color:#645c5e;max-width:340px;margin:0 0 24px}
-.ref-prices .price-card .mentor-price-status{font:500 14px/1.5 var(--font-body);color:#827779;margin:auto 0 20px}
-.ref-prices .price-card .btn{width:100%;min-height:46px;font-size:14px}
+body:has(.ref-mentor-hero) .ref-prices{display:grid;grid-template-columns:1fr 1fr;max-width:930px;gap:21px;margin:0 auto}
+body:has(.ref-mentor-hero) .ref-prices .price-card{background:#fff;border:1px solid #e6dfe1;border-radius:var(--radius);padding:clamp(25px,3.5vw,43px);min-height:330px;display:flex;flex-direction:column}
+body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:1px solid var(--red)}
+body:has(.ref-mentor-hero) .ref-prices .price-card h3{font:700 25px/1.25 var(--font-body);letter-spacing:-.04em;margin:0 0 18px}
+body:has(.ref-mentor-hero) .ref-prices .price-card>p:not(.mentor-price-status){font:400 16px/1.65 var(--font-body);color:#645c5e;max-width:340px;margin:0 0 24px}
+body:has(.ref-mentor-hero) .ref-prices .price-card .mentor-price-status{font:500 14px/1.5 var(--font-body);color:#827779;margin:auto 0 20px}
+body:has(.ref-mentor-hero) .ref-prices .price-card .btn{width:100%;min-height:46px;font-size:14px}
 .mentorship-form-intro{font:400 16px/1.6 var(--font-body);color:#686062;max-width:550px;margin:-12px 0 28px}
 .ref-mentor-form{max-width:700px;margin:0;padding:0;background:transparent;box-shadow:none;border:0;border-radius:0}
 .ref-mentor-form form{width:100%;max-width:none;display:grid;gap:20px}
@@ -24,4 +24,4 @@
 .ref-mentor-form textarea{min-height:100px;resize:vertical}
 .ref-mentor-form .notice{font:400 13px/1.55 var(--font-body);color:#6c6567;background:#f8f5f5;padding:12px 15px;border-radius:var(--radius);margin:0}
 .ref-mentor-form .btn{min-height:46px;font-size:14px;justify-self:start;min-width:200px}
-@media(max-width:750px){.ref-mentor-hero{padding:46px 5%}.ref-mentor-hero h1{font-size:clamp(34px,8.5vw,48px)}.ref-mentor-intro{grid-template-columns:1fr;gap:25px}.mentor-photo .media-photo{height:350px}.ref-prices{grid-template-columns:1fr}.ref-mentor-form{max-width:none}}
+@media(max-width:750px){.ref-mentor-hero{padding:46px 5%}.ref-mentor-hero h1{font-size:clamp(34px,8.5vw,48px)}.ref-mentor-intro{grid-template-columns:1fr;gap:25px}.mentor-photo .media-photo{height:350px}body:has(.ref-mentor-hero) .ref-prices{grid-template-columns:1fr}.ref-mentor-form{max-width:none}}
