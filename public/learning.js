@@ -40,9 +40,6 @@ export async function renderStudy(id,{api,layout,notice,lang}){
   '<span class="study-row-title"><b>'+htmlEscape(row.title)+'</b><small>'+row.duration+' min · '+htmlEscape(row.kind)+'</small></span></a>'
  ).join('');
  const metadata='<span>'+htmlEscape(l.level)+'</span><span>'+htmlEscape(l.equipment||'Any support')+'</span><span>'+l.duration+' min</span>';
- const uploadedHomework=l.homework_url==='/api/homework-videos/'+l.id;
- const homeworkHelp=uploadedHomework?
-  '<p class="study-uploaded" role="status"><a href="'+htmlEscape(l.homework_url)+'" target="_blank" rel="noopener noreferrer">'+(spanish?'Ver video subido ↗':'View uploaded practice video ↗')+'</a></p><p class="description">'+(spanish?'Deja el enlace vacío para mantener el archivo subido. Escribe otro enlace HTTPS para reemplazarlo.':'Leave the link blank to keep your uploaded clip. Paste a new HTTPS link to replace it.')+'</p>':'';
  const container='<div class="study-shell">'+
  '<aside class="study-sidebar" id="studySidebar"><div class="study-sidebar-head"><a href="#/account" class="study-back">← '+(spanish?'Mis cursos':'My courses')+'</a><h3>'+htmlEscape(course.title)+'</h3><span class="badge-label">'+htmlEscape(course.tier==='guru'?'GURU':course.tier==='self'?'SELF-PACED':'SINGLE LESSON')+'</span><p class="meta">'+done+' / '+accessible.length+' '+(spanish?'clases completadas':'lessons completed')+'</p><div class="progress-bar"><i style="width:'+percent+'%"></i></div></div><nav class="study-outline" aria-label="Course curriculum">'+nav+'</nav></aside>'+
  '<article class="study-content"><div class="study-topline"><a href="#/account">← '+(spanish?'Volver al perfil':'Back to dashboard')+'</a><button class="btn btn-small btn-outline study-toggle" id="toggleSyllabus" type="button">'+(spanish?'Programa':'Curriculum')+' ☰</button></div>'+
@@ -52,7 +49,7 @@ export async function renderStudy(id,{api,layout,notice,lang}){
  '<div class="study-controls"><div class="study-pagination">'+(prev?'<a class="btn btn-outline" href="#/study/'+prev.id+'">← '+(spanish?'Anterior':'Previous')+'</a>':'<span></span>')+(next?'<a class="btn btn-outline" href="#/study/'+next.id+'">'+(spanish?'Siguiente':'Next')+' →</a>':'<span></span>')+'</div>'+
  '<button type="button" id="studyComplete" class="btn '+(l.completed?'btn-outline':'btn-red')+'">'+(l.completed?(spanish?'✓ Completada · Desmarcar':'✓ Completed · Undo'):(spanish?'Marcar como completada':'Mark as completed'))+'</button></div>'+
  '<section class="study-homework"><p class="eyebrow">'+(spanish?'PRÁCTICA':'YOUR PRACTICE')+'</p><h2>'+(spanish?'Entrega de tarea':'Homework submission')+'</h2><p class="description">'+(spanish?'Comparte un enlace seguro a tu video de práctica. El feedback personal está incluido en el plan Guru.':'Share a secure link to your practice video. Personalized instructor feedback is included in the Guru plan.')+'</p>'+
- '<form id="studyHomeworkForm" class="form">'+homeworkHelp+'<label for="homeworkUrl">'+(spanish?'Enlace de tarea (HTTPS)':'Homework video link (HTTPS)')+'</label><input class="field" type="url" id="homeworkUrl" name="homework" value="'+htmlEscape(uploadedHomework?'':l.homework_url)+'" placeholder="https://" autocomplete="off"><button type="submit" class="btn btn-dark">'+(spanish?'Guardar entrega':'Save homework link')+'</button></form><div class="study-upload-field"><label for="studyVideoFile">'+(spanish?'O sube un video corto desde tu dispositivo (MP4/WebM, máx. 40 MB)':'Or upload a short clip from your device (MP4/WebM, max. 40 MB)')+'</label><input id="studyVideoFile" type="file" accept="video/mp4,video/webm"><button type="button" id="studyUploadHomework" class="btn btn-outline">'+(spanish?'Subir video de práctica':'Upload practice video')+'</button></div>'+
+ '<form id="studyHomeworkForm" class="form"><label for="homeworkUrl">'+(spanish?'Enlace de tarea (HTTPS)':'Homework video link (HTTPS)')+'</label><input class="field" type="url" id="homeworkUrl" name="homework" value="'+htmlEscape(l.homework_url)+'" placeholder="https://" autocomplete="off"><button type="submit" class="btn btn-dark">'+(spanish?'Guardar entrega':'Save homework link')+'</button></form>'+
  (l.teacher_feedback?'<div class="study-feedback"><b>'+(spanish?'Respuesta de la profesora':'Instructor feedback')+'</b><p>'+htmlEscape(l.teacher_feedback)+'</p></div>':'')+'</section>'+
  '<p class="study-note">'+(spanish?'Los videos son para uso personal. YouTube no permite bloquear completamente las grabaciones de pantalla.':'Lessons are for personal viewing. YouTube does not provide guaranteed screen-capture prevention.')+'</p>'+
  '</article></div>';
@@ -60,9 +57,7 @@ export async function renderStudy(id,{api,layout,notice,lang}){
  const host=document.getElementById('studyVideoHost');
  const url=l.video_url;
  const idYouTube=url?youtubeId(url):null;
- if(url==='/api/lesson-videos/'+l.id){
-  host.append(el('video',{src:url,controls:'',playsinline:'',preload:'metadata',className:'study-private-video','aria-label':l.title+' · '+(spanish?'video de lección':'lesson video')}));
- }else if(idYouTube){
+ if(idYouTube){
   host.append(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+idYouTube+'?rel=0&modestbranding=1',title:l.title+' · Legwork',loading:'lazy',referrerpolicy:'strict-origin-when-cross-origin',allow:'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen',allowfullscreen:'true'}));
  }else if(url){
   const safe=new URL(url);
@@ -73,25 +68,10 @@ export async function renderStudy(id,{api,layout,notice,lang}){
   host.append(el('div',{className:'study-video-empty'},[el('span',{className:'study-play-icon',text:'▶'}),el('p',{text:spanish?'La profesora aún no ha publicado este video.':'The instructor has not published this video yet.'})]));
  }
  const save=async(completed,homework_url)=>{
-  if(uploadedHomework&&!homework_url)homework_url=l.homework_url;
   await api('/progress/'+l.id,'POST',{completed,homework_url});
   notice(spanish?'Progreso guardado':'Progress saved');
   await renderStudy(l.id,{api,layout,notice,lang});
  };
- const uploadClip=async()=>{
-  const input=document.getElementById('studyVideoFile'),file=input?.files?.[0],button=document.getElementById('studyUploadHomework');
-  if(!file)throw Error(spanish?'Selecciona un video MP4 o WebM':'Choose an MP4 or WebM video');
-  if(!['video/mp4','video/webm'].includes(file.type)||file.size<16||file.size>40*1024*1024)throw Error(spanish?'El video debe ser MP4/WebM y no superar 40 MB':'Video must be MP4/WebM and no larger than 40 MB');
-  if(button)button.disabled=true;
-  try{
-   const response=await fetch('/api/homework-videos/'+l.id,{method:'POST',body:file,headers:{'Content-Type':file.type},credentials:'same-origin'});
-   const result=await response.json().catch(()=>({}));
-   if(!response.ok)throw Error(result.error||'Upload failed');
-   notice(spanish?'Video subido con éxito':'Practice clip uploaded');
-   await renderStudy(l.id,{api,layout,notice,lang});
-  }finally{if(button?.isConnected)button.disabled=false}
- };
- document.getElementById('studyUploadHomework')?.addEventListener('click',()=>uploadClip().catch(e=>notice(e.message)));
  document.getElementById('toggleSyllabus')?.addEventListener('click',()=>document.getElementById('studySidebar')?.classList.toggle('open'));
  document.getElementById('studyComplete')?.addEventListener('click',()=>save(!l.completed,document.getElementById('homeworkUrl').value.trim()).catch(e=>notice(e.message)));
  document.getElementById('studyHomeworkForm')?.addEventListener('submit',event=>{
