@@ -38,7 +38,7 @@ const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash
  const robots=document.querySelector('meta[name="robots"]');
  if(robots)robots.content=publicPath&&robots.dataset.indexEnabled==='true'?'index,follow':'noindex,nofollow';
 };
-function layout(markup){app.innerHTML=markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
+function layout(markup){document.body.classList.remove('shop-filters-open');app.innerHTML=markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){
  const milestones=[
@@ -108,11 +108,12 @@ function home(){
  );
 }function lessonCard(l,studyMode=false){
  const destination=studyMode===true?'study':'lesson',cover=l.cover_url?'<img class="lesson-cover-image" loading="lazy" decoding="async" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+' lesson cover">':'';
- return '<article class="card lesson-card"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+destination+'/'+l.id+'" aria-label="View '+esc(l.title)+'">'+cover+'<span class="lesson-cover-top">'+esc(l.category||'LEGWORK')+'</span><span class="lesson-cover-index">'+(l.free?'FREE CLASS':'LESSON '+String(l.sort_order||l.id).padStart(2,'0'))+'</span></a><div class="card-body"><p class="meta">'+esc(l.level)+' · '+l.duration+' min · '+esc(l.equipment||'Any support')+'</p><h3><a href="#/'+destination+'/'+l.id+'">'+esc(l.title)+'</a></h3><p class="meta">'+esc(l.teacher||'Svitlana Yurchak')+'</p><div class="row"><b>'+(l.free?'FREE':money(l.price))+'</b><a class="btn btn-small btn-outline" href="#/'+destination+'/'+l.id+'">View lesson</a></div></div></article>';
+ return '<article class="card lesson-card"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+destination+'/'+l.id+'" aria-label="View '+esc(l.title)+'">'+cover+'<span class="lesson-cover-top">'+esc(l.category||'LEGWORK')+'</span><span class="lesson-cover-index">'+(l.free?'FREE CLASS':'LESSON '+String(l.sort_order||l.id).padStart(2,'0'))+'</span></a><div class="card-body"><h3><a href="#/'+destination+'/'+l.id+'">'+esc(l.title)+'</a></h3><p class="meta">'+esc(l.level)+' · '+Number(l.duration||0)+' min · '+esc(l.equipment||'Any support')+'</p><div class="row"><b>'+(l.free?'FREE':money(l.price))+'</b>'+(studyMode?'<a class="btn btn-small btn-outline" href="#/study/'+l.id+'">Study</a>':l.free?'<a class="btn btn-small btn-outline" href="#/lesson/'+l.id+'">View lesson</a>':'<button class="btn btn-small btn-dark" type="button" data-cart="'+l.id+'">Add to bag</button>')+'</div></div></article>';
 }
 function bundleCard(bundle){
- return '<article class="card bundle-card"><a href="#/bundle/'+bundle.id+'" class="bundle-cover"><span>BUNDLE / '+bundle.lesson_ids.length+' CLASSES</span><span class="bundle-art-mark" aria-hidden="true">↗</span><span>ELEMENT + PRACTICE + WARM-UP</span></a><div class="card-body"><h3><a href="#/bundle/'+bundle.id+'">'+esc(bundle.title)+'</a></h3><p>'+esc(bundle.description)+'</p><div class="row"><span><s class="meta">'+money(bundle.original_price)+'</s> <b class="price">'+money(bundle.price)+'</b></span><button type="button" class="btn btn-red btn-small" data-cart-bundle="'+bundle.id+'">Add to bag</button></div></div></article>';
-}function bundlePage(route){
+ return '<article class="card bundle-card"><a href="#/bundle/'+bundle.id+'" class="bundle-cover" aria-label="View '+esc(bundle.title)+'"><span class="bundle-cover-stack" aria-hidden="true"><i></i><i></i><i></i></span></a><div class="card-body"><h3><a href="#/bundle/'+bundle.id+'">'+esc(bundle.title)+'</a></h3><p class="bundle-lessons">'+bundle.lesson_ids.length+' lessons · '+esc(bundle.direction)+'</p><div class="row"><span><s class="meta">'+money(bundle.original_price)+'</s> <b class="price">'+money(bundle.price)+'</b></span><button type="button" class="btn btn-dark btn-small" data-cart-bundle="'+bundle.id+'">Add to bag</button></div></div></article>';
+}
+function bundlePage(route){
  const id=Number(route.split('/')[1]),b=state.bundles.find(x=>x.id===id);
  if(!b)return layout(section('Bundle unavailable','<p>This bundle is no longer available.</p>'+btn('BACK TO CLASSES','shop')));
  const lessons=b.lesson_ids.map(id=>state.lessons.find(l=>l.id===id)).filter(Boolean);
@@ -325,7 +326,25 @@ else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
 }
 else if(form.dataset.homeworkReview){const [uid,lid]=form.dataset.homeworkReview.split('-');const result=await api('/admin/homework/'+uid+'/'+lid+'/review','POST',{feedback:data.feedback});notice(result.message);await adminPanel()}return}
 if(!button||e.type!=='click')return;
- if(button.id==='shopFiltersToggle'){const bar=$('#shopFilterBar'),open=bar.classList.toggle('is-open');button.setAttribute('aria-expanded',String(open));button.querySelector('span').textContent=open?'−':'+';return}
+ if(target.id==='shopFilterShade'){document.querySelector('#shopFiltersClose')?.click();return}
+ if(button.id==='shopFiltersToggle'||button.id==='shopFiltersClose'||button.id==='shopFilterShade'){
+  const panel=$('#shopFilterPanel'),shade=$('#shopFilterShade'),toggle=$('#shopFiltersToggle');
+  if(!panel||!shade||!toggle)return;
+  const open=button.id==='shopFiltersToggle'?!panel.classList.contains('is-open'):false;
+  panel.classList.toggle('is-open',open);
+  shade.hidden=!open;
+  toggle.setAttribute('aria-expanded',String(open));
+  document.body.classList.toggle('shop-filters-open',open);
+  if(open)$('#shopFiltersClose')?.focus();else toggle.focus();
+  return
+ }
+ if(button.dataset.shopFilter){
+  const key=button.dataset.shopFilter,value=button.dataset.shopValue||'',params=new URLSearchParams(location.hash.split('?')[1]||'');
+  params.get(key)===value?params.delete(key):params.set(key,value);
+  location.hash='#/shop'+(params.toString()?'?'+params.toString():'');
+  return
+ }
+ if(button.dataset.shopClear){location.hash='#/shop';return}
 if(button.dataset.showtab){e.preventDefault();document.querySelectorAll('[data-showtab]').forEach(el=>el.classList.toggle('active',el===button));const topics={championships:['CHAMPIONSHIPS','Competitions and performances across the international pole community.'],shows:['SHOWS','Stage performances and international dance appearances.'],judging:['JUDGING & POLECON','Experience teaching and judging at international events.']};const [title,body]=topics[button.dataset.showtab];const panel=$('#showsPanel');if(panel)panel.innerHTML='<h3>'+title+'</h3><p>'+body+'</p>';return}
 if(button.dataset.message){e.preventDefault();notice(button.dataset.message)}
 if(button.dataset.tab){state.tab=button.dataset.tab;await account()}
@@ -358,7 +377,8 @@ document.addEventListener('keydown',e=>{
  const drawer=$('#cartDrawer');
  if(e.key==='Escape'){
   if(drawer.classList.contains('open')){e.preventDefault();closeCart();return}
-  if($('#nav').classList.contains('open')){setMobileMenu(false);$('#menuBtn').focus()}
+  if($('#shopFilterPanel')?.classList.contains('is-open')){$('#shopFilterPanel').classList.remove('is-open');$('#shopFilterShade').hidden=true;$('#shopFiltersToggle').setAttribute('aria-expanded','false');document.body.classList.remove('shop-filters-open');$('#shopFiltersToggle').focus();return}
+   if($('#nav').classList.contains('open')){setMobileMenu(false);$('#menuBtn').focus()}
  }
  if(e.key==='Tab'&&drawer.classList.contains('open')){
   const focusables=[...drawer.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
