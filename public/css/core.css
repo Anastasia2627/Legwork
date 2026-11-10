@@ -98,7 +98,7 @@ footer a:hover{text-decoration:underline;text-underline-offset:4px}
  .header .actions{gap:8px}
  .header .icon-btn,.header .tiny-link{font-size:11px}
  .header .tiny-link{display:inline}
- .header #langBtn{display:none}
+ .header #langBtn{display:inline-flex;justify-content:center;align-items:center;padding:0 2px;min-width:38px;font-size:10px}
  .section{padding:60px 5%}
  .section h2,h2{font-size:clamp(27px,7.5vw,35px)}
  .ref-free-strip{padding:37px 5%}
@@ -110,7 +110,7 @@ footer a:hover{text-decoration:underline;text-underline-offset:4px}
 }
 @media(max-width:360px){
  .header .logo{font-size:11px}
- .header .logo small{display:none}
+ .header .logo small,.header .logo span{display:none}
  .header .actions{gap:4px}
  .header .tiny-link{font-size:10px}
  .btn{padding-inline:15px}
