@@ -27,8 +27,8 @@ test('Bilingual editorial CMS: permissions, revisions, safety and persisted cont
   running=await launch(dbFile);let {base}=running;
   let published=await request(base,'/api/content');
   assert.equal(published.status,200);
-  assert.equal(published.body.pages.home.en.headlineTop,'MOVE LIKE');
-  assert.equal(published.body.pages.home.es.headlineTop,'MUÉVETE COMO');
+  assert.equal(published.body.pages.home.en.headlineTop,'HI THERE! SVITLANA YURCHAK,');
+  assert.equal(published.body.pages.home.es.headlineTop,'HOLA, SOY SVITLANA YURCHAK,');
   assert.equal(published.body.pages.course.en.cta,"I'M READY");
   const anonymous=await request(base,'/api/admin/content');
   assert.equal(anonymous.status,401);
@@ -51,7 +51,7 @@ test('Bilingual editorial CMS: permissions, revisions, safety and persisted cont
   assert.equal(saved.status,200);assert.equal(saved.body.revision,1);
   assert.equal((await request(base,url,{method:'PUT',cookie:adminCookie,data:{values:changed,expected_revision:0}})).status,409,'Concurrent editing must not silently overwrite');
   const verify=await request(base,'/api/content');assert.equal(verify.body.pages.home.en.headlineTop,'DANCE BOLDLY');
-  assert.equal(verify.body.pages.home.es.headlineTop,'MUÉVETE COMO','Editing EN must not change ES');
+  assert.equal(verify.body.pages.home.es.headlineTop,'HOLA, SOY SVITLANA YURCHAK,','Editing EN must not change ES');
   assert.equal(verify.body.pages.home.en.intro,'Learn thoughtfully & practice with purpose.');
   const esValues={...editorData.body.content.home.es,headlineTop:'BAILA A TU MANERA'};
   assert.equal((await request(base,'/api/admin/content/home/es',{method:'PUT',cookie:adminCookie,data:{values:esValues,expected_revision:0}})).status,200);
