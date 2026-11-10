@@ -97,3 +97,84 @@ body:has(.ref-course-hero) .ref-end h2{font:700 25px/1.2 var(--font-body);letter
  .ref-outcomes{gap:22px}
  .course-outcome-visual{min-height:175px}
 }
+
+
+/* Editorial content — real readable copy, without placeholder copy blocks. */
+.course-intro-label,.course-free-overline,.course-end-eyebrow{
+ margin:0 0 12px;color:#656161;
+ font:600 10px/1.4 var(--font-body);letter-spacing:.12em;
+}
+.ref-course-hero .course-intro-label{margin-bottom:13px}
+.course-hero-points{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 20px}
+.course-hero-points span{background:#fff;border:1px solid #d9d5d5;border-radius:var(--course-radius);padding:6px 10px;font:500 11px/1.25 var(--font-body);color:#625f5f}
+.course-section-intro{max-width:650px;font:400 14px/1.62 var(--font-body);color:#625f60;margin:0 0 24px}
+body:has(.ref-course-hero) .section h2{max-width:780px;margin-bottom:14px}
+.course-audience{min-height:185px}
+.course-audience h3{font-size:15px;line-height:1.35;margin-bottom:9px}
+.course-audience p{font-size:12px;line-height:1.56}
+.course-results-layout{display:grid;grid-template-columns:1.15fr .75fr;gap:clamp(30px,5vw,80px);align-items:start}
+.course-results-list{display:grid}
+.course-result{display:grid;grid-template-columns:34px 1fr;gap:12px;border-top:1px solid #d8d5d5;padding:15px 0}
+.course-result>span{font:600 11px/1.5 var(--font-body);color:#a1727f}
+.course-result h3{font:700 15px/1.35 var(--font-body);letter-spacing:-.018em;margin:0 0 4px}
+.course-result p{font:400 12px/1.55 var(--font-body);color:#666;margin:0;max-width:440px}
+.course-results-aside{background:#e6e2e2;border-radius:var(--course-radius);padding:26px;min-height:292px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between}
+.course-results-aside>span{font:600 10px var(--font-body);letter-spacing:.13em;color:#716c6c}
+.course-results-aside strong{font:700 clamp(25px,2.8vw,37px)/1.15 var(--font-body);letter-spacing:-.045em;max-width:255px}
+.course-results-aside p{font:400 12px/1.57 var(--font-body);max-width:280px;color:#6c6466;margin:0}
+.course-journey-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.course-journey{border:1px solid #e5e2e2;border-radius:var(--course-radius);padding:19px;min-height:182px}
+.course-journey>span{font:600 11px var(--font-body);color:var(--red)}
+.course-journey h3{font:700 15px/1.3 var(--font-body);margin:22px 0 8px;letter-spacing:-.02em}
+.course-journey p{font:400 12px/1.53 var(--font-body);margin:0;color:#6d6767}
+.course-program-header{display:flex;justify-content:space-between;align-items:end;gap:24px}
+.course-program-header>span{flex-shrink:0;font:500 11px/1.4 var(--font-body);color:#756f6f;margin-bottom:27px}
+.course-lesson-tile>img,.course-lesson-tile-art{height:133px}
+.course-lesson-title{min-height:67px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:11px 12px}
+.course-lesson-title strong{font:600 12px/1.4 var(--font-body);letter-spacing:0}
+.course-lesson-title span{font:400 10px/1.35 var(--font-body);color:#7a7676}
+.course-program-bottom{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-top:22px}
+.course-program-bottom p{font:400 13px/1.6 var(--font-body);color:#625d5d;max-width:500px;margin:0}
+.ref-free-lesson h3{font:700 clamp(22px,2.5vw,30px)/1.2 var(--font-body);letter-spacing:-.035em;margin:0 0 12px}
+.ref-free-lesson .course-free-overline{font:600 10px/1.4 var(--font-body);margin:0 0 11px}
+.ref-free-lesson p{font:400 13px/1.6 var(--font-body);margin:0 0 16px}
+.course-pricing-section .section-inner>h2{margin-bottom:12px}
+.course-pricing-section .section-inner>.course-section-intro{margin-bottom:26px}
+.course-pricing-section .ref-prices .price-card{min-height:405px;gap:0}
+.course-pricing-section .ref-prices .price-card .course-price-tag{font:600 10px/1.5 var(--font-body);letter-spacing:.08em;color:#7c7373;margin:0 0 5px}
+.course-pricing-section .ref-prices .price-card h3{font:700 20px/1.24 var(--font-body);margin:0 0 9px}
+.course-pricing-section .ref-prices .price-card .course-plan-desc{font:400 12px/1.55 var(--font-body);color:#706a6a;min-height:43px}
+.course-pricing-section .ref-prices .price-card .price{margin:13px 0 17px}
+.course-includes{list-style:none;margin:0 0 22px;padding:0}
+.course-includes li{font:400 12px/1.55 var(--font-body);margin:8px 0}
+.course-includes li:before{content:"✓";color:#26755d;font-weight:700;margin-right:10px}
+.course-price-footnote{text-align:center;font:400 11px/1.5 var(--font-body);color:#7a7272;margin:19px 0 0}
+.course-afterword{display:flex;align-items:center;justify-content:space-between;gap:35px}
+.course-afterword>div{max-width:650px}
+.course-afterword h3{font:700 21px/1.3 var(--font-body);letter-spacing:-.02em;margin:0 0 12px}
+.course-afterword p{font:400 14px/1.62 var(--font-body);color:#665f61;margin:0}
+body:has(.ref-course-hero) .faq{max-width:850px}
+body:has(.ref-course-hero) .faq details{border-bottom:1px solid #e0dcdc;padding:17px 0}
+body:has(.ref-course-hero) .faq summary{font:600 14px/1.4 var(--font-body);cursor:pointer}
+body:has(.ref-course-hero) .faq details p{font:400 13px/1.6 var(--font-body);max-width:690px;color:#686060;padding-top:11px}
+.ref-end p{font:400 14px/1.55 var(--font-body);color:#676161;margin:0 0 18px}
+.ref-end .course-end-eyebrow{font:600 10px/1.4 var(--font-body);letter-spacing:.12em;color:var(--red);margin-bottom:11px}
+.course-end-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+@media(max-width:900px){
+ .course-journey-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .course-results-layout{gap:25px}
+ .course-program-header{display:block}
+ .course-program-header>span{display:block;margin:-10px 0 15px}
+}
+@media(max-width:760px){
+ .course-results-layout{grid-template-columns:1fr}
+ .course-results-aside{min-height:200px}
+ .course-program-bottom,.course-afterword{align-items:flex-start;flex-direction:column}
+ .course-hero-points{margin:13px 0}
+}
+@media(max-width:440px){
+ .course-journey-grid{grid-template-columns:1fr}
+ .course-audience{min-height:210px}
+ .course-lesson-title{min-height:74px}
+ .course-results-aside{padding:20px}
+}
