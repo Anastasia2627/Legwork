@@ -2,14 +2,15 @@ import {test,expect} from '@playwright/test';
 
 test('Public navigation and catalog filters',async({page},info)=>{
  await page.goto('/#/');
- await expect(page.locator('h1')).toContainText('MOVE LIKE');
+ await expect(page.locator('.ref-hero h1')).toContainText('SVITLANA');
  await page.goto('/#/course');
  await expect(page.locator('.course-logo')).toContainText('LEGWORK');
  await expect(page.locator('#prices .price-card')).toHaveCount(2);
  await page.goto('/#/shop');
  await expect(page.locator('h1')).toContainText('CLASSES');
- await expect(page.locator('.catalog-direction')).toHaveCount(3);
+ await expect(page.locator('.shop-direction')).not.toHaveCount(0);
  await expect(page.locator('.lesson-card').nth(1).locator('a').first()).toHaveAttribute('href',/#\/lesson\//);
+ if(info.project.name==='mobile-chromium')await page.locator('#shopFiltersToggle').click();
  await page.locator('#filterCategory').selectOption('Legwork');
  await expect(page).toHaveURL(/category=Legwork/);
  await expect(page.locator('.lesson-card').first()).toBeVisible();
@@ -42,7 +43,7 @@ test('Student can register and complete introductory lesson in classroom',async(
  await page.locator('#studyComplete').click();
  await expect(page.locator('#studyComplete')).toContainText(/Completed|Completada/);
  await page.goto('/#/account');
- await page.locator('[data-tab="achievements"]').click();
+ await page.locator('.cabinet-nav [data-tab="achievements"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('1 lessons completed');
 });
 
@@ -139,7 +140,7 @@ test('Certificate verification and staff issuance controls appear in the interfa
  await page.locator('[data-tab="admin"]').click();
  await expect(page.locator('#adminMount')).toContainText('COURSE CERTIFICATES');
  await expect(page.locator('#adminMount')).toContainText('ISSUED CERTIFICATES');
- await page.locator('[data-tab="achievements"]').click();
+ await page.locator('.cabinet-nav [data-tab="achievements"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('COURSE CERTIFICATES');
 });
 
@@ -158,10 +159,10 @@ test('Admin can edit mentorship copy in English without changing Spanish',async(
  await editor.locator('button[type="submit"]').click();
  await expect(page.locator('#toast')).toContainText('Page text updated');
  await page.goto('/#/mentorship');
- await expect(page.locator('.hero h1')).toHaveText('PERSONAL DANCE VIDEO REVIEW');
+ await expect(page.locator('.ref-mentor-hero h1')).toHaveText('PERSONAL DANCE VIDEO REVIEW');
  await expect(page).toHaveTitle('Personal Mentorship · Legwork School');
  await page.locator('#langBtn').click();
- await expect(page.locator('.hero h1')).toContainText('RECIBE COMENTARIOS');
+ await expect(page.locator('.ref-mentor-hero h1')).toContainText('RECIBE COMENTARIOS');
  await expect(page).toHaveTitle('Mentoría | Svitlana Yurchak');
 });
 

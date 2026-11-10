@@ -35,3 +35,36 @@
 @media(max-width:550px){.cabinet-main{padding:25px 5%}.account-continue{grid-template-columns:1fr}.account-continue-art{display:none}.account-continue .btn{grid-column:1}.account-achievements{padding:12px;gap:5px}.account-achievements strong{width:36px;height:36px;font-size:16px}}
 .account-course-cover strong{font:700 21px/1.2 var(--font-body);letter-spacing:-.04em}
 .account-continue-art strong{font-size:20px}
+
+
+/* Dashboard stays a learning workspace rather than a tiled marketing page. */
+.cabinet-nav{display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.cabinet-nav button{min-height:43px}
+.cabinet-nav button.active{border-left:3px solid var(--red);background:#fff}
+.cabinet-main{width:100%;max-width:1440px}
+.account-section-head{margin:39px 0 16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.account-section-head h3{font-size:14px;letter-spacing:.06em}
+.account-course-grid{gap:18px}
+.account-course{border:0;background:#f4f1f0}
+.account-course-cover{min-height:160px;background:#e9e3e3}
+.account-course-info{padding:17px 20px}
+.account-course .progress-bar{margin:16px 0 7px}
+.account-panels{gap:clamp(25px,4vw,55px)}
+.account-feedback-entry{border:0;border-bottom:1px solid var(--border);border-radius:0;padding:10px 0 22px}
+.account-achievements{border:0;border-radius:0;padding:12px 0;gap:15px}
+.account-achievements strong{font:400 clamp(19px,2vw,30px)/1.15 var(--font-display);width:66px;height:66px}
+.account-achievements span{font-size:12px}
+.account-continue{border-radius:4px;min-height:205px;padding:clamp(22px,3vw,36px)}
+.account-continue h3{font-size:clamp(19px,2.1vw,28px);letter-spacing:-.03em}
+.account-continue-art{background:#3c3438}
+@media(max-width:850px){.cabinet-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--border)}.cabinet-nav button.active{border-left:0;border-bottom:3px solid var(--red)}.account-continue{grid-template-columns:110px minmax(0,1fr)}}
+@media(max-width:550px){
+ .account-continue{grid-template-columns:1fr}
+ .account-continue .btn{grid-column:1;width:100%}
+ .account-course-grid{grid-template-columns:1fr}
+ .account-continue-art{display:none}
+ .account-section-head h3{font-size:12px}
+ .account-achievements{gap:7px}
+ .account-achievements strong{width:52px;height:52px;font-size:22px}
+ .account-achievements span{font-size:10px;text-align:center}
+}
