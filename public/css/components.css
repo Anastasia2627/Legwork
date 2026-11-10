@@ -1,5 +1,5 @@
 .media-photo{display:block;width:100%;height:100%;object-fit:cover}
-.photo-frame{overflow:hidden;border-radius:8px;background:#f1eceb}
+.photo-frame{overflow:hidden;border-radius:var(--radius);background:#f1eceb}
 .photo-credit{display:block;font-size:10px;color:#696266;margin-top:8px}
 .photo-credit a{text-decoration:underline;text-underline-offset:3px}
 .ref-picture,.ref-review-slot{display:none}
@@ -21,14 +21,14 @@
 .ref-program-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}
 .ref-program-head p{font-size:14px;color:var(--muted)}
 .ref-program-head small{font-size:12px;color:var(--muted)}
-.ref-bonus{background:#272326;color:white;padding:28px;text-align:center;border-radius:6px}
+.ref-bonus{background:#272326;color:white;padding:28px;text-align:center;border-radius:var(--radius)}
 .ref-slider-controls{font-size:13px;text-align:center;color:var(--muted)}
 .ref-targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
-.ref-targets>div{padding:24px;background:#f6f4f3;border:1px solid var(--border);border-radius:6px}
+.ref-targets>div{padding:24px;background:#f6f4f3;border:1px solid var(--border);border-radius:var(--radius)}
 .ref-targets b{font-size:16px;display:block;margin:14px 0 4px}
 .ref-targets p{font-size:12px;color:var(--muted)}
 .audience-glyph{display:grid;place-items:center;width:34px;height:34px;color:var(--red);border:1px solid #d8b5be;border-radius:50%;font-size:20px}
-.lesson-detail-cover{background:#252529;color:white;min-height:350px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;border-radius:8px}
+.lesson-detail-cover{background:#252529;color:white;min-height:350px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;border-radius:var(--radius)}
 .lesson-detail-cover span{font-size:10px;letter-spacing:.13em;color:#c6c0c0}
 .lesson-detail-cover strong{font:400 clamp(30px,4vw,60px)/1.08 var(--font-display);letter-spacing:-.055em;overflow-wrap:anywhere}
 @media(max-width:900px){.ref-lesson-grid,.ref-targets{grid-template-columns:repeat(2,minmax(0,1fr))}}
