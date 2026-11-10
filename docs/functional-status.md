@@ -8,7 +8,7 @@ Verified against the application source and integration/browser tests. This is a
 | EN/ES navigation and common interface copy | Implemented | Custom lessons, reviews, content edits and some UI messages are not automatically translated |
 | About, course, shop, mentorship, student/admin dashboards | Implemented | Owner-approved media and final editorial copy still required |
 | Course/lesson creation, pricing and teacher attributes | Implemented | Populate the actual lesson videos, course inventory and packages |
-| Access checks, learning player, progress, homework links and Guru review | Implemented | Homework is an external HTTPS link; private binary upload/storage and DRM are not included |
+| Access checks, learning player, progress, homework links and Guru review | Implemented | Teacher can upload small private MP4/WebM lesson clips and students can upload short homework clips; large video hosting, transcoding and DRM are not included |
 | Admin-approved Guru certificates and verification links | Implemented | Owner must verify actual homework and approve certificates |
 | Individual lessons, editable bundles and mixed cart | Implemented | Confirm real offer prices before launch |
 | Self-service pending order cancellation | Implemented | Blocked once payment starts or approval is complete to avoid lost payments |
@@ -25,7 +25,7 @@ Verified against the application source and integration/browser tests. This is a
 | Refund/dispute processing, tax invoices | Not automated | Owner policy, accounting/provider integration required; existing cases are flagged for manual review |
 | Shopify promotion and “3+1” discount | Not activated | Owner must confirm concrete offer rules, eligibility, stock, integration and dates |
 | GDPR-style retention/deletion/export policies | Not fully implemented | Requires lawful retention policy, database/backups and payment-record handling approved before launching |
-| Private native video/file uploads and malware scanning | Not implemented | Requires storage provider, access policy, quotas, security review and media hosting |
+| Protected short lesson/homework MP4 and WebM uploads | Implemented for clips up to 40 MiB | Persistent private disk required; no transcoding, guaranteed codec compatibility, CDN, comprehensive malware scanning or DRM; use a dedicated media platform for long lessons |
 | Final legal pages and terms | Not supplied | Owner/legal reviewer must provide privacy, terms, refund policy and consent text |
 
 ## Where staff finish setup
@@ -50,3 +50,7 @@ Before charging real clients: verify deployed SMTP flows and a real provider-sup
 - Administrators can upload JPEG, PNG and WebP images directly into persistent local storage instead of manually hosting them. The server resizes, re-encodes and strips metadata. Only assigned files are publicly served; unassigned images expire after 48 hours.
 - Students can download a JSON export of their own account data: profile, orders, progress, homework links, mentorship, certificates and marketing preferences. Other users' data and paid video URLs are excluded.
 - Students may request account closure after password confirmation. Staff receive a queue of requests and can mark one under review. This is NOT automated deletion; legal and payment retention requirements need a documented process first.
+
+## Short protected classroom and homework clips
+
+An administrator can upload a small MP4/WebM recording (max 40 MiB) in **Admin Studio → Edit Full Lesson Details**. When present, this local file is used instead of the optional external video URL. Every playback request is authenticated and checks the student's current course/lesson entitlement; the player supports byte-range requests for seeking. Students can upload a short MP4/WebM homework clip from inside their classroom. Only its owner and a school administrator can stream the homework, and teacher/admin review links include the student ID in a secured request. Guru review and completion/approval rules remain in place. These are **short clip uploads, not a replacement for production-grade video hosting**. A persistent private directory is essential. No copy prevention, full codec validation, CDN, antivirus scanning or automatic video transcoding is provided.
