@@ -80,6 +80,7 @@ export const esPublic = {
   "See all ↗": "Ver todo ↗",
   "Clear filters ✕": "Borrar filtros ✕",
   "CLASSES.": "CLASES.",
+  "CLASSES": "CLASES",
   "BUILD YOUR OWN PRACTICE · BUNDLES COMING SOON": "CREA TU PROPIA RUTINA · PRÓXIMAMENTE MÁS PACKS",
   "No lessons match these filters.": "No hay clases con estos filtros.",
   "Teacher": "Profesora",
