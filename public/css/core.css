@@ -116,3 +116,25 @@ footer a:hover{text-decoration:underline;text-underline-offset:4px}
  .btn{padding-inline:15px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* The same footer is used by all public routes. */
+.site-footer{display:block;background:#f3f0ef;padding:50px max(24px,6vw) 20px}
+.site-footer .footer-layout{max-width:var(--container);margin:0 auto;display:grid;grid-template-columns:1.05fr .65fr 1.35fr;gap:clamp(25px,4vw,75px);align-items:start}
+.site-footer .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.site-footer .footer-brand p{font:400 14px/1.55 var(--font-body);margin:0;color:var(--muted)}
+.site-footer .footer-links{display:flex;flex-direction:column;align-items:flex-start;gap:12px;font-size:14px}
+.site-footer .footer-signup{display:block}
+.site-footer .footer-signup h3{font:400 clamp(20px,2vw,28px)/1.2 var(--font-display);letter-spacing:-.04em;margin:0 0 15px}
+.site-footer .footer-signup form{display:block}
+.site-footer .footer-signup form>label:not(.footer-consent){display:block;font:500 13px var(--font-body);margin:0 0 8px}
+.site-footer .footer-signup-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.site-footer .footer-signup-line .field{min-height:44px;min-width:0;padding:10px 12px;font-size:14px}
+.site-footer .footer-signup-line .btn{min-height:44px;font-size:13px}
+.site-footer .footer-consent{display:flex;flex-direction:row;align-items:start;gap:8px;margin-top:11px;font:400 12px/1.5 var(--font-body);color:var(--muted)}
+.site-footer .footer-consent input{flex:none;width:16px;height:16px;margin:2px 0 0}
+.site-footer .footer-bottom{max-width:var(--container);margin:44px auto 0;padding-top:16px;border-top:1px solid #dbd5d6;display:flex;align-items:start;justify-content:space-between;gap:18px}
+.site-footer .footer-bottom span{font:500 11px/1.5 var(--font-body);color:#70686b}
+@media(max-width:940px){.site-footer .footer-layout{grid-template-columns:1fr 1fr}.site-footer .footer-signup{grid-column:1/-1;max-width:560px}}
+@media(max-width:550px){.site-footer{padding:40px 5% 18px}.site-footer .footer-layout{grid-template-columns:1fr;gap:26px}.site-footer .footer-signup{grid-column:1;max-width:none}.site-footer .footer-bottom{flex-direction:column;margin-top:30px;gap:7px}.site-footer .footer-signup-line{grid-template-columns:1fr auto}}
+@media(max-width:360px){.site-footer .footer-signup-line{grid-template-columns:1fr}.site-footer .footer-signup-line .btn{width:100%}}
