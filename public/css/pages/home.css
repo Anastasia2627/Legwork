@@ -53,7 +53,7 @@
  .ref-courses{grid-template-columns:1fr}
  .ref-featured{min-height:350px}
  .ref-upcoming{grid-template-columns:1fr 1fr;grid-template-rows:auto}
- ..ref-awards{grid-template-columns:1fr;gap:33px}
+.ref-awards{grid-template-columns:1fr;gap:33px}
  .stage-photo .media-photo{height:310px}
 }
 @media(max-width:480px){
