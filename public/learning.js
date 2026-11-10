@@ -5,11 +5,19 @@
 const htmlEscape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const youtubeId=value=>{
  try{
-  const u=new URL(value);let id='';
-  if(['youtu.be','www.youtu.be'].includes(u.hostname))id=u.pathname.slice(1);
-  else if(['youtube.com','www.youtube.com','m.youtube.com','youtube-nocookie.com','www.youtube-nocookie.com'].includes(u.hostname))
-    id=u.searchParams.get('v')||u.pathname.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1]||'';
-  return /^[\w-]{11}$/.test(id)?id:null;
+  const url=new URL(value);
+  if(url.protocol!=='https:'||url.username||url.password||url.port||url.hash)return null;
+  const host=url.hostname.toLowerCase();
+  let id=null;
+  if(['youtu.be','www.youtu.be'].includes(host)){
+   const parts=url.pathname.split('/').filter(Boolean);
+   if(parts.length!==1)return null;
+   id=parts[0];
+  }else if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com','www.youtube-nocookie.com'].includes(host)){
+   if(url.pathname==='/watch')id=url.searchParams.get('v');
+   else id=/^\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})\/?$/.exec(url.pathname)?.[1]||null;
+  }
+  return id&&/^[a-zA-Z0-9_-]{11}$/.test(id)?id:null;
  }catch{return null}
 };
 const el=(tag,attrs,children)=>{
@@ -51,19 +59,16 @@ export async function renderStudy(id,{api,layout,notice,lang}){
  '<section class="study-homework"><p class="eyebrow">'+(spanish?'PRÁCTICA':'YOUR PRACTICE')+'</p><h2>'+(spanish?'Entrega de tarea':'Homework submission')+'</h2><p class="description">'+(spanish?'Comparte un enlace seguro a tu video de práctica. El feedback personal está incluido en el plan Guru.':'Share a secure link to your practice video. Personalized instructor feedback is included in the Guru plan.')+'</p>'+
  '<form id="studyHomeworkForm" class="form"><label for="homeworkUrl">'+(spanish?'Enlace de tarea (HTTPS)':'Homework video link (HTTPS)')+'</label><input class="field" type="url" id="homeworkUrl" name="homework" value="'+htmlEscape(l.homework_url)+'" placeholder="https://" autocomplete="off"><button type="submit" class="btn btn-dark">'+(spanish?'Guardar entrega':'Save homework link')+'</button></form>'+
  (l.teacher_feedback?'<div class="study-feedback"><b>'+(spanish?'Respuesta de la profesora':'Instructor feedback')+'</b><p>'+htmlEscape(l.teacher_feedback)+'</p></div>':'')+'</section>'+
- '<p class="study-note">'+(spanish?'Los videos son para uso personal. YouTube no permite bloquear completamente las grabaciones de pantalla.':'Lessons are for personal viewing. YouTube does not provide guaranteed screen-capture prevention.')+'</p>'+
+ '<p class="study-note">'+(spanish?'El acceso a esta página se comprueba con tu cuenta. Los enlaces de YouTube no pueden protegerse completamente contra compartirlos o grabar la pantalla.':'Course access on this website is tied to your account. YouTube links cannot be fully protected from sharing or screen recording.')+'</p>'+
  '</article></div>';
  layout(container);
  const host=document.getElementById('studyVideoHost');
  const url=l.video_url;
  const idYouTube=url?youtubeId(url):null;
  if(idYouTube){
-  host.append(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+idYouTube+'?rel=0&modestbranding=1',title:l.title+' · Legwork',loading:'lazy',referrerpolicy:'strict-origin-when-cross-origin',allow:'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen',allowfullscreen:'true'}));
+  host.append(el('iframe',{src:'https://www.youtube-nocookie.com/embed/'+idYouTube+'?rel=0&playsinline=1',title:l.title+' · Legwork',loading:'lazy',referrerpolicy:'strict-origin-when-cross-origin',allow:'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen',allowfullscreen:'true'}));
  }else if(url){
-  const safe=new URL(url);
-  if(safe.protocol==='https:'){
-   host.append(el('div',{className:'study-video-empty'},[el('p',{text:spanish?'El video se abre en una plataforma externa.':'This video is hosted on another platform.'}),el('a',{href:safe.toString(),target:'_blank',rel:'noopener noreferrer',className:'btn btn-red',text:spanish?'Abrir video ↗':'Open lesson video ↗'})]));
-  }
+  host.append(el('div',{className:'study-video-empty'},[el('p',{text:spanish?'La dirección del video debe ser un enlace válido de YouTube. Contacta con la escuela.':'The instructor must provide a valid YouTube link. Please contact the school.'})]));
  }else{
   host.append(el('div',{className:'study-video-empty'},[el('span',{className:'study-play-icon',text:'▶'}),el('p',{text:spanish?'La profesora aún no ha publicado este video.':'The instructor has not published this video yet.'})]));
  }
