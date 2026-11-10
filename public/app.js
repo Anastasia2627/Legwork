@@ -1,5 +1,5 @@
 import {translatePage,translateText} from './i18n.js';
-import {mediaFigure} from './media.js';
+import {MEDIA,mediaFigure} from './media.js';
 import {editorialEditor} from './editorial-admin.js';
 import {studentCertificatesMarkup,adminCertificatesMarkup,verifyCertificateView} from './certificates.js';
 import {renderStudy} from './learning.js';
@@ -42,27 +42,27 @@ function layout(markup){document.body.classList.remove('shop-filters-open');app.
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 function home(){
  const milestones=[
-  ['01 / THE BEGINNING','Started pole at 21, without a dance or sports background.'],
-  ['02 / A NEW DIRECTION','After shoulder and back injuries, began exploring floor waves and exotic movement.'],
-  ['03 / THE TECHNIQUE','Developed original elements and the Flexi Legs approach.'],
-  ['04 / ON THE ROAD','Performed, taught masterclasses and worked at events around the world.'],
-  ['05 / TODAY','An online school and a community of more than 5,000 students.']
+  ['THE START','Started pole dance at 21, without a dance or sports background.'],
+  ['A TURNING POINT','Shoulder injuries led to discovering floor waves.'],
+  ['HER OWN METHOD','Developed original elements and the Flexi Legs technique.'],
+  ['AROUND THE WORLD','Championships, international workshops and performances.'],
+  ['TODAY','An online school with more than 5,000 students.']
  ];
- const reasons=[
-  ['01','A true starting point','Lessons explain the foundations instead of assuming you already know them.'],
-  ['02','Technique over force','Work with control, coordination and movement quality.'],
-  ['03','A clear progression','Build individual elements before combining them.'],
-  ['04','Room to grow','Go from your first lesson to more advanced combinations.']
- ];
+ const reasons=[['01','I know what starting from zero feels like'],['02','A method born from real limitations'],['03','5,000+ students'],['04','Courses that keep improving']];
+ const carousel=(name,n)=>'<div class="home-carousel home-'+name+'-carousel"><button class="home-carousel-arrow" type="button" data-home-slide="prev" data-home-target="'+name+'" aria-label="Previous '+name+'">‹</button><div class="home-carousel-track" id="home-'+name+'-track" role="region" tabindex="0" aria-label="'+(name==='workshops'?'Masterclass gallery':'Student reviews')+'">'+Array.from({length:n},(_,i)=>'<div class="home-carousel-item" role="group" aria-roledescription="slide" aria-label="'+(name==='workshops'?'Workshop media awaiting upload ':'Unpublished student review slot ')+(i+1)+'"><span class="home-carousel-placeholder" aria-hidden="true"></span></div>').join('')+'</div><button class="home-carousel-arrow" type="button" data-home-slide="next" data-home-target="'+name+'" aria-label="Next '+name+'">›</button></div>';
+ const video=MEDIA.heroVideo?.src?'<video class="home-hero-video" autoplay muted loop playsinline preload="metadata" poster="'+esc(MEDIA.heroVideo.poster||'')+'" aria-hidden="true"><source src="'+esc(MEDIA.heroVideo.src)+'" type="video/mp4"></video>':mediaFigure('stage','home-hero-photo');
  layout(
-  '<section class="ref-hero"><div class="ref-wrap"><div class="hero-copy"><p class="eyebrow" data-no-i18n>'+editorial('home','eyebrow')+'</p><h1 data-no-i18n>'+editorial('home','headlineTop')+' '+editorial('home','headlineAccent')+'</h1><p data-no-i18n>'+editorial('home','intro')+'</p>'+btn(editorial('home','cta'),'course')+'</div>'+mediaFigure('portrait','hero-portrait')+'</div></section>'+
-  section('My story','<div class="ref-timeline">'+milestones.map(([title,desc])=>'<div class="ref-time-item"><strong>'+title+'</strong><p>'+desc+'</p></div>').join('')+'</div>','FROM THE FIRST CLASS TO TODAY')+
-  section('The way I teach','<div class="ref-reasons">'+reasons.map(([num,title,desc])=>'<div class="ref-reason"><span>'+num+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div></div>').join('')+'</div>','','muted-section')+
-  section('Your next move','<div class="ref-courses"><a class="ref-featured" href="#/course"><span class="ref-featured-eyebrow">THE SIGNATURE COURSE</span><strong class="course-home-name"><span>LEGWORK</span> LIKE A <em>BOSS</em></strong><p>Learn smooth legwork through a structured path of technique and practice.</p><span class="course-text-link">Discover the course →</span></a><div class="ref-upcoming"><div><strong>WAVE LIKE A <em>BOSS</em></strong><span>Coming later</span></div><div><strong>SPLIT LIKE A <em>BOSS</em></strong><span>Coming later</span></div></div></div>')+
-  section('On stage & beyond','<div class="ref-awards"><div><div class="ref-awards-list"><p>TOP-15 UPA · Exotic Dancer of the Year 2016</p><p>Ukraine’s Got Talent · Semifinalist</p><p>Championships, international shows & masterclasses</p><p>Founder of the YURCHAK apparel brand</p></div><p class="ref-awards-note">A career built through performance, teaching and movement research.</p></div><div>'+mediaFigure('stage','stage-photo')+'</div></div>','','muted-section')+
-  '<section class="ref-free-strip"><div class="ref-wrap"><div><p class="eyebrow">A FIRST STEP</p><h2>TRY YOUR FIRST LESSON FREE.</h2></div><form id="subscribeForm"><input required class="field" type="email" name="email" placeholder="Your email" aria-label="Email address"><input type="hidden" name="purpose" value="free-lesson"><label><input type="checkbox" name="consent" required> I agree to receive school emails.</label><button class="btn btn-dark">Get free lesson</button></form></div></section>'
+  '<section class="ref-hero home-hero">'+video+'<div class="ref-wrap"><div class="hero-copy"><h1 data-no-i18n>'+editorial('home','headlineTop')+' '+editorial('home','headlineAccent')+'</h1><p data-no-i18n>'+editorial('home','intro')+'</p>'+btn(editorial('home','cta'),'course')+'</div></div></section>'+
+  '<section class="section home-section home-story"><div class="section-inner"><p class="home-section-note">2 · MY STORY · TIMELINE</p><h2>MY STORY</h2><div class="ref-timeline">'+milestones.map(([date,desc])=>'<div class="ref-time-item"><div class="ref-time-thumb" aria-hidden="true"></div><strong>'+date+'</strong><p>'+desc+'</p></div>').join('')+'</div></div></section>'+
+  '<section class="section home-section home-why"><div class="section-inner"><p class="home-section-note">3 · WHY MY COURSES · FOUR REASONS</p><div class="ref-reasons">'+reasons.map(([num,title])=>'<div class="ref-reason"><span>'+num+'</span><h3>'+title+'</h3></div>').join('')+'</div></div></section>'+
+  '<section class="section home-section home-courses"><div class="section-inner"><p class="home-section-note">4 · COURSES · THE SIGNATURE PROGRAM</p><div class="ref-courses"><a class="ref-featured" href="#/course"><strong class="course-home-name"><span>LEGWORK</span> LIKE A <em>BOSS</em></strong><p>A focused path to smoother, more controlled legwork.</p><span class="home-flagship-button">To course page</span></a><div class="ref-upcoming"><div><strong><span class="home-wave">WAVE</span> LIKE A <em>BOSS</em></strong><span>Soon</span></div><div><strong><span class="home-split">SPLIT</span> LIKE A <em>BOSS</em></strong><span>Soon</span></div></div></div></div></section>'+
+  '<section class="section home-section home-recognition"><div class="section-inner"><div class="home-recognition-layout"><div class="home-awards"><p class="home-section-note">5 · TITLES & AWARDS</p><div class="ref-awards-list"><p>TOP-15 UPA</p><p>Exotic Dancer of the Year 2016</p><p>Ukraine’s Got Talent semifinalist</p><p>Creator of the YURCHAK apparel brand</p></div></div><div class="home-experience"><p class="home-section-note">6 · CHAMPIONSHIPS / SHOWS / JUDGING</p><div class="home-tabs" role="tablist" aria-label="Experience"><button type="button" id="home-tab-championships" class="active" data-showtab="championships" role="tab" aria-controls="showsPanel" aria-selected="true">Championships</button><button type="button" id="home-tab-shows" data-showtab="shows" role="tab" aria-controls="showsPanel" aria-selected="false">Shows</button><button type="button" id="home-tab-judging" data-showtab="judging" role="tab" aria-controls="showsPanel" aria-selected="false">Judge & PoleCon</button></div><div class="home-tab-panel" id="showsPanel" role="tabpanel" aria-labelledby="home-tab-championships"><h3>CHAMPIONSHIPS</h3><p>Competitions and performances across the international pole community.</p></div></div></div></div></section>'+
+  '<section class="section home-section home-workshops"><div class="section-inner"><p class="home-section-note">7 · MASTERCLASSES · PHOTO / VIDEO GALLERY</p>'+carousel('workshops',5)+'</div></section>'+
+  '<section class="section home-section home-reviews"><div class="section-inner"><p class="home-section-note">8 · STUDENT REVIEWS</p><p class="home-review-status">Student feedback will be shown here once approved for publication.</p>'+carousel('reviews',6)+'</div></section>'+
+  '<section class="ref-free-strip home-free-strip"><div class="ref-wrap"><div><p class="eyebrow">9 · FREE LESSON</p><h2>GET YOUR FREE LESSON</h2></div><form id="subscribeForm"><input required class="field" type="email" name="email" placeholder="Email" aria-label="Email address"><input type="hidden" name="purpose" value="free-lesson"><label><input type="checkbox" name="consent" required> I agree to receive school emails.</label><button class="btn btn-dark">Get free lesson</button></form></div></section>'
  );
-}function course(){
+}
+function course(){
  const c=state.courses[0],price=c?money(c.price):'See price at checkout',guruPrice=c?.guru_price?money(c.guru_price):'Price at checkout';
  const audience=[
   ['Beginner','Start with fundamentals, even without a dance background.'],
@@ -328,6 +328,8 @@ else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
 else if(form.dataset.homeworkReview){const [uid,lid]=form.dataset.homeworkReview.split('-');const result=await api('/admin/homework/'+uid+'/'+lid+'/review','POST',{feedback:data.feedback});notice(result.message);await adminPanel()}return}
 if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#shopFiltersClose')?.click();return}
  if(!button||e.type!=='click')return;
+ if(button.dataset.homeSlide){e.preventDefault();const track=$('#home-'+button.dataset.homeTarget+'-track'),item=track?.querySelector('.home-carousel-item');if(track&&item){const gap=parseFloat(getComputedStyle(track).columnGap)||0;track.scrollBy({left:(item.getBoundingClientRect().width+gap)*(button.dataset.homeSlide==='next'?1:-1),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}return}
+
  if(button.id==='shopFiltersToggle'||button.id==='shopFiltersClose'||button.id==='shopFilterShade'){
   const panel=$('#shopFilterPanel'),shade=$('#shopFilterShade'),toggle=$('#shopFiltersToggle');
   if(!panel||!shade||!toggle)return;
@@ -346,8 +348,8 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   return
  }
  if(button.dataset.shopClear){location.hash='#/shop';return}
-if(button.dataset.showtab){e.preventDefault();document.querySelectorAll('[data-showtab]').forEach(el=>el.classList.toggle('active',el===button));const topics={championships:['CHAMPIONSHIPS','Competitions and performances across the international pole community.'],shows:['SHOWS','Stage performances and international dance appearances.'],judging:['JUDGING & POLECON','Experience teaching and judging at international events.']};const [title,body]=topics[button.dataset.showtab];const panel=$('#showsPanel');if(panel)panel.innerHTML='<h3>'+title+'</h3><p>'+body+'</p>';return}
-if(button.dataset.message){e.preventDefault();notice(button.dataset.message)}
+if(button.dataset.showtab){e.preventDefault();document.querySelectorAll('[data-showtab]').forEach(el=>{const selected=el===button;el.classList.toggle('active',selected);el.setAttribute('aria-selected',String(selected))});const topics={championships:['CHAMPIONSHIPS','Competitions and performances across the international pole community.'],shows:['SHOWS','Stage performances and international dance appearances.'],judging:['JUDGING & POLECON','Experience teaching and judging at international events.']};const [title,body]=topics[button.dataset.showtab]||topics.championships;const panel=$('#showsPanel');if(panel){panel.innerHTML='<h3>'+title+'</h3><p>'+body+'</p>';panel.setAttribute('aria-labelledby',button.id)}return}
+ if(button.dataset.message){e.preventDefault();notice(button.dataset.message)}
 if(button.dataset.tab){state.tab=button.dataset.tab;await account()}
 if(button.id==='resendVerification'){const answer=await api('/auth/resend-verification','POST',{});notice(answer.message);return}
 if(button.id==='logout'){await api('/auth/logout','POST');state.user=null;state.tab='overview';location.hash='#/';await navigate()}
