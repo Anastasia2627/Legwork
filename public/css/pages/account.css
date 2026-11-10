@@ -80,3 +80,15 @@
 .media-admin-row .form{padding-top:20px}
 .media-admin-row .form .description{max-width:760px}
 @media(max-width:520px){.account-order-row{align-items:flex-start;flex-direction:column}}
+
+
+/* Data controls extend Profile without adding marketing-style cards. */
+.account-data-tools{border-top:1px solid var(--border);margin-top:35px;padding-top:26px;max-width:680px}
+.account-data-tools h3{font:700 19px/1.3 var(--font-body);letter-spacing:-.025em;margin:0 0 10px}
+.account-data-tools p{font:400 14px/1.65 var(--font-body);color:var(--muted);max-width:610px;margin:0 0 18px}
+.account-data-tools .btn{max-width:100%;white-space:normal}
+.account-data-tools .form{display:grid;gap:13px;max-width:440px}
+.account-closure{border-top:1px solid #e6d1d7}
+.account-privacy-request{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.account-privacy-request .meta{margin:4px 0 0;color:var(--muted);font-size:12px}
+@media(max-width:520px){.account-privacy-request{flex-direction:column;align-items:flex-start}.account-data-tools .btn{width:100%}}
