@@ -46,7 +46,8 @@ const secret=process.env.ADMIN_PASSWORD;if(secret&&secret.length>=12&&!secret.st
 if(prod&&!process.env.SITE_ORIGIN)throw Error('SITE_ORIGIN must be set to the HTTPS public origin in production');
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32||process.env.SESSION_SECRET.startsWith('REPLACE_')))throw Error('Set a unique SESSION_SECRET of at least 32 characters for production');
 app.disable('x-powered-by');app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["\u0027self\u0027","https://fonts.googleapis.com"],fontSrc:["\u0027self\u0027","https://fonts.gstatic.com"],styleSrcAttr:["\u0027unsafe-inline\u0027"],imgSrc:["'self'","data:","https:"],frameSrc:["'self'","https://www.youtube-nocookie.com"],formAction:["'self'","https://secure.wayforpay.com"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:prod?[]:null}}}));app.use(express.json({limit:'100kb'}));
-const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit,standardHeaders:'draft-7',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:'Too many requests. Please try again in a moment.'})});
+const e2eRateMultiplier=process.env.NODE_ENV==='test'&&process.env.E2E_RATE_LIMIT_MULTIPLIER==='20'?20:1;
+const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit:limit*e2eRateMultiplier,standardHeaders:'draft-7',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:'Too many requests. Please try again in a moment.'})});
 app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
 app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
