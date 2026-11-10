@@ -156,4 +156,19 @@ export const esAdmin = {
   "Saving…": "Guardando…",
   "Not configured": "No configurado",
   "SINGLE LESSON": "CLASE INDIVIDUAL"
+,
+  "PUBLIC MEDIA LIBRARY": "BIBLIOTECA MULTIMEDIA PÚBLICA",
+  "Save media": "Guardar contenido",
+  "Public HTTPS image URL": "URL HTTPS pública de imagen",
+  "Public HTTPS video URL": "URL HTTPS pública de vídeo",
+  "Alternative text (required for images)": "Texto alternativo (obligatorio para imágenes)",
+  "Photographer / source credit": "Autoría / crédito de la fuente",
+  "Credit link (optional)": "Enlace de atribución (opcional)",
+  "Open approved media": "Abrir contenido aprobado",
+  "No asset set. The website uses its current fallback.": "No hay contenido definido. Se muestra el marcador de posición.",
+  "SET": "DEFINIDO",
+  "EMPTY": "VACÍO",
+  "Only publish media you own or have permission to use.": "Publica únicamente contenido propio o autorizado.",
+  "Media updated": "Contenido actualizado",
+  "Replace site photos, promo video and gallery visuals here without editing code. Leave a slot blank for its designed placeholder. Lesson covers are edited separately under Edit Full Lesson Details.": "Cambia aquí fotos, vídeo promocional y galerías sin modificar el código. Deja la casilla vacía para mantener el marcador. Las portadas de clases se editan por separado."
 };
