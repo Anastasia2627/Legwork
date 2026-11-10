@@ -1,8 +1,8 @@
-.ref-hero{min-height:610px;padding:70px max(24px,6vw);display:grid;align-items:center;background:#f3f0ef}
-.ref-hero .ref-wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.8fr);gap:clamp(35px,5vw,80px);align-items:center}
+.ref-hero{min-height:510px;padding:48px max(24px,6vw);display:grid;align-items:center;background:#f3f0ef}
+.ref-hero .ref-wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.8fr);gap:clamp(22px,4vw,58px);align-items:center}
 .ref-hero h1{font-size:clamp(37px,4.5vw,66px);margin-bottom:22px}
 .ref-hero p{max-width:400px;font-size:16px;color:#655f60;margin-bottom:25px}
-.hero-portrait{height:480px;position:relative;overflow:hidden;background:#d889a0;border-radius:var(--radius)}
+.hero-portrait{height:420px;position:relative;overflow:hidden;background:#d889a0;border-radius:var(--radius)}
 .hero-portrait img{object-fit:cover;object-position:center 35%;filter:saturate(.88)}
 .hero-portrait:after{content:"";position:absolute;inset:auto 0 0;height:30%;background:linear-gradient(transparent,#160e142b);pointer-events:none}
 .hero-portrait .hero-caption{position:absolute;z-index:1;bottom:20px;left:22px;color:white;font-size:10px;letter-spacing:.12em}
@@ -16,7 +16,7 @@
 .ref-benefits strong{font:400 30px var(--font-display);color:var(--red)}
 .ref-benefits h3{font:700 16px/1.4 var(--font-body);max-width:200px;letter-spacing:-.035em;margin:19px 0 0}
 .ref-courses{display:grid;grid-template-columns:1.7fr 1fr;gap:18px}
-.ref-featured{background:#e9e5e4;padding:32px;border-radius:var(--radius);display:flex;flex-direction:column;justify-content:end;align-items:start;min-height:340px;position:relative}
+.ref-featured{background:#e9e5e4;padding:32px;border-radius:var(--radius);display:flex;flex-direction:column;justify-content:end;align-items:start;min-height:295px;position:relative}
 .ref-featured:before{content:"LEGWORK / 01";position:absolute;top:24px;left:29px;font-size:11px;letter-spacing:.13em;color:#8a8184}
 .ref-featured .course-logo{font:400 clamp(26px,3.4vw,45px)/1 var(--font-display);letter-spacing:-.06em}
 .course-logo em{color:var(--red);font-style:normal}
@@ -27,7 +27,7 @@
 .ref-upcoming h3{font:400 clamp(18px,2.3vw,30px)/1.1 var(--font-display);letter-spacing:-.055em;margin:0}
 .ref-upcoming h3 em{color:var(--red);font-style:normal}
 .ref-upcoming p{color:var(--muted);font-size:12px}
-.ref-awards{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+.ref-awards{display:grid;grid-template-columns:1fr 1fr;gap:38px}
 .ref-awards-list p{font-size:15px;padding:12px 0;border-bottom:1px solid #dfd9d9;margin:0}
 .ref-shows{min-height:215px;display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;background:white;padding:25px;border:1px solid var(--border);border-radius:var(--radius)}
 .ref-show-monogram{font:400 54px var(--font-display);letter-spacing:-.1em;color:var(--red)}
@@ -39,11 +39,11 @@
 .masterclass-editorial p{font-size:15px;color:var(--muted)}
 .masterclass-editorial a{font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:4px}
 @media(max-width:920px){.ref-hero .ref-wrap{grid-template-columns:1fr 1fr}.hero-portrait{height:420px}.ref-timeline{grid-template-columns:repeat(3,1fr)}.ref-benefits{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:670px){.ref-hero{padding:45px 5%;min-height:0}.ref-hero .ref-wrap{grid-template-columns:1fr;gap:32px}.ref-hero h1{font-size:clamp(36px,10vw,52px)}.hero-portrait{height:420px}.ref-timeline{grid-template-columns:repeat(2,1fr)}.ref-courses,.ref-awards{grid-template-columns:1fr}.ref-upcoming{grid-template-columns:1fr 1fr;grid-template-rows:auto}.ref-upcoming>div{padding:18px;min-height:135px}.ref-upcoming h3{font-size:19px}.masterclass-editorial{grid-template-columns:1fr;gap:10px}.ref-featured{min-height:280px}}
+@media(max-width:670px){.ref-hero{padding:34px 5%;min-height:0}.ref-hero .ref-wrap{grid-template-columns:1fr;gap:32px}.ref-hero h1{font-size:clamp(36px,10vw,52px)}.hero-portrait{height:420px}.ref-timeline{grid-template-columns:repeat(2,1fr)}.ref-courses,.ref-awards{grid-template-columns:1fr}.ref-upcoming{grid-template-columns:1fr 1fr;grid-template-rows:auto}.ref-upcoming>div{padding:18px;min-height:135px}.ref-upcoming h3{font-size:19px}.masterclass-editorial{grid-template-columns:1fr;gap:10px}.ref-featured{min-height:280px}}
 @media(max-width:410px){.ref-timeline{grid-template-columns:1fr}.ref-benefits{grid-template-columns:1fr 1fr}.ref-benefits>div{padding:15px}.hero-portrait{height:340px}}
 
 .hero-portrait{overflow:visible;height:auto;min-height:0;background:transparent;position:relative;margin:0}
-.hero-portrait .media-photo{height:475px;border-radius:var(--radius);object-fit:cover;object-position:center 43%}
+.hero-portrait .media-photo{height:410px;border-radius:var(--radius);object-fit:cover;object-position:center 43%}
 .hero-portrait:after{display:none}
 .hero-portrait .photo-credit{position:static;color:#847577}
 .ref-awards>div:last-child{display:flex;flex-direction:column;gap:13px}
