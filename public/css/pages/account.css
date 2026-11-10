@@ -2,7 +2,7 @@
 .cabinet-nav{background:#f4f2f1;border-right:1px solid var(--border);padding:30px 17px}
 .cabinet-nav button{font:600 13px var(--font-body);border-radius:var(--radius);text-align:left;padding:13px 15px}
 .cabinet-nav button.active{background:white;border-left:3px solid var(--red);color:var(--ink)}
-.cabinet-main{padding:clamp(30px,5vw,70px);max-width:1400px}
+.cabinet-main{padding:clamp(24px,4vw,54px);max-width:1400px}
 .cabinet-main>h2{font-size:clamp(27px,3vw,39px)}
 .account-continue{background:#222024;color:#fff;border-radius:var(--radius);padding:24px;min-height:185px;display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:25px;align-items:center}
 .account-continue-art{background:#393339;height:140px;border-radius:var(--radius);display:flex;flex-direction:column;justify-content:space-between;padding:17px}
@@ -12,7 +12,7 @@
 .account-continue .progress-bar,.account-course .progress-bar{background:#696365;height:7px;overflow:hidden;border-radius:4px;margin:12px 0 7px}
 .account-continue .progress-bar i,.account-course .progress-bar i{background:var(--red);height:100%;display:block}
 .account-continue small{font-size:11px;color:#d6cbd1}
-.account-section-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:38px 0 17px}
+.account-section-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:26px 0 13px}
 .account-section-head h3{font:700 13px var(--font-body);margin:0;letter-spacing:.08em}
 .account-section-head .tiny-link{background:none;border:0;font-size:11px;text-decoration:underline}
 .account-course{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:block}
