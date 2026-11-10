@@ -98,7 +98,11 @@ registerPaymentRoutes(app,db,{auth,admin,mail});
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 // Public, crawlable paths are deliberately limited to editorial landing pages.
 // Never expose payments, classroom, certificates or admin URLs to a sitemap.
-const htmlTemplate=fs.readFileSync(path.resolve('public/index.html'),'utf8');
+// Read the current HTML for each request in development so a git pull cannot mix
+// new JS/CSS with a previously cached HTML document in a still-running server.
+const htmlTemplatePath=path.resolve('public/index.html');
+const productionHtmlTemplate=prod?fs.readFileSync(htmlTemplatePath,'utf8'):null;
+const currentHtmlTemplate=()=>prod?productionHtmlTemplate:fs.readFileSync(htmlTemplatePath,'utf8');
 const seoRoutes={
  '/':{page:'home',title:'Svitlana Yurchak | Online Dance School',description:'Explore exotic pole dance classes, Legwork Lab and personal dance mentorship.'},
  '/course':{page:'course',title:'Legwork Lab | Online Dance Course',description:'Learn the Legwork Lab technique through a structured online course.'},
@@ -132,7 +136,7 @@ app.get('/health',(req,res)=>{
 });
 app.use(express.static('public',{extensions:['html'],index:false,setHeaders:(res,file)=>{
  if(file.endsWith('.html')){res.setHeader('Cache-Control','no-store');res.setHeader('X-Robots-Tag','noindex, nofollow')}
- else if(/\.(?:js|css)$/.test(file))res.setHeader('Cache-Control','public, max-age=300');
+ else if(/\.(?:js|css)$/.test(file))res.setHeader('Cache-Control',prod?'public, max-age=300':'no-store');
 }}));
 app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
  const info=seoCopy(req.path),canonical=(siteOrigin||'http://localhost:3000')+req.path;
@@ -148,7 +152,7 @@ app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
  '<meta property="og:url" content="'+escapeHtml(canonical)+'">',
  '<meta name="twitter:card" content="summary">'
  ].join('');
- const html=htmlTemplate.replace(/<title>[^<]*<\/title>/,'<title>'+title+'</title>')
+ const html=currentHtmlTemplate().replace(/<title>[^<]*<\/title>/,'<title>'+title+'</title>')
   .replace(/<meta name="description" content="[^"]*">/,'<meta name="description" content="'+desc+'">')
   .replace('</head>',tags+'</head>')
   .replace('<div class="loading">Preparing your experience…</div>','<section class="seo-fallback"><h1>'+heading+'</h1><p>'+intro+'</p></section>');
