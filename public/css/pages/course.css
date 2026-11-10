@@ -165,3 +165,8 @@
 }
 
 @media(max-width:700px){.course-free-section .course-preview-screen{min-height:0}.ref-course-bar .ref-wrap{min-width:0}.course-sticky-title{min-width:0;overflow-wrap:anywhere}}
+
+/* Optional public preview image; never uses a private lesson video. */
+figure.course-preview-screen.media-slot{position:relative;display:block;margin:0;overflow:hidden;aspect-ratio:16/9;min-height:0}
+figure.course-preview-screen.media-slot .media-photo{display:block;width:100%;height:100%;object-fit:cover}
+figure.course-preview-screen.media-slot figcaption{position:absolute;right:12px;bottom:7px;color:white;background:#1119;padding:3px 7px;font-size:10px}
