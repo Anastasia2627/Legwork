@@ -325,8 +325,8 @@ else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
  notice('Bundle saved');await adminPanel()
 }
 else if(form.dataset.homeworkReview){const [uid,lid]=form.dataset.homeworkReview.split('-');const result=await api('/admin/homework/'+uid+'/'+lid+'/review','POST',{feedback:data.feedback});notice(result.message);await adminPanel()}return}
-if(!button||e.type!=='click')return;
- if(target.id==='shopFilterShade'){document.querySelector('#shopFiltersClose')?.click();return}
+if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#shopFiltersClose')?.click();return}
+ if(!button||e.type!=='click')return;
  if(button.id==='shopFiltersToggle'||button.id==='shopFiltersClose'||button.id==='shopFilterShade'){
   const panel=$('#shopFilterPanel'),shade=$('#shopFilterShade'),toggle=$('#shopFiltersToggle');
   if(!panel||!shade||!toggle)return;
