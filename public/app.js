@@ -121,42 +121,58 @@ function bundleCard(bundle){
 function shop(){
  const q=new URLSearchParams(location.hash.split('?')[1]||'');
  const query={search:q.get('q')||'',category:q.get('category')||'',level:q.get('level')||'',kind:q.get('kind')||'',teacher:q.get('teacher')||'',equipment:q.get('equipment')||'',focus:q.get('focus')||'',duration:q.get('duration')||''};
- const categories=[...new Set([...state.lessons.map(x=>x.category),...state.bundles.map(x=>x.direction)].filter(Boolean))];
- const teachers=[...new Set(state.lessons.map(x=>x.teacher).filter(Boolean))];
- const equipment=[...new Set(state.lessons.map(x=>x.equipment).filter(Boolean))];
- const focuses=[...new Set(state.lessons.flatMap(x=>(x.focus||'').split(',').map(v=>v.trim())).filter(Boolean))];
+ const categories=[...new Set([...state.lessons.map(l=>l.category),...state.bundles.map(b=>b.direction)].filter(Boolean))].sort((a,b)=>['Legwork','Waving','Warm-up','Floor work'].indexOf(a)-['Legwork','Waving','Warm-up','Floor work'].indexOf(b));
+ const teachers=[...new Set(state.lessons.map(l=>l.teacher).filter(Boolean))];
+ const equipment=[...new Set(state.lessons.map(l=>l.equipment).filter(Boolean))];
+ const focuses=[...new Set(state.lessons.flatMap(l=>(l.focus||'').split(',').map(v=>v.trim())).filter(Boolean))];
  const active=Object.values(query).some(Boolean);
- const advancedActive=Boolean(query.teacher||query.equipment||query.focus||query.duration);
  const lessons=state.lessons.filter(l=>{
-  const terms=(l.title+' '+l.category+' '+(l.tags||'')+' '+(l.teacher||'')).toLowerCase();
-  return (!query.search||terms.includes(query.search.toLowerCase()))&&(!query.category||l.category===query.category)&&(!query.level||l.level===query.level)&&(!query.kind||l.kind===query.kind)&&(!query.teacher||l.teacher===query.teacher)&&(!query.equipment||l.equipment===query.equipment)&&(!query.focus||(l.focus||'').toLowerCase().includes(query.focus.toLowerCase()))&&(!query.duration||l.duration<=Number(query.duration));
+  const words=(l.title+' '+l.category+' '+(l.tags||'')+' '+(l.teacher||'')).toLowerCase();
+  return (!query.search||words.includes(query.search.toLowerCase()))&&(!query.category||l.category===query.category)&&(!query.level||l.level===query.level)&&(!query.kind||l.kind===query.kind)&&(!query.teacher||l.teacher===query.teacher)&&(!query.equipment||l.equipment===query.equipment)&&(!query.focus||(l.focus||'').toLowerCase().includes(query.focus.toLowerCase()))&&(!query.duration||l.duration<=Number(query.duration));
  });
- const filteredBundles=state.bundles.filter(b=>(!query.category||b.direction===query.category)&&(!query.kind||query.kind==='Bundle')&&(!query.search||(b.title+' '+b.description).toLowerCase().includes(query.search.toLowerCase()))&&!query.level&&!query.teacher&&!query.equipment&&!query.focus&&!query.duration);
- const select=(id,label,values,selected,empty)=>'<label class="shop-filter-label" for="'+id+'">'+label+'</label><select id="'+id+'"><option value="">'+empty+'</option>'+values.map(v=>'<option value="'+esc(v)+'" '+(selected===v?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select>';
- const filters=
-  '<div class="shop-filter">'+select('filterCategory','Direction',categories,query.category,'All directions')+'</div>'+
-  '<div class="shop-filter">'+select('filterLevel','Level',['Beginner','Intermediate','Advanced'],query.level,'All levels')+'</div>'+
-  '<div class="shop-filter">'+select('filterKind','Lesson type',['Element','Preparation','Warm-up','Bundle'],query.kind,'All types')+'</div>'+
-  '<details class="shop-more-filters" '+(advancedActive?'open':'')+'><summary>More filters</summary><div class="shop-more-filter-grid">'+
-  '<div>'+select('filterTeacher','Teacher',teachers,query.teacher,'Any teacher')+'</div>'+
-  '<div>'+select('filterEquipment','Equipment',equipment,query.equipment,'Any equipment')+'</div>'+
-  '<div>'+select('filterFocus','Focus',focuses,query.focus,'Any focus')+'</div>'+
-  '<div>'+select('filterDuration','Max. duration',['15','30','60'],query.duration,'Any duration')+'</div></div></details>';
- const resultCount=lessons.length+filteredBundles.length;
- const items=lessons.map(lessonCard).join('')+filteredBundles.map(bundleCard).join('');
+ const bundles=state.bundles.filter(b=>(!query.category||b.direction===query.category)&&(!query.kind||query.kind==='Bundle')&&(!query.search||(b.title+' '+b.description).toLowerCase().includes(query.search.toLowerCase()))&&!query.level&&!query.teacher&&!query.equipment&&!query.focus&&!query.duration);
+ const option=(key,value)=>'<button type="button" class="shop-filter-option '+(query[key]===value?'is-selected':'')+'" data-shop-filter="'+key+'" data-shop-value="'+esc(value)+'" aria-pressed="'+(query[key]===value?'true':'false')+'"><span class="shop-check" aria-hidden="true"></span><span>'+esc(value)+'</span></button>';
+ const filterGroup=(heading,key,values)=>values.length?'<fieldset class="shop-filter-group"><legend>'+heading+'</legend><div class="shop-option-list">'+values.map(v=>option(key,v)).join('')+'</div></fieldset>':'';
+ const sidebar=
+  '<aside class="shop-sidebar" id="shopFilterPanel" aria-label="Filter classes"><div class="shop-filter-panel-head"><strong>Filters</strong><button id="shopFiltersClose" type="button" aria-label="Close filters">✕</button></div>'+
+  filterGroup('Direction','category',categories)+
+  filterGroup('Lesson type','kind',['Element','Preparation','Warm-up','Bundle'])+
+  filterGroup('Equipment','equipment',equipment)+
+  filterGroup('Level','level',['Beginner','Intermediate','Advanced'])+
+  filterGroup('Training focus','focus',focuses)+
+  filterGroup('Teacher','teacher',teachers)+
+  filterGroup('Max. duration','duration',['15','30','60'])+
+  (active?'<button type="button" class="shop-reset-filters" data-shop-clear="1">Clear all filters</button>':'')+'</aside>';
+ const lessonKinds=[['Element','Elements'],['Preparation','Preparation exercises'],['Warm-up','Warm-ups']];
+ const hrefFor=(category,kind)=>'#/shop?category='+encodeURIComponent(category)+(kind?'&kind='+encodeURIComponent(kind):'');
+ const rail=(list)=>'<div class="shop-lesson-rail">'+list.slice(0,8).map(l=>lessonCard(l)).join('')+'</div>';
  const shelf=(category)=>{
-  const foundLessons=state.lessons.filter(l=>l.category===category);
-  const foundBundles=state.bundles.filter(b=>b.direction===category);
-  if(!foundLessons.length&&!foundBundles.length)return '';
-  return '<section class="shop-direction"><div class="shop-direction-title"><div><p class="eyebrow">PRACTISE BY DIRECTION</p><h2>'+esc(category)+'</h2></div><a href="#/shop?category='+encodeURIComponent(category)+'" class="shop-see-all">See all →</a></div>'+(foundBundles.length?'<div class="shop-bundle-rail">'+foundBundles.slice(0,2).map(bundleCard).join('')+'</div>':'')+(foundLessons.length?'<div class="shop-shelf">'+foundLessons.slice(0,6).map(lessonCard).join('')+'</div>':'')+'</section>';
+  const ownLessons=state.lessons.filter(l=>l.category===category);
+  const ownBundles=state.bundles.filter(b=>b.direction===category);
+  if(!ownLessons.length&&!ownBundles.length)return '';
+  const bundlesSection=ownBundles.length?'<div class="shop-shelf-section shop-bundle-section"><div class="shop-shelf-title"><h3>Bundles <span>· element + preparation + warm-up</span></h3><a href="'+hrefFor(category,'Bundle')+'">See all →</a></div><div class="shop-bundle-rail">'+ownBundles.slice(0,2).map(bundleCard).join('')+'</div></div>':'';
+  const types=lessonKinds.map(([kind,label])=>{const lessonsOfKind=ownLessons.filter(l=>l.kind===kind);return lessonsOfKind.length?'<div class="shop-shelf-section"><div class="shop-shelf-title"><h3>'+label+'</h3><a href="'+hrefFor(category,kind)+'">See all →</a></div>'+rail(lessonsOfKind)+'</div>':''}).join('');
+  const other=ownLessons.filter(l=>!lessonKinds.some(([kind])=>l.kind===kind));
+  const extras=other.length?'<div class="shop-shelf-section"><div class="shop-shelf-title"><h3>More classes</h3><a href="'+hrefFor(category,'')+'">See all →</a></div>'+rail(other)+'</div>':'';
+  return '<section class="shop-direction" aria-label="'+esc(category)+'"><div class="shop-direction-title"><h2>'+esc(category)+'</h2><a href="'+hrefFor(category,'')+'" class="shop-see-all">All '+esc(category)+' →</a></div>'+bundlesSection+types+extras+'</section>';
  };
- const categoryLinks=categories.map(category=>'<a href="#/shop?category='+encodeURIComponent(category)+'" '+(query.category===category?'aria-current="page"':'')+'>'+esc(category)+'</a>').join('');
- const shelves=categories.map(shelf).join('');
+ const categoryLinks=categories.map(c=>'<a href="'+hrefFor(c,'')+'" '+(query.category===c?'aria-current="page"':'')+'>'+esc(c)+'</a>').join('');
+ const filterNames={category:'Direction',kind:'Type',equipment:'Equipment',level:'Level',focus:'Focus',teacher:'Teacher',duration:'Duration'};
+ const activeChips=Object.entries(filterNames).filter(([key])=>query[key]).map(([key,label])=>'<button type="button" class="shop-active-chip" data-shop-filter="'+key+'" data-shop-value="'+esc(query[key])+'">'+label+': '+esc(query[key])+' <span aria-hidden="true">×</span></button>').join('');
+ const results=lessons.map(l=>lessonCard(l)).join('')+bundles.map(bundleCard).join('');
  layout(
-  '<section class="shop-heading"><div class="section-inner"><p class="eyebrow">CLASS LIBRARY</p><h1>CLASSES.</h1><p>Learn only what you need right now.</p></div></section>'+
-  '<section class="shop-promo" aria-label="Shop offer"><div class="section-inner"><strong>BUILD YOUR OWN PRACTICE.</strong><span>Individual lessons & curated bundles</span></div></section>'+
-  '<section class="section shop-main"><div class="section-inner"><div class="shop-search"><label for="shopSearch">Find a movement</label><input class="field" id="shopSearch" type="search" placeholder="Search a technique or #hashtag · press Enter" value="'+esc(query.search)+'"></div><button type="button" id="shopFiltersToggle" class="shop-filters-toggle" aria-controls="shopFilterBar" aria-expanded="false">Filters <span aria-hidden="true">+</span></button><div class="shop-filter-bar" id="shopFilterBar">'+filters+'</div><nav class="shop-category-links" aria-label="Directions"><a href="#/shop" '+(!active?'aria-current="page"':'')+'>All classes</a>'+categoryLinks+'</nav>'+(active?'<div class="shop-results-head"><h2>Search results</h2><div class="shop-results-meta"><span>'+resultCount+' found</span><a href="#/shop">Clear filters</a></div></div><div class="shop-results-grid">'+(items||'<p class="shop-empty">No classes match these filters. Try another direction or level.</p>')+'</div>':(shelves||'<p class="shop-empty">Classes will appear here when the library is published.</p>'))+'</div></section>'+
-  '<section class="shop-course-link"><div class="section-inner"><div><p class="eyebrow">THE FULL EXPERIENCE</p><h2>Want a complete learning path?</h2><p>Discover the Legwork Like a Boss course.</p></div><a class="btn btn-dark" href="#/course">Explore the course</a></div></section>'
+  '<section class="shop-heading"><div class="section-inner"><h1>CLASSES</h1><p>Learn only what you need right now.</p></div></section>'+
+  '<div class="shop-promo"><div class="section-inner"><strong>3 + 1 OFFER</strong><span>Promotion details to be confirmed before launch</span></div></div>'+
+  '<section class="shop-main"><div class="shop-layout"><div class="shop-filter-shade" id="shopFilterShade" hidden></div>'+sidebar+
+  '<div class="shop-catalog"><div class="shop-search-row"><label class="sr-only" for="shopSearch">Search classes by name or hashtag</label><input class="field" id="shopSearch" type="search" placeholder="Search a lesson or #hashtag (#kneecircle, #legwave)" value="'+esc(query.search)+'"><button type="button" id="shopFiltersToggle" aria-controls="shopFilterPanel" aria-expanded="false">Filters <span aria-hidden="true">☷</span></button></div>'+
+  '<nav class="shop-category-links" aria-label="Class directions"><a href="#/shop" '+(!query.category?'aria-current="page"':'')+'>All</a>'+categoryLinks+'</nav>'+
+  (active?'<div class="shop-results-head"><div><p class="shop-overline">FILTERED CLASSES</p><h2>Search results</h2></div><div class="shop-results-meta">'+(lessons.length+bundles.length)+' found</div></div><div class="shop-active-filters">'+activeChips+'<button type="button" class="shop-clear" data-shop-clear="1">Clear all</button></div><div class="shop-results-grid">'+(results||'<p class="shop-empty">No lessons match these filters. Try changing your selection.</p>')+'</div>':
+  categories.map(shelf).join('')||'<p class="shop-empty">Classes will appear here once the school library is published.</p>')+
+  '<div class="shop-course-link"><div><span>THE COMPLETE COURSE</span><h2>WANT IT ALL? THE FULL COURSE IS A BETTER DEAL.</h2></div><a class="btn btn-red" href="#/course">See course</a></div>'+
+  '<section class="shop-faq"><p class="shop-overline">QUESTIONS</p><h2>Good to know</h2>'+faq([
+   ['How do I access a class?','Purchased lessons appear in your account after payment has been verified.'],
+   ['Do I need a pole?','Each lesson lists its equipment. Some can be done on the floor or with another stable support.'],
+   ['Can I buy a bundle instead?','Yes. Available bundles group individual lessons into one purchase.']])+'</section></div></div></section>'
  );
 }
 function lesson(route){const l=state.lessons.find(x=>x.id===getId(route));if(!l)return layout(section('Lesson not found','<p>Return to the library.</p>'+btn('CLASSES','shop')));layout(section('','<p class="eyebrow"><a href="#/shop">CLASSES</a> / '+esc(l.category)+' / '+esc(l.title)+'</p><div class="grid grid-2"><div>'+'<div class="lesson-detail-cover"><span>SVITLANA YURCHAK / CLASS LIBRARY</span><strong>MOVE WITH INTENTION.</strong><span>TECHNIQUE · CONTROL · FLOW</span></div>'+'<p class="description">Video is provided only when you have access.</p></div><div><h1 style="font-size:clamp(2.6rem,5vw,5rem)">'+esc(l.title)+'</h1><p>'+esc(l.level)+' · '+l.duration+' minutes · '+esc(l.category)+'</p><p class="price">'+(l.free?'FREE':money(l.price))+'</p><div class="row"><button class="btn btn-red" data-watch="'+l.id+'">WATCH LESSON ▶</button>'+(l.free?'':'<button class="btn btn-outline" data-cart="'+l.id+'">ADD TO BAG</button>')+'</div><p class="description">Practice guidance and downloadable materials will be published by your teacher.</p></div></div><div id="playerMount" style="margin-top:35px"></div>','LESSON DETAIL')+section('PART OF LEGWORK LAB','<p>Get access to the full program and a structured learning journey.</p>'+btn('EXPLORE THE COURSE','course'),'CONTINUE LEARNING','muted-section'))}
