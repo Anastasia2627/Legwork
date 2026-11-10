@@ -8,7 +8,7 @@ Verified against the application source and integration/browser tests. This is a
 | EN/ES navigation and common interface copy | Implemented | Custom lessons, reviews, content edits and some UI messages are not automatically translated |
 | About, course, shop, mentorship, student/admin dashboards | Implemented | Owner-approved media and final editorial copy still required |
 | Course/lesson creation, pricing and teacher attributes | Implemented | Populate the actual lesson videos, course inventory and packages |
-| Access checks, learning player, progress, homework links and Guru review | Implemented | Homework is an external HTTPS link; private binary upload/storage and DRM are not included |
+| Access checks, learning player, progress, homework links and Guru review | Implemented | Homework is submitted by URL; lessons use validated YouTube URLs; screen capture, extracted URLs and DRM cannot be prevented with YouTube |
 | Admin-approved Guru certificates and verification links | Implemented | Owner must verify actual homework and approve certificates |
 | Individual lessons, editable bundles and mixed cart | Implemented | Confirm real offer prices before launch |
 | Self-service pending order cancellation | Implemented | Blocked once payment starts or approval is complete to avoid lost payments |
@@ -25,7 +25,7 @@ Verified against the application source and integration/browser tests. This is a
 | Refund/dispute processing, tax invoices | Not automated | Owner policy, accounting/provider integration required; existing cases are flagged for manual review |
 | Shopify promotion and “3+1” discount | Not activated | Owner must confirm concrete offer rules, eligibility, stock, integration and dates |
 | GDPR-style retention/deletion/export policies | Not fully implemented | Requires lawful retention policy, database/backups and payment-record handling approved before launching |
-| Private native video/file uploads and malware scanning | Not implemented | Requires storage provider, access policy, quotas, security review and media hosting |
+| Private video binary uploads and DRM | Not implemented by design | School uses YouTube links; paid player links remain extractable to authorized viewers, even with site access protection |
 | Final legal pages and terms | Not supplied | Owner/legal reviewer must provide privacy, terms, refund policy and consent text |
 
 ## Where staff finish setup
@@ -50,3 +50,7 @@ Before charging real clients: verify deployed SMTP flows and a real provider-sup
 - Administrators can upload JPEG, PNG and WebP images directly into persistent local storage instead of manually hosting them. The server resizes, re-encodes and strips metadata. Only assigned files are publicly served; unassigned images expire after 48 hours.
 - Students can download a JSON export of their own account data: profile, orders, progress, homework links, mentorship, certificates and marketing preferences. Other users' data and paid video URLs are excluded.
 - Students may request account closure after password confirmation. Staff receive a queue of requests and can mark one under review. This is NOT automated deletion; legal and payment retention requirements need a documented process first.
+
+## YouTube links and account security
+
+Lesson video URLs are accepted only from valid HTTPS YouTube addresses. Catalog pages do not disclose them; a student must have a signed-in session and proper entitlement to receive a paid video link from the learning API. A maximum of four sessions per account are retained; Profile includes the option to invalidate other devices after password confirmation. Login has a stricter rate limit. These changes **do not** stop an authorized person extracting the YouTube video ID or filming their screen. YouTube Unlisted links can be forwarded. Review YouTube's commercial and embed policies before charging students. See [YouTube security](youtube-security.md).
