@@ -85,3 +85,10 @@ Public routes /, /course, /shop and /mentorship have server-rendered fallback me
 ## Frontend ownership and photography
 
 See [Frontend architecture](docs/frontend-architecture.md) for the CSS ownership map, image editing, safety notes and test checklist. The page styles now live in `public/css/core.css`, `public/css/components.css` and `public/css/pages/`. Legacy `public/styles.css` remains only for pre-existing features; don't add new design overrides there. Two credited editorial photos are used only as development previews until owner-approved original media is supplied. Admins can edit fixed public media slots through **Admin Studio → Public Media Library** and set each lesson's public HTTPS `cover_url` separately. This is URL management, not binary uploading.
+
+
+## Staff photo uploads and customer data access
+
+**Admin Studio → Public Media Library** supports JPEG, PNG and WebP uploads (up to 6 MiB) from the browser. The server validates and resizes images with Sharp, then outputs metadata-free WebP in a persistent private file directory. Uploaded files only become publicly accessible when assigned to a public media slot or lesson cover, and unassigned uploads are cleaned after 48 hours. They are not stored in GitHub. Keep both SQLite and image storage on a persistent volume. Paid lesson recordings must not be uploaded here. Staff must verify publication rights.
+
+**My account → Profile → My personal data** allows an authenticated student to download account, order, learning, mentorship and consent information. **Request account closure** verifies the current password and places a review request in the admin queue, but DOES NOT erase the account. Approve the retention/refund/account-erasure policy before implementing permanent deletion.

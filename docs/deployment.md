@@ -34,3 +34,10 @@ The interface includes a keyboard skip link, focus styles, a mobile menu with AR
 - Payment integration is disabled without the real merchant configuration; never trust a browser return screen as payment confirmation.
 - Consider a managed relational database and a dedicated mail worker before running several instances. The current SQLite and mail queue implementation is intended for a single container.
 - Keep PUBLIC_INDEXING_ENABLED=false if privacy policies, checkout, approved public claims or legal pages are incomplete.
+
+
+## Public image uploads and backup
+
+The native image uploader stores files under a public-media subdirectory beside the SQLite database by default. MEDIA_UPLOAD_DIR may override this, but must point to secure persistent storage. Keep the directory out of public static serving, source control and ephemeral containers. Back up both database and stored WebP files and test restoring a referenced image. Administrators remain responsible for copyright and privacy permissions. Only images assigned to public media or lesson covers are served. Unassigned files are removed after 48 hours.
+
+Public image uploads are not private lesson video hosting, homework uploads, or a DRM system.

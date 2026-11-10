@@ -33,7 +33,7 @@ test('Lesson covers are optional, public and backward compatible',()=>{
  const features=read('lib/features.js');
  assert.match(server,/ALTER TABLE lessons ADD COLUMN cover_url/);
  assert.match(server,/l\.cover_url/);
- assert.match(server,/cover&&!safeExternalUrl\(cover\)/);
+ assert.match(server,/cover&&!safePublicImageUrl\(cover,safeExternalUrl\)/);
  assert.match(features,/cover_url=\?/);
  assert.match(read('public/app.js'),/name="cover_url"/);
 });

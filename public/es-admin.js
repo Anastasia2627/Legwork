@@ -171,4 +171,15 @@ export const esAdmin = {
   "Only publish media you own or have permission to use.": "Publica únicamente contenido propio o autorizado.",
   "Media updated": "Contenido actualizado",
   "Replace site photos, promo video and gallery visuals here without editing code. Leave a slot blank for its designed placeholder. Lesson covers are edited separately under Edit Full Lesson Details.": "Cambia aquí fotos, vídeo promocional y galerías sin modificar el código. Deja la casilla vacía para mantener el marcador. Las portadas de clases se editan por separado."
+,
+  "ACCOUNT CLOSURE REQUESTS": "SOLICITUDES DE CIERRE DE CUENTA",
+  "Mark for review": "Marcar para revisión",
+  "Under review": "En revisión",
+  "No account closure requests.": "No hay solicitudes de cierre de cuenta.",
+  "Or upload an image from your computer (JPEG / PNG / WebP, max 6 MB)": "O sube una imagen desde tu ordenador (JPEG / PNG / WebP, máx. 6 MB)",
+  "Or upload a cover from your computer (JPEG / PNG / WebP, max 6 MB)": "O sube una portada desde tu ordenador (JPEG / PNG / WebP, máx. 6 MB)",
+  "Image updated": "Imagen actualizada",
+  "Choose a JPEG, PNG or WebP image": "Selecciona una imagen JPEG, PNG o WebP",
+  "Image must be between 16 bytes and 6 MB": "La imagen debe tener entre 16 bytes y 6 MB",
+  "Image upload failed": "No se pudo subir la imagen"
 };

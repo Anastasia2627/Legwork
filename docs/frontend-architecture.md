@@ -43,3 +43,8 @@ Run `npm test` and `npm run test:e2e` (after installing the Playwright browser w
 The public media registry is backed by the `site_media` SQLite table and `GET /api/media`. An authenticated school administrator edits the allowed photo/video URL slots in **Admin Studio → Public Media Library**. The site loads them for the home hero (public video/poster), timeline, workshops, approved reviews, course hero/preview, mentorship photo/example, shop bundle cover, and student course thumbnail. Lesson covers remain in `lessons.cover_url` and can be set separately.
 
 This feature stores **public HTTPS URLs, alternative text and optional attribution**, not binary files. It does not establish licensing rights or validate remote-file content. Only use material you control or are permitted to publish. The school must never put private homework videos, private student footage or paid lesson recordings in these public slots. If a URL is empty, the original placeholder is retained.
+
+
+## Native image upload workflow
+
+Administrators can upload JPEG/PNG/WebP files in Public Media Library and the Full Lesson Details editor. The browser sends binary bytes to the authenticated image-upload API; the server converts the image to metadata-free WebP, stores it on persistent disk and returns a relative media URL. Saving the media slot or lesson attaches that URL. Video sources still require an external HTTPS link, and student or paid class recordings must not be published in this media library.

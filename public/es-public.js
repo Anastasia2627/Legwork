@@ -441,4 +441,15 @@ export const esPublic = {
   "Back to school": "Volver a la escuela",
   "INVALID UNSUBSCRIBE LINK": "ENLACE DE BAJA NO VÁLIDO",
   "This email preference link is invalid.": "Este enlace de preferencias de correo no es válido."
+,
+  "MY PERSONAL DATA": "MIS DATOS PERSONALES",
+  "Download a copy of your profile, purchases, course progress, homework and feedback. Keep the file private.": "Descarga una copia de tu perfil, compras, progreso, tareas y comentarios. Guarda el archivo de forma privada.",
+  "DOWNLOAD MY DATA (JSON)": "DESCARGAR MIS DATOS (JSON)",
+  "REQUEST ACCOUNT CLOSURE": "SOLICITAR EL CIERRE DE LA CUENTA",
+  "Request account closure": "Solicitar el cierre de la cuenta",
+  "This creates a request for the school to review. Your account, purchases and information will": "Esto envía una solicitud de revisión a la escuela. Tu cuenta, compras e información",
+  "not": "no",
+  "Confirm your current password": "Confirma tu contraseña actual",
+  "Request status:": "Estado de la solicitud:",
+  "Send an account closure request for manual review? Your account will stay active until the school processes it.": "¿Enviar una solicitud de cierre de cuenta para revisión? Tu cuenta seguirá activa hasta que la escuela la procese."
 };
