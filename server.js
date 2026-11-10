@@ -10,6 +10,7 @@ import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl
 import {registerExtraRoutes} from './lib/features.js';
 import {registerRequestRoutes} from './lib/requests.js';
 import {registerMarketingRoutes} from './lib/marketing.js';
+import {registerSiteMediaRoutes} from './lib/site-media.js';
 import {registerLearningRoutes} from './lib/learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes} from './lib/payments.js';
@@ -94,6 +95,7 @@ app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{const feedback=cle
 registerExtraRoutes(app,db,{auth,admin,current,cleanText,hashPassword,verifyPassword,safeExternalUrl,mail});
 registerRequestRoutes(app,db,{auth});
 registerMarketingRoutes(app,db,{auth,admin,mail});
+registerSiteMediaRoutes(app,db,{auth,admin,safeExternalUrl});
 registerCertificateRoutes(app,db,{auth,admin,mail});
 registerEditorialRoutes(app,db,{auth,admin});
 registerLearningRoutes(app,db,{auth});
