@@ -43,7 +43,7 @@ test('Student can register and complete introductory lesson in classroom',async(
  await page.locator('#studyComplete').click();
  await expect(page.locator('#studyComplete')).toContainText(/Completed|Completada/);
  await page.goto('/#/account');
- await page.locator('[data-tab="achievements"]').click();
+ await page.locator('.cabinet-nav [data-tab="achievements"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('1 lessons completed');
 });
 
@@ -140,7 +140,7 @@ test('Certificate verification and staff issuance controls appear in the interfa
  await page.locator('[data-tab="admin"]').click();
  await expect(page.locator('#adminMount')).toContainText('COURSE CERTIFICATES');
  await expect(page.locator('#adminMount')).toContainText('ISSUED CERTIFICATES');
- await page.locator('[data-tab="achievements"]').click();
+ await page.locator('.cabinet-nav [data-tab="achievements"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('COURSE CERTIFICATES');
 });
 
