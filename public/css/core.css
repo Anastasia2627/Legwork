@@ -19,28 +19,28 @@ p{line-height:1.64}
 .btn:hover{transform:none}
 .btn-red{background:var(--red);border-color:var(--red);color:white}.btn-red:hover{background:#a6052a}
 .btn-dark{background:var(--ink);border-color:var(--ink);color:white}.btn-outline{background:#fff;color:var(--ink)}
-.section{padding:clamp(64px,7vw,106px) max(24px,6vw)}
+.section{padding:clamp(44px,5vw,76px) max(24px,6vw)}
 .section-inner,.ref-wrap{max-width:var(--container);width:100%;margin:auto}
 .muted-section{background:var(--soft)}
 .section .eyebrow{margin-bottom:16px}
 .section:has(.ref-benefits) .eyebrow,.section:has(.ref-prices) .eyebrow{margin-bottom:22px}
-.section:has(.ref-benefits){padding-top:80px;padding-bottom:80px}
+.section:has(.ref-benefits){padding-top:54px;padding-bottom:54px}
 .field,input,select,textarea{font-family:var(--font-body)}
 .card{border:1px solid var(--border);border-radius:var(--radius);box-shadow:none;background:#fff;overflow:hidden}
 .card:hover{transform:none;box-shadow:0 8px 25px #1c1a1b0a}
 .card-body{padding:18px}
 .card p{font-size:13px;color:var(--muted)}
 .grid{gap:18px}
-footer{background:#f6f4f3;padding:54px 6%;border-top:1px solid var(--border)}
+footer{background:#f6f4f3;padding:38px 6%;border-top:1px solid var(--border)}
 footer .logo{font-size:16px}
 footer p,footer a,footer span{font-size:12px}
 .pill{font:600 12px var(--font-body);border-radius:30px;padding:8px 15px}
 .pill.active{background:var(--ink);color:white}
 .ref-center{text-align:center;margin-top:30px}
-.ref-end{padding:60px 5%;background:#ece9e8;text-align:center}
+.ref-end{padding:42px 5%;background:#ece9e8;text-align:center}
 .ref-end h2{font-family:var(--font-body);font-size:clamp(27px,3.2vw,44px);margin:0 auto 25px}
-.ref-free-strip{background:var(--red);color:white;padding:42px 6%}
-.ref-free-strip .ref-wrap{display:flex;align-items:center;justify-content:space-between;gap:35px}
+.ref-free-strip{background:var(--red);color:white;padding:30px 6%}
+.ref-free-strip .ref-wrap{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .ref-free-strip h2{font:700 clamp(23px,3vw,38px) var(--font-body);color:white}
 .ref-free-strip form{display:grid;grid-template-columns:minmax(210px,280px) auto;gap:8px 12px}
 .ref-free-strip .field{min-height:43px;padding:10px 12px}
