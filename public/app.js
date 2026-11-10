@@ -65,32 +65,56 @@ section('FAQ',faq([['Who are the courses for?','From beginners to experienced da
 '<div class="ref-end"><h2>READY TO START?</h2>'+btn('Start now','course','btn-red')+'</div>');
 }
 function course(){
- const c=state.courses[0],price=c?money(c.price):'$160';
- const audience=[
-  ['Beginner','Build the foundation for beautiful legwork.'],
-  ['Stuck at a level','Understand what to work on next.'],
-  ['Dance experience','Add precision to your technique.'],
-  ['Professional','Make your movement more expressive.']
+ const c=state.courses[0];
+ const price=c?money(c.price):'See price at checkout';
+ const guruPrice=c?.guru_price?money(c.guru_price):'Price confirmed at checkout';
+ const features=[
+  ['Starting from zero','Build your foundation gradually. You can begin with the warm-ups and learn the movement vocabulary before trying combinations.'],
+  ['Feeling stuck','Understand how to organise your legs, feet and hips so transitions feel less random and more intentional.'],
+  ['Already dancing','Refine coordination, control and lines, and learn to connect separate elements into longer sequences.'],
+  ['Teaching or performing','Explore details of execution and find new ideas for your own practice and movement quality.']
  ];
- const results=['Cleaner and more controlled leg lines','More fluid transitions','Better foot and knee awareness','Confidence in new movements','A structured way to practise'];
- const lessonTiles=state.lessons.slice(0,7).map((l,i)=>
-  '<a class="course-lesson-tile" href="#/lesson/'+l.id+'">'+
-  (l.cover_url?'<img loading="lazy" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+'">':'<div class="course-lesson-tile-art"><span>0'+(i+1)+'</span></div>')+
-  '<div class="course-lesson-title">Lesson '+(i+1)+' · '+esc(l.title)+'</div></a>'
- ).join('');
- layout('<div class="ref-course-bar" id="courseSticky"><div class="ref-wrap"><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><span>from '+price+'</span><a class="btn btn-red" href="#/course#prices">Join</a></div></div>'+
- '<section class="ref-course-hero"><div class="ref-wrap"><h1>IMPROVE YOUR LEGWORK WITHOUT EXHAUSTING STRETCHING, EVEN IF YOU STARTED TO DANCE JUST YESTERDAY</h1><div class="ref-course-hero-grid"><div><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><p>Learn from the creator of the Flexi Legs technique.</p><div class="ref-btn-row"><a class="btn btn-red" href="#/course#prices">I’m ready</a>'+btn('Try free lesson','lesson/1','btn-outline')+'</div></div>'+mediaFigure('stage','course-photo')+'</div></div></section>'+
- section('','<div class="ref-targets">'+audience.map(([title,desc])=>'<article class="course-audience"><span class="course-audience-mark" aria-hidden="true"></span><h3>'+title+'</h3><p>'+desc+'</p></article>').join('')+'</div><div class="ref-center"><a class="btn btn-red" href="#/course#prices">Join</a></div>','2 · WHO IS IT FOR? · 4 PORTRAITS')+
- section('','<div class="ref-outcomes"><ul class="course-outcome-list">'+results.map(a=>'<li>'+a+'</li>').join('')+'</ul><div class="course-outcome-visual"><span>LEGWORK LAB</span><strong>CONTROL / FLOW / EXPRESSION</strong></div></div>','3 · WHAT WILL CHANGE','muted-section')+
- '<div class="ref-author"><div class="ref-wrap"><span class="course-author-initials">SY</span><p>SVITLANA YURCHAK · Creator of the Flexi Legs technique.</p><a href="#/">More about me</a></div></div>'+
- section('','<div class="ref-four-steps">'+['Prestart','Lessons','Homework','Certificate'].map((a,i)=>'<div><span>'+ (i+1) +'</span> '+a+'</div>').join('')+'</div>','5 · HOW THE COURSE WORKS · 4 STEPS')+
- section('','<div class="ref-program-head"><p>Prestart + main lessons</p><small>Pole · Floor · Any support</small></div><div class="course-lesson-grid">'+lessonTiles+'<a class="course-lesson-more" href="#/shop">… MORE LESSONS <span></span></a></div><div class="ref-center"><a class="btn btn-red" href="#/course#prices">Join</a></div>','6 · COURSE PROGRAM · PREVIEW ON HOVER','muted-section')+
- section('','<div class="ref-free-lesson"><a class="ref-player" href="#/lesson/1" aria-label="Open the introductory lesson"><span class="course-play" aria-hidden="true">▶</span><small>FREE LESSON · PLAYER</small></a><div><h2>TRY LESSON 1 FREE</h2><p>Start with the first lesson and see how the method works.</p>'+btn('Unlock full course','course#prices')+'</div></div>','7 · FREE LESSON')+
- '<section class="section course-pricing-section" id="prices"><div class="section-inner"><p class="eyebrow">9 · PACKAGES AND PRICES</p><div class="ref-prices"><div class="price-card"><h3>I’ll figure it out myself</h3><p class="price">'+price+'</p><p>✓ Full course</p><p>✓ Independent learning</p><button class="btn btn-dark" data-order="course" data-id="'+(c?.id||1)+'">Join</button></div><div class="price-card featured"><span>MOST POPULAR</span><h3>Guru · with feedback</h3><p class="price">'+money(c?.guru_price||36000)+'</p><p>✓ Full course</p><p>✓ Homework feedback</p><p>✓ Certificate on completion</p><button class="btn btn-red" data-order="course" data-plan="guru" data-id="'+(c?.id||1)+'">Join</button></div></div></div></section>'+
- section('Certificate & bonus','<div class="course-bonus-text">Complete the course assignments and work toward your certificate.</div>','10 · COURSE COMPLETION','muted-section')+
- section('You may also like','<div class="grid grid-3">'+state.lessons.slice(0,3).map(lessonCard).join('')+'</div>','11 · MORE CLASSES')+
- section('FAQ',faq([['Access','Access is granted after payment verification.'],['Equipment','See requirements for each lesson.'],['Level','Includes foundational lessons.'],['Refunds','Terms will be published before launch.'],['Feedback','Available in the Guru package.']]),'12 · QUESTIONS','muted-section')+
- '<div class="ref-end"><h2>Ready to improve your legwork?</h2><a class="btn btn-red" href="#/course#prices">Join</a></div>');
+ const outcomes=[
+  ['Clearer lines','Learn to pay attention to the position of your knees, ankles and feet.'],
+  ['Smoother transitions','Work on the movement between elements, not only the final pose.'],
+  ['Better body awareness','Notice how support, weight transfer and hip placement affect your legwork.'],
+  ['More confidence','Build a repeatable practice instead of guessing what to train next.']
+ ];
+ const journey=[
+  ['01','Prepare','Start with a short warm-up and an introduction to the technique.'],
+  ['02','Learn','Break down the element into manageable parts and practise at your pace.'],
+  ['03','Apply','Combine what you learned and, if your package includes it, send homework.'],
+  ['04','Progress','Return to previous lessons, refine details and track your progress.']
+ ];
+ const lessons=state.lessons.filter(l=>!c||!l.course_id||l.course_id===c.id).slice(0,8);
+ const lessonMarkup=lessons.map((l,i)=>{
+  const cover=l.cover_url?'<img loading="lazy" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+'">':'<div class="course-lesson-tile-art"><span>'+String(i+1).padStart(2,'0')+'</span></div>';
+  return '<a class="course-lesson-tile" href="#/lesson/'+l.id+'">'+cover+'<div class="course-lesson-title"><strong>'+esc(l.title)+'</strong><span>'+esc(l.level||'Technique')+' · '+Number(l.duration||12)+' min</span></div></a>';
+ }).join('');
+ const faqEntries=[
+  ['I am a beginner. Can I follow the course?','Yes. Begin with the Prestart lessons and practise the fundamentals before moving to more complex movements. Take breaks whenever you need them.'],
+  ['Do I need to be very flexible?','The course focuses on technique and movement quality. Work within your current comfortable range rather than forcing flexibility.'],
+  ['What equipment do I need?','Equipment depends on the lesson. Some exercises use a pole, the floor or another stable support; check the requirements before starting.'],
+  ['Can I learn at my own pace?','The self-paced course is structured for independent learning. Your access period and package conditions are displayed at checkout.'],
+  ['How is the Guru package different?','The Guru package includes homework feedback in addition to the lesson library. Homework is reviewed through your student account.'],
+  ['How do I open my lessons?','After confirmed payment, sign in to your account and open My Courses. If a lesson is not available, contact the school before making another order.'],
+  ['Will I receive a certificate?','The course includes a certificate pathway for eligible completed work. Any review and completion requirements are shown in your student account.'],
+  ['Can I get a refund?','Review the payment and refund terms before purchase. Contact the school if you need help with a specific order.']
+ ];
+ layout(
+ '<div class="ref-course-bar" id="courseSticky"><div class="ref-wrap"><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><span>from '+price+'</span><a class="btn btn-red" href="#/course#prices">Join</a></div></div>'+
+ '<section class="ref-course-hero"><div class="ref-wrap"><p class="course-intro-label">LEGWORK LAB · ONLINE TECHNIQUE COURSE</p><h1>IMPROVE YOUR LEGWORK WITHOUT EXHAUSTING STRETCHING, EVEN IF YOU STARTED TO DANCE JUST YESTERDAY</h1><div class="ref-course-hero-grid"><div><div class="course-logo"><span class="cyan">LEGWORK</span> LIKE A <em>BOSS</em></div><p>A structured way to develop more controlled, expressive legwork. Start with the basics, understand the mechanics and gradually build your own movement vocabulary.</p><div class="course-hero-points"><span>Technique first</span><span>Step-by-step practice</span><span>Learn at your pace</span></div><div class="ref-btn-row"><a class="btn btn-red" href="#/course#prices">Explore packages</a>'+btn('Try free lesson','lesson/1','btn-outline')+'</div></div>'+mediaFigure('stage','course-photo')+'</div></div></section>'+
+ section('Who is Legwork Lab for?','<p class="course-section-intro">You do not have to dance at a particular level to start working on your technique. Choose the point that sounds most like you.</p><div class="ref-targets">'+features.map(([title,desc])=>'<article class="course-audience"><span class="course-audience-mark" aria-hidden="true"></span><h3>'+title+'</h3><p>'+desc+'</p></article>').join('')+'</div>','FIND YOUR STARTING POINT')+
+ section('The difference is in the details','<div class="course-results-layout"><div><p class="course-section-intro">Beautiful legwork is not just about getting your leg higher. It is about control, clarity and the way one movement flows into the next.</p><div class="course-results-list">'+outcomes.map(([title,desc],i)=>'<div class="course-result"><span>'+String(i+1).padStart(2,'0')+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div></div>').join('')+'</div></div><div class="course-results-aside"><span>THE APPROACH</span><strong>Move with intention.</strong><p>Practise the movement you want to feel, not simply the shape you want to make.</p></div></div>','WHAT YOU WILL WORK ON','muted-section')+
+ '<div class="ref-author"><div class="ref-wrap"><span class="course-author-initials">SY</span><p><strong>Meet your instructor, Svitlana Yurchak.</strong> Exotic pole artist, teacher and creator of the Flexi Legs technique.</p><a href="#/">Read her story</a></div></div>'+
+ section('How learning works','<p class="course-section-intro">Each stage gives your practice a clear focus. You can revisit lessons whenever your access allows.</p><div class="course-journey-grid">'+journey.map(([n,title,desc])=>'<article class="course-journey"><span>'+n+'</span><h3>'+title+'</h3><p>'+desc+'</p></article>').join('')+'</div>','YOUR LEARNING PROCESS')+
+ section('Inside the course','<div class="course-program-header"><p class="course-section-intro">Begin with preparation, then work through the elements and put them together. Here is a look at the lesson library.</p><span>'+state.lessons.length+' lessons in the current library</span></div><div class="course-lesson-grid">'+lessonMarkup+'</div><div class="course-program-bottom"><p>Warm-up, legwork, floorwork and combinations — progress at the pace that works for you.</p><a href="#/shop" class="btn btn-outline">Browse all classes</a></div>','EXPLORE THE PROGRAM','muted-section')+
+ section('Start with a free lesson','<div class="ref-free-lesson"><a class="ref-player" href="#/lesson/1" aria-label="Open the introductory lesson"><span class="course-play" aria-hidden="true">▶</span><small>INTRODUCTORY CLASS</small></a><div><p class="course-free-overline">YOUR FIRST STEP</p><h3>See how Svitlana teaches.</h3><p>Get familiar with the pace, explanations and approach before choosing the full program.</p>'+btn('Open free lesson','lesson/1')+'</div></div>','TRY BEFORE YOU JOIN')+
+ '<section class="section course-pricing-section" id="prices"><div class="section-inner"><p class="eyebrow">PICK THE EXPERIENCE THAT FITS YOU</p><h2>Choose your learning format</h2><p class="course-section-intro">The same structured foundation, with the option to receive personal feedback on your assignments.</p><div class="ref-prices"><div class="price-card"><p class="course-price-tag">SELF-PACED</p><h3>Independent practice</h3><p class="course-plan-desc">For dancers who prefer to work through the lessons on their own schedule.</p><p class="price">'+price+'</p><ul class="course-includes"><li>Structured course library</li><li>Technique lessons and practice material</li><li>Progress tracking in your account</li><li>Independent learning</li></ul><button class="btn btn-dark" data-order="course" data-id="'+(c?.id||1)+'">Choose independent</button></div><div class="price-card featured"><span>MOST POPULAR</span><p class="course-price-tag">WITH FEEDBACK</p><h3>Guru</h3><p class="course-plan-desc">For dancers who want a more guided learning experience.</p><p class="price">'+guruPrice+'</p><ul class="course-includes"><li>Everything in the independent package</li><li>Homework submissions</li><li>Teacher feedback through your account</li><li>Certificate pathway after completion</li></ul><button class="btn btn-red" data-order="course" data-plan="guru" data-id="'+(c?.id||1)+'">Choose Guru</button></div></div><p class="course-price-footnote">The final price, access conditions and payment information are confirmed before checkout.</p></div></section>'+
+ section('Keep learning, one step at a time','<div class="course-afterword"><div><h3>Practice. Notice. Refine.</h3><p>Keep coming back to the details: a cleaner line, a smoother transfer of weight, a more confident transition. Progress is built through repeated, intentional practice.</p></div><a href="#/account" class="btn btn-outline">Go to my account</a></div>','WHAT COMES NEXT','muted-section')+
+ section('Questions before you begin?',faq(faqEntries),'GOOD TO KNOW')+
+ '<div class="ref-end"><p class="course-end-eyebrow">LEGWORK LAB</p><h2>Ready to make your movement your own?</h2><p>Start with the first lesson or choose the program that suits your goals.</p><div class="course-end-actions"><a class="btn btn-red" href="#/course#prices">Explore packages</a>'+btn('Try free lesson','lesson/1','btn-outline')+'</div></div>'
+ );
 }
 function lessonCard(l,studyMode=false){const destination=studyMode===true?'study':'lesson',cover=l.cover_url?'<img class="lesson-cover-image" loading="lazy" decoding="async" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+' lesson cover">':'';return '<article class="card lesson-card"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+destination+'/'+l.id+'">'+cover+'<span class="lesson-cover-top">'+esc(l.category||'LEGWORK')+'</span><span class="lesson-cover-title">'+esc(l.title)+'</span><span class="lesson-cover-foot">'+(l.free?'FREE LESSON':'LESSON '+String(l.sort_order||l.id).padStart(2,'0'))+' &nbsp;</span></a><div class="card-body"><p class="meta">'+esc(l.level)+' · '+l.duration+' min · '+esc(l.category)+' · '+esc(l.equipment||'Any support')+'</p><h3>'+esc(l.title)+'</h3><p class="meta">'+esc(l.teacher||'Svitlana Yurchak')+'</p><div class="row"><b>'+ (l.free?'FREE':money(l.price))+'</b><a class="btn btn-small btn-outline" href="#/'+destination+'/'+l.id+'">VIEW</a></div></div></article>'}
 function bundleCard(bundle){
