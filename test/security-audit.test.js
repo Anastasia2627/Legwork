@@ -33,7 +33,9 @@ test('privileged actions and sensitive account changes are audited without leaki
   assert.equal(admin.status,200);
   const granted=await request(base,'/api/admin/enroll',{method:'POST',cookie:admin.cookie,data:{user_id:student.body.user.id,course_id:1,tier:'guru',password:'NEVER_STORE_ME'}});
   assert.equal(granted.status,200);
-  const order=await request(base,'/api/orders',{method:'POST',cookie:student.cookie,data:{kind:'lesson',item_id:22}});
+  const payer=await request(base,'/api/auth/register',{method:'POST',data:{email:'audit-payer@example.org',name:'Audit Payer',password:'SeparateStrongPayerPassword-2026'}});
+  assert.equal(payer.status,200);
+  const order=await request(base,'/api/orders',{method:'POST',cookie:payer.cookie,data:{kind:'lesson',item_id:22}});
   assert.equal(order.status,201);
   const approved=await request(base,'/api/admin/orders/'+order.body.id+'/approve',{method:'POST',cookie:admin.cookie,data:{password:'NEVER_STORE_ME'}});
   assert.equal(approved.status,200);
