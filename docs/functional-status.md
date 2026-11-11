@@ -54,3 +54,8 @@ Before charging real clients: verify deployed SMTP flows and a real provider-sup
 ## YouTube links and account security
 
 Lesson video URLs are accepted only from valid HTTPS YouTube addresses. Catalog pages do not disclose them; a student must have a signed-in session and proper entitlement to receive a paid video link from the learning API. A maximum of four sessions per account are retained; Profile includes the option to invalidate other devices after password confirmation. Login has a stricter rate limit. These changes **do not** stop an authorized person extracting the YouTube video ID or filming their screen. YouTube Unlisted links can be forwarded. Review YouTube's commercial and embed policies before charging students. See [YouTube security](youtube-security.md).
+
+
+## Privileged activity monitoring
+
+The app records an access-controlled, limited-retention activity trail for administrator changes, manual enrollment, payment approval, session revocation, relevant account operations, login successes and known-account failures, and provider callbacks accepted by the payment API. Staff see the latest events under Admin Studio → Security Activity; paginated results are also available to authorized admins. Event entries include only safe identifiers, result/status and allowlisted context — never raw request bodies, password fields, session cookies or private YouTube URLs. Default retention is 180 days (configurable from 30 to 730). This is a best-effort **application log**, not tamper-proof audit infrastructure or a substitute for production alerting and independent payment reconciliation. See [security operations](security-operations.md).
