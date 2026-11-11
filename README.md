@@ -96,3 +96,8 @@ See [Frontend architecture](docs/frontend-architecture.md) for the CSS ownership
 ## YouTube lesson security
 
 All lesson video sources are YouTube links set by the administrator. The paid lesson page and video URL are returned only after account entitlement checks, and YouTube links are not sent in public catalog responses. The player uses YouTube's standard privacy-enhanced iframe. Session security includes a four-session cap, login rate-limiting, and revocation of other sessions through the user's Profile. These controls do not prevent authorized users from extracting YouTube IDs or recording screens. Read [YouTube security boundaries](docs/youtube-security.md) before commercial launch; YouTube's platform policies may restrict paid use of embedded videos.
+
+
+## Monitoring privileged operations
+
+Admin Studio → Security Activity displays recent security-relevant changes: logins, course access grants, manual order approvals, account session changes and other administrative writes. Logs contain no passwords, session cookies or lesson-video URLs and are available only to administrator accounts. Default retention is 180 days; set SECURITY_AUDIT_RETENTION_DAYS to 30–730 based on the final privacy/retention policy. For incident-grade evidence, export application logs to a separately secured, append-only service. See [Security operations](docs/security-operations.md).
