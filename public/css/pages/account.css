@@ -92,3 +92,12 @@
 .account-privacy-request{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
 .account-privacy-request .meta{margin:4px 0 0;color:var(--muted);font-size:12px}
 @media(max-width:520px){.account-privacy-request{flex-direction:column;align-items:flex-start}.account-data-tools .btn{width:100%}}
+
+
+/* Administrative security activity is deliberately plain and easy to scan. */
+.admin-security-section{border-top:1px solid var(--border);margin-top:38px;padding-top:24px}
+.admin-security-section .description{max-width:790px}
+.audit-event{padding:14px 18px;display:grid;gap:5px;overflow-wrap:anywhere}
+.audit-event-main{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.audit-event-main strong{font-size:13px;font-weight:750;letter-spacing:-.01em}
+.audit-event .meta{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
