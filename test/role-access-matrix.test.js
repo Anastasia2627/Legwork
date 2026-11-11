@@ -63,6 +63,7 @@ test('role and entitlement matrix denies cross-account access and stale or dupli
   assert.equal((await request(base,'/api/orders',{cookie:alice.cookie,method:'POST',data:{kind:'lesson',item_id:2}})).status,409,'Already-owned lesson cannot be sold twice');
   assert.equal((await request(base,'/api/orders/batch',{cookie:alice.cookie,method:'POST',data:{lesson_ids:[2],bundle_ids:[]}})).status,409);
   assert.equal((await request(base,'/api/payments/checkout',{cookie:alice.cookie,method:'POST',data:{order_ids:[orderLesson.body.id]}})).status,409,'Stale lesson order must not generate a charge');
+  assert.equal((await request(base,'/api/admin/orders/'+orderLesson.body.id+'/approve',{cookie:admin.cookie,method:'POST',data:{}})).status,409,'Staff cannot manually approve an order for a lesson already owned via a course');
   const bobOrder=await request(base,'/api/orders',{cookie:bob.cookie,method:'POST',data:{kind:'course',item_id:1}});
   assert.equal(bobOrder.status,201);
   const bobCheckout=await request(base,'/api/payments/checkout',{cookie:bob.cookie,method:'POST',data:{order_ids:[bobOrder.body.id]}});
