@@ -50,6 +50,7 @@ app.disable('x-powered-by');app.use(helmet({referrerPolicy:{policy:'strict-origi
 const e2eRateMultiplier=process.env.NODE_ENV==='test'&&process.env.E2E_RATE_LIMIT_MULTIPLIER==='20'?20:1;
 const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit:limit*e2eRateMultiplier,standardHeaders:'draft-7',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:'Too many requests. Please try again in a moment.'})});
 app.use('/api/auth/login',jsonRateLimit(8,15*60*1000));
+app.use(['/api/account/change-password','/api/account/sessions/revoke-others','/api/account/deletion-request'],jsonRateLimit(8,15*60*1000));
 app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
 app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow');if(req.headers.cookie?.includes('legwork_session='))res.setHeader('Cache-Control','private, no-store');next()});
@@ -70,7 +71,7 @@ app.use('/api',(req,res,next)=>{
  if(source&&source!==expected)return res.status(403).json({error:'Invalid origin'});
  next();
 });
-const cookie=t=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800'+(prod?'; Secure':'');
+const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
 const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
 const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
 const mail=createMailService(app,db,{auth,hashPassword,cleanText});
@@ -78,13 +79,13 @@ audit.registerRoutes(auth,admin);
 if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
 db.exec('CREATE INDEX IF NOT EXISTS sessions_user_expiry_idx ON sessions(user_id,expires_at DESC)');
 const login=(u,res)=>{
- const token=newToken(),digest=tokenHash(token);
+ const token=newToken(),digest=tokenHash(token),ttlSeconds=u.role==='admin'?43200:604800;
  db.transaction(()=>{
   db.prepare('DELETE FROM sessions WHERE expires_at<=?').run(Date.now());
-  db.prepare('INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(?,?,?)').run(digest,u.id,Date.now()+604800000);
+  db.prepare('INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(?,?,?)').run(digest,u.id,Date.now()+ttlSeconds*1000);
   db.prepare('DELETE FROM sessions WHERE user_id=? AND token_hash NOT IN (SELECT token_hash FROM sessions WHERE user_id=? ORDER BY expires_at DESC LIMIT 4)').run(u.id,u.id);
  })();
- res.setHeader('Set-Cookie',cookie(token));
+ res.setHeader('Set-Cookie',cookie(token,ttlSeconds));
  res.setHeader('Cache-Control','private, no-store');
  res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role}});
 };
