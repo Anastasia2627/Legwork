@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl,youtubeVideoId} from './lib/security.js';
+import {registerSecurityAudit} from './lib/security-audit.js';
 import {registerExtraRoutes} from './lib/features.js';
 import {registerRequestRoutes} from './lib/requests.js';
 import {registerMarketingRoutes} from './lib/marketing.js';
@@ -53,6 +54,7 @@ app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
 app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow');if(req.headers.cookie?.includes('legwork_session='))res.setHeader('Cache-Control','private, no-store');next()});
 app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
+const audit=registerSecurityAudit(app,db,{getUser:req=>current(req)});
 registerPaymentWebhook(app,db,()=>mail);
 app.use('/api',(req,res,next)=>{
  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
@@ -72,6 +74,7 @@ const cookie=t=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age=
 const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
 const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
 const mail=createMailService(app,db,{auth,hashPassword,cleanText});
+audit.registerRoutes(auth,admin);
 if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
 db.exec('CREATE INDEX IF NOT EXISTS sessions_user_expiry_idx ON sessions(user_id,expires_at DESC)');
 const login=(u,res)=>{
@@ -93,7 +96,8 @@ app.post('/api/auth/login',(req,res)=>{
  if(typeof p!=='string'||p.length>128||!p.length)return res.status(401).json({error:'Invalid credentials'});
  const u=id==='admin'?db.prepare("SELECT * FROM users WHERE role='admin'").get():db.prepare('SELECT * FROM users WHERE email=?').get(id);
  const valid=verifyPassword(p,u?.password_hash||dummyLoginHash);
- if(valid&&u)return login(u,res);
+ if(valid&&u){audit.record({actorId:u.id,action:'auth.login',targetType:'account',targetId:String(u.id),outcome:'success',status:200});return login(u,res)}
+ audit.record({actorId:u?.id||null,action:'auth.login_rejected',targetType:'account',targetId:u?String(u.id):'',outcome:'denied',status:401});
  return res.status(401).json({error:'Invalid credentials'});
 });
 app.post('/api/auth/logout',(req,res)=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];if(token)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(tokenHash(token));res.setHeader('Set-Cookie',cookie('')+'; Max-Age=0');res.json({ok:true})});
