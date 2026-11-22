@@ -12,8 +12,7 @@ test('public fallback text matches backend CMS defaults for EN and ES',()=>{
 });
 
 test('homepage retains real studio story and learning benefits without empty review cards',()=>{
- for(const term of ['home-journey','home-method-grid','home-program-grid','home-experience-tabs','home_free','home-review_1']){
-  if(term==='home_free')continue;
+ for(const term of ['home-journey','home-method-grid','home-program-grid','home-experience-tabs','home_review_']){
   assert.ok(source.includes(term),'Missing home section: '+term);
  }
  assert.ok(source.includes("filter(key=>state.media?.[key]?.url)"));
