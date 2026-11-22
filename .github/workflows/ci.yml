@@ -26,3 +26,13 @@ jobs:
         run: node --check public/app.js
       - name: Run integration tests
         run: npm test
+      - name: Verify Cloudflare migration generator
+        run: npm run cloudflare:build
+      - name: Check generated Worker source syntax
+        run: |
+          node --check cloudflare/generated/app.js
+          node --check cloudflare/generated/mailing.js
+          node --check cloudflare/generated/certificates.js
+          node --check cloudflare/worker.js
+      - name: Check Cloudflare bundle without deploying
+        run: npm run cloudflare:check
