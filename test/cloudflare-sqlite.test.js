@@ -19,6 +19,7 @@ function fakeStorage() {
         calls.push({statement,args});
         if(statement.includes('changes() AS changes'))return cursor([{changes:count,id:19}]);
         if(statement.includes('table_info'))return cursor([{name:'id'},{name:'email'}]);
+        if(statement === 'PRAGMA foreign_keys')return cursor([{foreign_keys:1}]);
         if(statement==='SELECT * FROM users WHERE id=?')return cursor([{id:args[0],email:'a@example.org'}]);
         if(statement==='SELECT * FROM users')return cursor([{id:1},{id:2}]);
         if(statement.startsWith('UPDATE ')){count=2;return cursor();}
@@ -43,6 +44,7 @@ test('migration pragma whitelist and better-sqlite3 wrapper transaction',()=>{
   const db=createDurableSqlite(storage);
   assert.deepEqual(db.pragma('table_info(users)'),[{name:'id'},{name:'email'}]);
   assert.deepEqual(db.pragma('journal_mode=WAL'),[]);
+  assert.deepEqual(db.pragma('foreign_keys=ON'),[]);
   assert.throws(()=>db.pragma('writable_schema=ON'),/Unsupported/);
   const txn=db.transaction((id)=>db.prepare('SELECT * FROM users WHERE id=?').get(id));
   assert.equal(txn(11).id,11);
