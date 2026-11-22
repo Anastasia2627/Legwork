@@ -8,7 +8,7 @@
     "dev": "node --watch server.js",
     "test": "node --test",
     "test:e2e": "playwright test",
-    "cloudflare:build": "node scripts/build-cloudflare.mjs",
+    "cloudflare:build": "node scripts/patch-iconv-cloudflare.mjs && node scripts/build-cloudflare.mjs",
     "cloudflare:dev": "npm run cloudflare:build && wrangler dev",
     "cloudflare:check": "npm run cloudflare:build && wrangler deploy --dry-run --outdir .wrangler/check",
     "cloudflare:deploy": "npm run cloudflare:build && wrangler deploy",
