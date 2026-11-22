@@ -62,12 +62,24 @@ try {
   const email = await fetch(origin+'/api/email/config');
   assert(email.ok && (await email.json()).enabled === false, 'Unconfigured mail should be disabled');
 
+  // Local smoke runs with an HTTP loopback origin and NODE_ENV=development.
+  // Unlike production, development intentionally allows account creation without SMTP.
   const register = await fetch(origin+'/api/auth/register', {
     method:'POST',headers:{'Origin':origin,'Content-Type':'application/json'},
     body:JSON.stringify({name:'Test',email:'test@example.com',password:'NeverUseThisPassword123!'}),
   });
-  assert(register.status === 503, 'Registration must fail closed without an email provider');
-  console.log('Cloudflare local smoke passed: health, catalog, media privacy, auth gate, static assets and mail gate.');
+  const registration = await register.json().catch(()=>({}));
+  assert(register.ok && registration.user?.email === 'test@example.com',
+    'Local development registration failed: '+register.status+' '+JSON.stringify(registration));
+  const session = register.headers.get('set-cookie')?.split(';')[0];
+  assert(session?.startsWith('legwork_session='), 'Signed-in session cookie not returned');
+  const studentDash = await fetch(origin+'/api/dashboard',{headers:{Cookie:session}});
+  assert(studentDash.ok, 'Registered student dashboard failed: '+studentDash.status);
+  const protectedAdmin = await fetch(origin+'/api/admin/overview',{headers:{Cookie:session}});
+  assert(protectedAdmin.status === 403, 'Student accessed protected admin API');
+  const unpaidVideo = await fetch(origin+'/api/lessons/'+paidLesson.id+'/watch',{headers:{Cookie:session}});
+  assert(unpaidVideo.status === 403, 'Signed-in student accessed unpaid YouTube lesson');
+  console.log('Cloudflare local smoke passed: health, catalog, public privacy, account session, student/admin gate, paid video gate and static assets.');
 } finally {
   if (server) {
     server.kill('SIGTERM');
