@@ -12,13 +12,37 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=c=>'$'+(c/100).toFixed(0);
 const t=(en,es)=>state.lang==='es'?es:en;
 const api=async(url,method='GET',data)=>{const r=await fetch('/api'+url,{method,headers:{...(data?{'Content-Type':'application/json'}:{})},body:data?JSON.stringify(data):undefined,credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(translateText(d.error||'Request failed',state.lang));return d};
+// Re-encode admin images in the browser: no paid Cloudflare Images binding needed.
+// Canvas also discards original EXIF/location metadata before upload.
 const uploadPublicImage=async file=>{
  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Choose a JPEG, PNG or WebP image');
  if(file.size>6*1024*1024||file.size<16)throw Error('Image must be between 16 bytes and 6 MB');
- const response=await fetch('/api/admin/image-upload',{method:'POST',headers:{'Content-Type':file.type},body:file,credentials:'same-origin'});
- const data=await response.json().catch(()=>({}));
- if(!response.ok)throw Error(data.error||'Image upload failed');
- return data.url;
+ let bitmap;
+ try{bitmap=await createImageBitmap(file)}
+ catch{throw Error('The selected image could not be opened')}
+ try{
+  if(!bitmap.width||!bitmap.height||bitmap.width*bitmap.height>20000000)throw Error('Image dimensions are unsupported');
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d',{alpha:true});
+  if(!ctx)throw Error('Image conversion is unavailable in this browser');
+  let encoded=null;
+  for(let i=0;i<7;i++){
+   const scale=Math.min(1,2000/Math.max(bitmap.width,bitmap.height))*Math.pow(.84,Math.max(0,i-2));
+   canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+   canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+   ctx.clearRect(0,0,canvas.width,canvas.height);
+   ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+   const quality=Math.max(.52,.86-i*.065);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+   if(!blob||blob.type!=='image/webp')throw Error('WebP encoding is unavailable in this browser');
+   if(blob.size>=16&&blob.size<=2*1024*1024){encoded=blob;break}
+  }
+  if(!encoded)throw Error('Image is too large after compression (2 MB limit)');
+  const response=await fetch('/api/admin/image-upload',{method:'POST',headers:{'Content-Type':'image/webp'},body:encoded,credentials:'same-origin'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(data.error||'Image upload failed');
+  return data.url;
+ }finally{bitmap?.close?.()}
 };
 const askConfirmation=message=>window.confirm(translateText(message,state.lang));
 const askReason=message=>window.prompt(translateText(message,state.lang));
