@@ -29,15 +29,23 @@ The existing `npm start` Node.js + SQLite deployment remains unchanged.
 - **Payments:** existing signed WayForPay callback logic retained; merchant remains
   **disabled by default**. No live payment has been exercised on Cloudflare.
 
-### Why not blindly use the Workers Free plan?
+### Runtime and free-tier limits
 
-Free Workers have a 10 ms CPU-time budget per invocation (as of Nov 2026).
-LEGWORK uses scrypt password verification and PDF rendering; either may exceed that
-budget. Test under genuine conditions before considering production. Daily request
-limits alone do **not** prove commercial readiness. Durable Object storage shares
-the Workers Free tier account limits: do not enable any paid resource or bind a
-billing method without separate approval. If CPU use exceeds Free, reconsider
-the backend platform instead of weakening the password hashing.
+Cloudflare Workers Free grants **10 ms CPU per request** for the outer edge Worker,
+but SQLite-backed Durable Objects have a separate CPU budget (normally
+**30 seconds per request**). LEGWORK's expensive password hashing and certificate
+rendering run *inside* the Durable Object; do not assume the outer Worker limit
+applies to those functions. The Worker itself forwards requests and serves static
+assets. Performance and provider limits still require real production tests.
+
+On the Workers Free plan, SQLite-backed Durable Object storage has a **1 GB per
+object** limit; LEGWORK deliberately caps public image uploads at 100 MB to
+leave space for school records. Never connect billing or enable a paid resource
+without explicit approval.
+
+See:
+- https://developers.cloudflare.com/workers/platform/limits/
+- https://developers.cloudflare.com/durable-objects/platform/limits/
 
 ## Local preparation
 
