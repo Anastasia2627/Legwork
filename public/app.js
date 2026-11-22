@@ -1,5 +1,6 @@
 import {translatePage,translateText} from './i18n.js';
 import {MEDIA,mediaFigure} from './media.js';
+import {EDITORIAL_DEFAULTS} from './editorial-fallback.js';
 import {editorialEditor} from './editorial-admin.js';
 import {studentCertificatesMarkup,adminCertificatesMarkup,verifyCertificateView} from './certificates.js';
 import {renderStudy} from './learning.js?v=20261111security';
@@ -7,7 +8,7 @@ import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,pa
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
 const readBundleCart=()=>{try{const ids=JSON.parse(localStorage.getItem('legwork_bundle_cart')||'[]');return Array.isArray(ids)?[...new Set(ids.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
-const state={user:null,courses:[],lessons:[],bundles:[],content:null,media:{},dashboard:null,admin:null,cart:readCart(),bundleCart:readBundleCart(),lang:localStorage.getItem('legwork_lang')==='es'?'es':'en',tab:'overview'};
+const state={user:null,courses:[],lessons:[],bundles:[],content:null,media:{},dashboard:null,admin:null,cart:readCart(),bundleCart:readBundleCart(),lang:localStorage.getItem('legwork_lang')==='es'?'es':'en',tab:'overview',serviceIssue:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=c=>'$'+(c/100).toFixed(0);
 const t=(en,es)=>state.lang==='es'?es:en;
@@ -65,7 +66,7 @@ const mediaPicture=(slot,className,fallback)=>{
 
 const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length+state.bundleCart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;const cartLabel=$('#cartBtn')?.firstChild;if(cartLabel)cartLabel.nodeValue=(state.lang==='es'?'Cesta ':'Bag ');$('#cartDrawer')?.setAttribute('aria-label',state.lang==='es'?'Cesta de compra':'Shopping cart');document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases'],mentorship:['Mentorship','Mentoría']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar':'Get started';}
 const editorial=(page,key)=>{
- const value=state.content?.[page]?.[state.lang]?.[key]??'';
+ const value=state.content?.[page]?.[state.lang]?.[key]??EDITORIAL_DEFAULTS[page]?.[state.lang]?.[key]??'';
  // Old locally seeded editorial values can outlive a redesign.
  // Replace only the original legacy slogans; keep genuine admin edits intact.
  const outdated={
@@ -74,14 +75,14 @@ const editorial=(page,key)=>{
  };
  return esc(outdated[state.lang]?.[page]?.[key]?.[value]??value)
 };
-const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash.slice(2):(location.pathname.replace(/^\//,'')||'')).split(/[?#]/)[0];const page=route===''?'home':route==='course'?'course':route==='mentorship'?'mentorship':null;const values=page?state.content?.[page]?.[state.lang]:null;const shop=route==='shop';document.title=values?.metaTitle||(shop?'Online Dance Classes & Bundles | Legwork':'Legwork · Online Dance School');const description=document.querySelector('meta[name="description"]');if(description)description.setAttribute('content',values?.metaDescription||(shop?'Browse individual pole dance technique classes and lesson bundles.':'Online dance lessons and mentorship at Legwork.'));
+const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash.slice(2):(location.pathname.replace(/^\//,'')||'')).split(/[?#]/)[0];const page=route===''?'home':route==='course'?'course':route==='mentorship'?'mentorship':null;const values=page?(state.content?.[page]?.[state.lang]||EDITORIAL_DEFAULTS[page]?.[state.lang]):null;const shop=route==='shop';document.title=values?.metaTitle||(shop?'Online Dance Classes & Bundles | Legwork':'Legwork · Online Dance School');const description=document.querySelector('meta[name="description"]');if(description)description.setAttribute('content',values?.metaDescription||(shop?'Browse individual pole dance technique classes and lesson bundles.':'Online dance lessons and mentorship at Legwork.'));
  const publicPath=route===''?'/':['course','shop','mentorship'].includes(route)?'/'+route:null;
  const canonical=document.querySelector('link[rel="canonical"]');
  if(canonical&&publicPath)canonical.href=location.origin+publicPath;
  const robots=document.querySelector('meta[name="robots"]');
  if(robots)robots.content=publicPath&&robots.dataset.indexEnabled==='true'?'index,follow':'noindex,nofollow';
 };
-function layout(markup){document.body.classList.remove('shop-filters-open');app.innerHTML=markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
+function layout(markup){document.body.classList.remove('shop-filters-open');const offline=state.serviceIssue?'<div class="site-service-notice" role="status">'+t('Some school services are temporarily unavailable. You can still explore the school; account and purchase features may need attention.','Algunos servicios no están disponibles temporalmente. Puedes explorar la escuela; el acceso y las compras pueden verse afectados.')+'</div>':'';app.innerHTML=offline+markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 
 function home(){
@@ -394,7 +395,23 @@ function showCart(){
 function closeCart(restoreFocus=true){const drawer=$('#cartDrawer'),wasOpen=drawer.classList.contains('open');$('#shade').hidden=true;drawer.classList.remove('open');drawer.inert=true;$('#cartBtn').setAttribute('aria-expanded','false');if(wasOpen&&restoreFocus){const target=cartPreviousFocus?.isConnected?cartPreviousFocus:$('#cartBtn');target?.focus()}cartPreviousFocus=null}
 function updateCart(){localStorage.setItem('legwork_cart',JSON.stringify(state.cart));localStorage.setItem('legwork_bundle_cart',JSON.stringify(state.bundleCart));syncHeader()}
 async function navigate(){closeCart(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#'))course();else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship'))mentorship();else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register')authPage(true);else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
-async function init(){try{const [me,courses,lessons,bundles,content,media]=await Promise.all([api('/me'),api('/courses'),api('/lessons'),api('/bundles'),api('/content'),api('/media')]);state.user=me.user;state.courses=courses.courses;state.lessons=lessons.lessons;state.bundles=bundles.bundles;state.content=content.pages;state.media=media.assets;await navigate()}catch(e){layout(section('Connection error','<p>'+esc(e.message)+'</p>'))}}
+async function init(){
+ // A partial outage (including missing deployment secrets) must never hide
+ // all public content. Authentication and purchases remain server-controlled.
+ const results=await Promise.allSettled([
+  api('/me'),api('/courses'),api('/lessons'),
+  api('/bundles'),api('/content'),api('/media')
+ ]);
+ const data=results.map(r=>r.status==='fulfilled'?r.value:null);
+ state.user=data[0]?.user||null;
+ state.courses=Array.isArray(data[1]?.courses)?data[1].courses:[];
+ state.lessons=Array.isArray(data[2]?.lessons)?data[2].lessons:[];
+ state.bundles=Array.isArray(data[3]?.bundles)?data[3].bundles:[];
+ state.content=data[4]?.pages||EDITORIAL_DEFAULTS;
+ state.media=data[5]?.assets||{};
+ state.serviceIssue=results.some(r=>r.status==='rejected');
+ await navigate();
+}
 const formData=form=>Object.fromEntries(new FormData(form));
 async function action(e){const target=e.target,form=target.closest('form'),button=target.closest('button,a');try{
 if(form&&e.type==='submit'){e.preventDefault();const data=formData(form);
