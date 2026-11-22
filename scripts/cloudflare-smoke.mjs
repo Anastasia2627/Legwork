@@ -24,6 +24,8 @@ try {
   await fs.writeFile(varsFile, Object.entries(vars).map(([k,v]) => k+'='+v).join('\n')+'\n',{mode:0o600,flag:'wx'});
   server = spawn('npx', ['wrangler','dev','--ip','127.0.0.1','--port','8787'], {
     cwd: root, env: process.env, stdio: ['ignore','pipe','pipe'],
+    // A separate POSIX process group ensures npx, wrangler and workerd all stop.
+    detached: process.platform !== 'win32',
   });
   for (const stream of [server.stdout,server.stderr]) {
     stream.on('data', part => { log = (log + String(part)).slice(-25_000); });
@@ -82,9 +84,20 @@ try {
   console.log('Cloudflare local smoke passed: health, catalog, public privacy, account session, student/admin gate, paid video gate and static assets.');
 } finally {
   if (server) {
-    server.kill('SIGTERM');
-    await pause(400);
-    if (server.exitCode == null) server.kill('SIGKILL');
+    const killGroup = (signal) => {
+      try {
+        if (process.platform === 'win32') server.kill(signal);
+        else process.kill(-server.pid, signal);
+      } catch (error) {
+        if (error.code !== 'ESRCH') throw error;
+      }
+    };
+    killGroup('SIGTERM');
+    await pause(650);
+    killGroup('SIGKILL');
+    server.stdout?.destroy();
+    server.stderr?.destroy();
+    server.unref();
   }
   await fs.rm(varsFile,{force:true});
 }
