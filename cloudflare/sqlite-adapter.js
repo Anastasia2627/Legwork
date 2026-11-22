@@ -44,8 +44,20 @@ export function createDurableSqlite(storage) {
     },
     pragma(expression) {
       const pragma = String(expression).trim();
-      // These are storage-engine concerns handled by Durable Objects.
-      if (/^(?:journal_mode=WAL|wal_checkpoint\(TRUNCATE\)|foreign_keys=ON)$/i.test(pragma)) return [];
+      // Durable Objects manage WAL/checkpointing; never emulate disk paths.
+      if (/^(?:journal_mode=WAL|wal_checkpoint\\(TRUNCATE\\))$/i.test(pragma)) return [];
+      // Foreign key enforcement is critical for orders, sessions and access.
+      if (/^foreign_keys=ON$/i.test(pragma)) {
+        let row = sql.exec('PRAGMA foreign_keys').next();
+        if (row.done || Number(row.value.foreign_keys) !== 1) {
+          sql.exec('PRAGMA foreign_keys=ON').toArray();
+          row = sql.exec('PRAGMA foreign_keys').next();
+          if (row.done || Number(row.value.foreign_keys) !== 1) {
+            throw new Error('Cloudflare SQLite foreign key enforcement unavailable');
+          }
+        }
+        return [];
+      }
       // Never allow caller-controlled arbitrary pragma execution.
       if (!/^table_info\([a-z_][a-z0-9_]*\)$/i.test(pragma)) {
         throw new Error('Unsupported Durable Object pragma: ' + pragma);
