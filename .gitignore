@@ -8,3 +8,9 @@ coverage/
 
 playwright-report/
 test-results/
+
+# Cloudflare generated application / local bindings / build artifacts
+cloudflare/generated/
+.wrangler/
+.dev.vars
+.dev.vars.*
