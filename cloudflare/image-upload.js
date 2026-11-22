@@ -25,7 +25,7 @@ export function registerImageUploads(app, db, { auth, admin, env }) {
       const input = new Blob([req.body], { type: mime }).stream();
       // Cloudflare Images must decode the media, not trust Content-Type alone.
       const info = await env.IMAGES.info(input);
-      const format = String(info?.format || '').toLowerCase();
+      const format = String(info?.format || '').toLowerCase().replace(/^image\\//, '');
       if (!['jpeg', 'png', 'webp'].includes(format) ||
           (mime === 'image/jpeg' && format !== 'jpeg') ||
           (mime === 'image/png' && format !== 'png') ||
@@ -33,11 +33,11 @@ export function registerImageUploads(app, db, { auth, admin, env }) {
           !info.width || !info.height || info.width * info.height > 20_000_000) {
         return res.status(415).json({ error: 'Unsupported image data or dimensions' });
       }
-      const converted = await env.IMAGES
+      const transformation = await env.IMAGES
         .input(new Blob([req.body], { type: mime }).stream())
         .transform({ width: 2200, height: 2200, fit: 'scale-down' })
-        .output({ format: 'image/webp', quality: 82, anim: false })
-        .response();
+        .output({ format: 'image/webp', quality: 82, anim: false });
+      const converted = transformation.response();
       if (!converted.ok) return res.status(422).json({ error: 'Image transformation failed' });
       const bytes = await converted.arrayBuffer();
       if (bytes.byteLength > MAX_OUTPUT) {
