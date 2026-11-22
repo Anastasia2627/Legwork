@@ -68,9 +68,12 @@ export class LegworkStore extends DurableObject {
   }
 
   async alarm() {
-    if (this.mail?.dispatch) {
-      await this.mail.dispatch();
+    // An alarm may run after eviction, before the first external HTTP request.
+    // Recreate routes and the outbox service before attempting delivery.
+    if (!this.mail && this.env.SITE_ORIGIN) {
+      await this.fetch(new Request(new URL('/health', this.env.SITE_ORIGIN)));
     }
+    if (this.mail?.dispatch) await this.mail.dispatch();
     if (this.db?.prepare("SELECT 1 FROM mail_outbox WHERE status='pending' AND attempts<8 LIMIT 1").get()) {
       await this.ctx.storage.setAlarm(Date.now() + 60_000);
     }
