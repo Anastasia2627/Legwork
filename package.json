@@ -12,7 +12,8 @@
     "cloudflare:dev": "npm run cloudflare:build && wrangler dev",
     "cloudflare:check": "npm run cloudflare:build && wrangler deploy --dry-run --outdir .wrangler/check",
     "cloudflare:deploy": "npm run cloudflare:build && wrangler deploy",
-    "cloudflare:smoke": "npm run cloudflare:build && node scripts/cloudflare-smoke.mjs"
+    "cloudflare:smoke": "npm run cloudflare:build && node scripts/cloudflare-smoke.mjs",
+    "build": "npm run cloudflare:build"
   },
   "engines": {
     "node": ">=22"
