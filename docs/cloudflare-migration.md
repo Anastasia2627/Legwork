@@ -13,9 +13,14 @@ The existing `npm start` Node.js + SQLite deployment remains unchanged.
   of D1 because LEGWORK uses many **synchronous** better-sqlite3 prepared statements and
   multi-statement transaction callbacks. D1 is asynchronous; changing everything at once
   would risk ownership checks, paid orders and idempotent payment callbacks.
-- **R2 `MEDIA`:** private bucket for assigned lesson cover / public marketing WebP files.
-  `IMAGES` binding decodes and recompresses uploads to WebP. R2 never publicly exposes
-  object URLs and the app checks references in the database before serving media.
+- **No-card image storage:** uploaded public artwork and lesson covers use the
+  synchronous key-value storage inside the existing SQLite-backed Durable Object
+  `SCHOOL`. No R2 subscription, Images binding or external storage is needed.
+  The browser re-encodes JPEG/PNG/WebP to metadata-free WebP (max 2 MB). Only
+  admin-assigned images can be served through `/media/:name`.
+  Upload quota is deliberately capped at **100 MB per school** (far below
+  the free storage ceiling). Unassigned images older than 48 hours are cleaned
+  up when another image is uploaded.
 - **Email:** the same token/verification/outbox routes, with Resend's HTTPS API replacing
   long-lived SMTP TCP connections and timers. Requires independently configured sender,
   `RESEND_API_KEY` and `MAIL_FROM`. If absent, public registration correctly fails closed.
@@ -28,10 +33,11 @@ The existing `npm start` Node.js + SQLite deployment remains unchanged.
 
 Free Workers have a 10 ms CPU-time budget per invocation (as of Nov 2026).
 LEGWORK uses scrypt password verification and PDF rendering; either may exceed that
-budget. Test under genuine conditions before choosing Free or Paid. Daily request
-limits alone do **not** prove commercial readiness. Durable Object/R2/Images quotas
-and prices are separate. If CPU tests exceed Free, budget for Workers Paid or
-reconsider the backend platform instead of weakening the password hashing.
+budget. Test under genuine conditions before considering production. Daily request
+limits alone do **not** prove commercial readiness. Durable Object storage shares
+the Workers Free tier account limits: do not enable any paid resource or bind a
+billing method without separate approval. If CPU use exceeds Free, reconsider
+the backend platform instead of weakening the password hashing.
 
 ## Local preparation
 
@@ -83,15 +89,10 @@ Source: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
 
 ## Cloudflare account setup
 
-1. Sign in to https://dash.cloudflare.com/ and enable Workers.
-2. Create R2 buckets (names in `wrangler.jsonc`) when using the remote environment:
-
-   ```bash
-   npx wrangler login
-   npx wrangler r2 bucket create legwork-public-media
-   npx wrangler r2 bucket create legwork-public-media-preview
-   ```
-
+1. Sign in to https://dash.cloudflare.com/ and enable Workers Free.
+2. **Do not activate R2, Images billing or enter payment details.**
+   `wrangler.jsonc` deliberately has **no** `r2_buckets` or `images` binding.
+   No bucket or account upgrade is required for the test deployment.
 3. `wrangler.jsonc` defines the single `LegworkStore` SQLite Durable Object
    migration. It is not D1: do **not** create a D1 database or assume a D1 import
    command can restore its storage.
@@ -114,8 +115,9 @@ Source: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
 6. Run `npm run cloudflare:check` and inspect the result. Then run
    `npm run cloudflare:deploy` only when the build and local smoke tests succeed.
 
-   **This repository has not been connected to your Cloudflare account.**
-   There is no deployed URL yet. Never interpret a dry-run as a live deployment.
+   **This repository is connected to Cloudflare via the user's dashboard, but
+   successful deployment is not yet verified.** Never interpret a dry-run as
+   a live deployment.
 
 ## Required end-to-end acceptance checks
 
@@ -159,14 +161,18 @@ import endpoint, because exposing one before a real data inventory would be unsa
 
 - The central Durable Object is intentionally single-instance for the school's
   low traffic; it is not a horizontal multi-region SQL architecture.
-- Image transformation costs and R2/DO operations depend on live usage.
+- Images stored as small WebP values share the Durable Object's SQLite storage
+  and are not intended for videos, large files or unlimited uploads.
+  Only client-side re-encoding is implemented; server validates WebP structure
+  and refuses metadata/animation, but does not fully decode the image.
 - Review the platform terms for paywalled YouTube embeds. YouTube Unlisted IDs and
   screen recordings cannot be hidden from authorized viewers.
 - External email sending, paid payment callbacks and production PDF generation
   require real Cloudflare tests; a successful static build is not enough.
 - `PUBLIC_INDEXING_ENABLED` stays off until approved editorial/legal content.
-- Unreferenced uploads in R2 currently need a lifecycle cleanup policy; do not
-  assume filesystem cleanup timers from the original server still run.
+- Old unassigned media is removed after 48 hours when a new image is uploaded.
+  This is lazy cleanup, not scheduled deletion; establish ongoing backup and
+  cleanup procedures before real customers use the school.
 - Use distinct staging and production storage before inviting real customers.
 
 Official references:
@@ -174,5 +180,5 @@ Official references:
 - https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/
 - https://developers.cloudflare.com/durable-objects/platform/pricing/
 - https://developers.cloudflare.com/workers/platform/limits/
-- https://developers.cloudflare.com/images/optimization/binding/
-- https://developers.cloudflare.com/r2/get-started/
+- https://developers.cloudflare.com/durable-objects/platform/limits/
+- https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/#synchronous-kv-api
