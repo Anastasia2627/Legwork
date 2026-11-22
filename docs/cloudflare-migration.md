@@ -56,6 +56,27 @@ Generated source under `cloudflare/generated/` is intentionally gitignored.
 If the Node backend changes in ways the generator cannot safely recognize,
 generation fails instead of silently dropping routes. Keep the native Node tests.
 
+## Cloudflare startup bug: iconv-lite stream shim (10021)
+
+When Wrangler prints `Uncaught TypeError: require_streams(...) is not a function`
+from `iconv-lite/lib/index.js`, the bundle selected a browser-only stub for
+the Node.js stream helper. This is a known Workers SDK issue with newer
+`process.versions.node` support; it is **not** a Durable Object database error.
+
+`npm run build` now calls `scripts/patch-iconv-cloudflare.mjs` before
+generating the Worker source. The patch applies **only in installed
+`node_modules/iconv-lite/package.json` manifests** (including nested copies)
+and removes their `false` browser maps for Node streams; it does not edit
+the tracked backend, payment logic or Git history. The patch is idempotent
+and has an offline regression test.
+
+To avoid accidentally publishing an unpatched bundle, keep the Cloudflare
+dashboard Build command set to **`npm run build`** and Deploy command
+to **`npx wrangler deploy`**. `npm run cloudflare:deploy` also performs
+the patch as part of its build.
+
+Reference: https://github.com/cloudflare/workers-sdk/issues/9309
+
 ## Cloudflare Workers Builds GitHub integration (required)
 
 **Workers Builds does not execute the Wrangler custom `build.command` field.**
