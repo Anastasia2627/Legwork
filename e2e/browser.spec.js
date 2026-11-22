@@ -4,7 +4,7 @@ test('Public navigation and catalog filters',async({page},info)=>{
  await page.goto('/#/');
  await expect(page.locator('.ref-hero h1')).toContainText('SVITLANA');
  await page.goto('/#/course');
- await expect(page.locator('.course-logo')).toContainText('LEGWORK');
+ await expect(page.locator('.ref-course-hero h1')).toContainText('LEGWORK');
  await expect(page.locator('#prices .price-card')).toHaveCount(2);
  await page.goto('/#/shop');
  await expect(page.locator('h1')).toContainText('CLASSES');
