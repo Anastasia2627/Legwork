@@ -10,24 +10,47 @@
   },
   "durable_objects": {
     "bindings": [
-      { "name": "SCHOOL", "class_name": "LegworkStore" }
+      {
+        "name": "SCHOOL",
+        "class_name": "LegworkStore"
+      }
     ]
   },
   "migrations": [
-    { "tag": "legwork-v1-sqlite", "new_sqlite_classes": ["LegworkStore"] }
+    {
+      "tag": "legwork-v1-sqlite",
+      "new_sqlite_classes": [
+        "LegworkStore"
+      ]
+    }
   ],
   "r2_buckets": [
-    { "binding": "MEDIA", "bucket_name": "legwork-public-media", "preview_bucket_name": "legwork-public-media-preview" }
+    {
+      "binding": "MEDIA",
+      "bucket_name": "legwork-public-media",
+      "preview_bucket_name": "legwork-public-media-preview"
+    }
   ],
   "images": {
     "binding": "IMAGES"
   },
   "rules": [
-    { "type": "Data", "globs": ["**/*.woff"], "fallthrough": true }
+    {
+      "type": "Data",
+      "globs": [
+        "**/*.woff"
+      ],
+      "fallthrough": true
+    }
   ],
   "vars": {
     "PAYMENT_PROVIDER": "disabled",
     "PUBLIC_INDEXING_ENABLED": "false"
   },
-  "observability": { "enabled": true }
+  "observability": {
+    "enabled": true
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
 }
