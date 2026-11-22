@@ -14,7 +14,7 @@
     "cloudflare:deploy": "npm run cloudflare:build && wrangler deploy",
     "cloudflare:smoke": "npm run cloudflare:build && node scripts/cloudflare-smoke.mjs",
     "build": "npm run cloudflare:build",
-    "postinstall": "node scripts/build-cloudflare.mjs"
+    "postinstall": "node -e \"const fs=require('node:fs');if(fs.existsSync('scripts/build-cloudflare.mjs')&&fs.existsSync('server.js'))import('./scripts/build-cloudflare.mjs')\""
   },
   "engines": {
     "node": ">=22"
