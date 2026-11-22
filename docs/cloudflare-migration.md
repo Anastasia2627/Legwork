@@ -1,6 +1,6 @@
 # LEGWORK — Cloudflare Workers migration (staging candidate)
 
-**Status: CODE PREPARED, NOT DEPLOYED, NOT VERIFIED IN A CLOUDFLARE ACCOUNT.**
+**Status: a Cloudflare Worker bundle was successfully deployed on 22 Nov 2026, but the complete school has not been verified as production-ready. Latest changes still require a successful redeploy and smoke tests.**
 Do not switch the domain or accept real payments until the checks below pass.
 The existing `npm start` Node.js + SQLite deployment remains unchanged.
 
@@ -140,6 +140,41 @@ Source: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
    successful deployment is not yet verified.** Never interpret a dry-run as
    a live deployment.
 
+## If the published site looks empty or says Connection error
+
+The previous browser bootstrap ran six requests through `Promise.all`; a single
+failed API request could hide the entire public site. The restored frontend uses
+`Promise.allSettled` and read-only editorial fallback defaults. This preserves
+the public pages without pretending that accounts or purchases are working.
+
+To diagnose the backend, visit
+`https://legwork-school.vlasiuk-anastasiia15.workers.dev/health`.
+A working API returns `{"ok":true}`. If it returns HTTP 503, open
+**Workers & Pages → legwork-school → Settings → Variables and Secrets**
+and set the following values for this Worker only:
+
+- `SESSION_SECRET`: secret; locally run `openssl rand -hex 32` and paste
+  its output into the Cloudflare secret field (never into chat or GitHub).
+- `ADMIN_PASSWORD`: secret; a new strong unique password with at least 12
+  characters, stored in a password manager.
+- `SITE_ORIGIN`: `https://legwork-school.vlasiuk-anastasiia15.workers.dev`
+  without a trailing slash. This is not sensitive; a regular variable is fine.
+
+Save and check `/health`, `/api/courses`, `/api/lessons`, `/api/content`,
+and `/api/media`. Only a successful deploy and healthy endpoints demonstrate
+that public school data is loading.
+
+**Production registration is intentionally disabled without a working
+email sender.** To use Resend, verify an approved sending domain and configure
+`RESEND_API_KEY` and `MAIL_FROM`. Do not enable live sales until verification,
+password resets, payment callbacks and permissions pass testing.
+
+The Cloudflare Durable Object uses a new persistent database; old real accounts,
+orders, images and progress are **not** imported automatically. Verify backup,
+reconciliation and restoration before migrating any existing users.
+
+The homepage displays only approved gallery/review assets. No fake testimonials
+or empty placeholders are published.
 ## Required end-to-end acceptance checks
 
 1. `/health` returns `{"ok":true}`. Public pages load all CSS/JS.
