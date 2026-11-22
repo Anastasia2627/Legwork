@@ -46,7 +46,7 @@ app = change(app,
   'mail setup');
 app = change(app,
   "registerImageUploads(app,db,{auth,admin,dbPath});",
-  "registerImageUploads(app,db,{auth,admin,env});",
+  "registerImageUploads(app,db,{auth,admin,ctx});",
   'image upload setup');
 const seoStart = app.indexOf('// Public, crawlable paths are deliberately limited to editorial landing pages.');
 if (seoStart === -1) throw new Error('Cloudflare build contract changed: SEO tail');
