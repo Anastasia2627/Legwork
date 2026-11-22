@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "legwork-school",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-22",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "SCHOOL", "class_name": "LegworkStore" }
+    ]
+  },
+  "migrations": [
+    { "tag": "legwork-v1-sqlite", "new_sqlite_classes": ["LegworkStore"] }
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "legwork-public-media", "preview_bucket_name": "legwork-public-media-preview" }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "rules": [
+    { "type": "Data", "globs": ["**/*.woff"], "fallthrough": true }
+  ],
+  "vars": {
+    "PAYMENT_PROVIDER": "disabled",
+    "PUBLIC_INDEXING_ENABLED": "false"
+  },
+  "observability": { "enabled": true }
+}
