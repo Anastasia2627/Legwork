@@ -10,13 +10,17 @@ test('Homepage restores the full story and teaching options in the premium desig
  await expect(page.locator('.home-recognition .home-tabs button')).toHaveCount(3);
  await expect(page.locator('.home-free-invite')).toBeVisible();
  await expect(page.locator('.home-program-primary')).toHaveAttribute('href','#/course');
- // Empty/unauthorized photo and review slots are not fabricated for visitors.
- await expect(page.locator('.home-gallery')).toHaveCount(0);
- await expect(page.locator('.home-reviews-published')).toHaveCount(0);
+ // Approved media may or may not exist depending on prior admin tests.
+ // When sections appear, every card must contain a real admin-assigned image.
+ const gallery=page.locator('.home-gallery .gallery-frame');
+ const reviews=page.locator('.home-reviews-published .home-review-frame');
+ expect(await gallery.count()).toBe(await page.locator('.home-gallery img[src]').count());
+ expect(await reviews.count()).toBe(await page.locator('.home-reviews-published img[src]').count());
+ const required=['home-hero','home-story','home-method','home-courses','home-recognition','home-free-invite'];
  const order=await page.locator('#app > section').evaluateAll(items=>items.map(el=>
-  ['home-hero','home-story','home-method','home-courses','home-recognition','home-free-invite']
+  ['home-hero','home-story','home-method','home-courses','home-recognition','home-gallery','home-reviews-published','home-free-invite']
    .find(cls=>el.classList.contains(cls))));
- expect(order).toEqual(['home-hero','home-story','home-method','home-courses','home-recognition','home-free-invite']);
+ expect(order.filter(cls=>required.includes(cls))).toEqual(required);
 });
 
 test('Experience tabs retain accessible state and update their content',async({page})=>{
