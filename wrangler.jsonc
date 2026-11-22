@@ -24,16 +24,6 @@
       ]
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "MEDIA",
-      "bucket_name": "legwork-public-media",
-      "preview_bucket_name": "legwork-public-media-preview"
-    }
-  ],
-  "images": {
-    "binding": "IMAGES"
-  },
   "rules": [
     {
       "type": "Data",
