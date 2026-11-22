@@ -25,7 +25,7 @@ export function registerImageUploads(app, db, { auth, admin, env }) {
       const input = new Blob([req.body], { type: mime }).stream();
       // Cloudflare Images must decode the media, not trust Content-Type alone.
       const info = await env.IMAGES.info(input);
-      const format = String(info?.format || '').toLowerCase().replace(/^image\\//, '');
+      const format = String(info?.format || '').toLowerCase().split('/').pop();
       if (!['jpeg', 'png', 'webp'].includes(format) ||
           (mime === 'image/jpeg' && format !== 'jpeg') ||
           (mime === 'image/png' && format !== 'png') ||
