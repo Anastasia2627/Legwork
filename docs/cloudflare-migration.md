@@ -50,6 +50,37 @@ Generated source under `cloudflare/generated/` is intentionally gitignored.
 If the Node backend changes in ways the generator cannot safely recognize,
 generation fails instead of silently dropping routes. Keep the native Node tests.
 
+## Cloudflare Workers Builds GitHub integration (required)
+
+**Workers Builds does not execute the Wrangler custom `build.command` field.**
+Set the build command in the Worker dashboard; do not leave it blank.
+
+Open `Workers & Pages → legwork-school → Settings → Build` and configure:
+
+| Field | Value |
+| --- | --- |
+| Connected repository | `Anastasia2627/Legwork` |
+| Production branch | `main` |
+| Root directory | `/` (repository root) |
+| **Build command** | `npm run build` |
+| **Deploy command** | `npx wrangler deploy` |
+
+The `npm run build` command runs `scripts/build-cloudflare.mjs` and
+generates `cloudflare/generated/app.js` that is intentionally absent
+from Git. A bare `npx wrangler deploy` without this build command causes
+`Could not resolve "./generated/app.js"`.
+
+If you prefer a single Deploy command instead, use
+`npm run cloudflare:deploy` (includes the generator).
+Do not set both the Build command and `cloudflare:deploy`
+unless intentionally repeating the generator.
+
+After saving, retry the latest build or push a new commit to `main`.
+A build may reveal additional Cloudflare binding/runtime issues: this is
+not confirmation of production readiness.
+
+Source: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+
 ## Cloudflare account setup
 
 1. Sign in to https://dash.cloudflare.com/ and enable Workers.
