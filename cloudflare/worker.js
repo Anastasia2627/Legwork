@@ -35,7 +35,7 @@ export class LegworkStore extends DurableObject {
         return Response.json({ error: 'Server secrets must be configured before starting LEGWORK' }, { status: 503 });
       }
       const origin = this.env.SITE_ORIGIN || new URL(request.url).origin;
-      if (!/^https:\/\//.test(origin) && new URL(request.url).hostname !== 'localhost') {
+      if (!/^https:\/\//.test(origin) && !['localhost', '127.0.0.1', '::1'].includes(new URL(request.url).hostname)) {
         return Response.json({ error: 'Production requires an HTTPS SITE_ORIGIN' }, { status: 503 });
       }
       const values = {
