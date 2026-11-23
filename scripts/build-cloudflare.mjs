@@ -84,27 +84,24 @@ const testLine = " const inTest=process.env.NODE_ENV==='test'&&!!process.env.MAI
 mail = change(mail, testLine, " const inTest=false;", 'mail test mode');
 const smtpLine = " const smtp=!!(process.env.SMTP_HOST&&process.env.SMTP_FROM&&process.env.SMTP_PORT&&((process.env.SMTP_USER&&process.env.SMTP_PASSWORD)||process.env.SMTP_NO_AUTH==='true'));";
 mail = change(mail, smtpLine, " const smtp=!!(env.RESEND_API_KEY&&env.MAIL_FROM);", 'mail provider');
+mail = change(mail, " const provider=inTest?'test':smtp?'smtp':'disabled';",
+  " const provider=smtp?'resend':'disabled';", 'provider label');
 const transportStart = mail.indexOf(' let transport=null;');
 const transportEnd = mail.indexOf(' const from=', transportStart);
 if (transportStart === -1 || transportEnd === -1) throw new Error('Cloudflare build contract changed: email transport');
 mail = mail.slice(0, transportStart) + `
  const transport={
-  async sendMail({to,subject,text}){
-   const result=await fetch('https://api.resend.com/emails',{
-    method:'POST',
-    headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({from:env.MAIL_FROM,to:[to],subject,text})
-   });
-   if(!result.ok)throw Error('Email provider rejected delivery');
+  async sendMail({to,subject,text,idempotencyKey}){
+   return sendResendEmail({apiKey:env.RESEND_API_KEY,from:env.MAIL_FROM,to,subject,text,idempotencyKey});
   }
  };
 ` + mail.slice(transportEnd);
 mail = change(mail, " const from=process.env.SMTP_FROM||'Legwork <test@legwork.example>';",
   " const from=env.MAIL_FROM||'Legwork <test@legwork.example>';", 'from address');
 mail = change(mail,
-  "  setImmediate(()=>{dispatch().catch(err=>console.error('Mail outbox worker:',err.code||'query error'))});",
-  "  ctx.waitUntil(dispatch().catch(err=>console.error('Mail outbox delivery:',err.code||'query error')));\n  ctx.waitUntil(ctx.storage.setAlarm(Date.now()+60_000));",
-  'mail event dispatch');
+  " const scheduleDispatch=()=>{\n  setImmediate(()=>{dispatch().catch(err=>console.error('Mail outbox worker:',err.code||'query error'))});\n };",
+  " const scheduleDispatch=()=>{\n  ctx.waitUntil(dispatch().catch(err=>console.error('Mail outbox delivery:',err.code||'query error')));\n  ctx.waitUntil(ctx.storage.setAlarm(Date.now()+60_000));\n };",
+  'mail dispatch scheduling');
 const sendStart = mail.indexOf('     if(inTest){');
 const sendEnd = mail.indexOf("     db.prepare('UPDATE mail_outbox SET", sendStart);
 if (sendStart === -1 || sendEnd === -1) throw new Error('Cloudflare build contract changed: mail dispatch');
@@ -117,7 +114,7 @@ if (workerStart === -1 || workerEnd === -1) throw new Error('Cloudflare build co
 mail = mail.slice(0, workerStart) +
   " if(enabled)ctx.waitUntil(dispatch().catch(err=>console.error('Mail outbox startup:',err.code||'query error')));" +
   mail.slice(workerEnd);
-write('mailing.js', mail);
+write('mailing.js', "import {sendResendEmail} from '../resend-client.js';\n"+mail);
 
 // PDFKit already generates LEGWORK's certificate template. Replace only its
 // Node filesystem font lookup with bundled font data for the Workers runtime.
