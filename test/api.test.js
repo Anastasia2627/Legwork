@@ -66,6 +66,29 @@ test('student isolation, order amount, reviews, admin rules and password rotatio
   assert.equal((await request(base,'/api/orders/bundle',{method:'POST',cookie:stranger,data:{bundle_id:bundleId}})).status,409);
   assert.equal((await request(base,'/api/admin/bundles/'+bundleId,{method:'PATCH',cookie:staff,data:{lesson_ids:[4,5,7]}})).status,409,'Sold bundle contents must be immutable');
 
+  // Regression: privileged catalog creation must not turn malformed prices
+  // or durations into unintended zero-price purchases.
+  for(const badPrice of [-100,1.5,'Infinity','NaN',100000001,null,'']){
+   const invalid=await request(base,'/api/admin/courses',{method:'POST',cookie:staff,data:{title:'Bad Course',slug:'bad-price-course',price:badPrice,guru_price:36000}});
+   assert.equal(invalid.status,400,'Course creation rejected invalid price '+String(badPrice));
+   const invalidLesson=await request(base,'/api/admin/lessons',{method:'POST',cookie:staff,data:{course_id:1,title:'Bad Lesson',price:badPrice,duration:12}});
+   assert.equal(invalidLesson.status,400,'Lesson creation rejected invalid price '+String(badPrice));
+  }
+  for(const badDuration of [0,-1,1.5,601,'Infinity',null,'']){
+   const invalid=await request(base,'/api/admin/lessons',{method:'POST',cookie:staff,data:{course_id:1,title:'Bad Duration',price:1500,duration:badDuration}});
+   assert.equal(invalid.status,400,'Lesson creation rejected invalid duration '+String(badDuration));
+  }
+  assert.equal((await request(base,'/api/admin/courses',{method:'POST',cookie:student,data:{title:'Forbidden Course',slug:'forbidden-course',price:1500}})).status,403);
+  const createdCourse=await request(base,'/api/admin/courses',{method:'POST',cookie:staff,data:{title:'New Studio Class',slug:'new-studio-class',description:'Structured technique',price:16000,guru_price:39000}});
+  assert.equal(createdCourse.status,201);
+  const createdLesson=await request(base,'/api/admin/lessons',{method:'POST',cookie:staff,data:{title:'Ankle Control',course_id:createdCourse.body.id,category:'Legwork',duration:35,price:1400,free:false}});
+  assert.equal(createdLesson.status,201);
+  const freshCatalog=await request(base,'/api/lessons');
+  const freshLesson=freshCatalog.body.lessons.find(l=>l.id===createdLesson.body.id);
+  assert.equal(freshLesson.price,1400);
+  assert.equal(freshLesson.duration,35);
+  assert.equal(freshLesson.free,0);
+  assert.ok(!freshCatalog.body.lessons.some(l=>l.title==='Bad Lesson'||l.title==='Bad Duration'));
   const deep=await request(base,'/api/mentorships',{method:'POST',cookie:student,data:{package:'Deep',video_url:'https://youtube.com/watch?v=abcdef12345',instagram:'@first',experience:'One year',goals:'Fluidity',training_frequency:'2-3 times a week',teaching:'No'}});assert.equal(deep.status,201);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:student,data:{feedback:'Unauthorized'}})).status,403);
   assert.equal((await request(base,'/api/admin/mentorships/'+deep.body.id,{method:'PATCH',cookie:staff,data:{feedback:'Too early'}})).status,409,'Feedback must wait for payment verification');
