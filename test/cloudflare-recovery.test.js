@@ -22,7 +22,7 @@ async function withApp(fn){
   const api=async(path,{role='admin',method='GET',data}={})=>{
    const response=await fetch(base+path,{method,headers:{...(role?{'x-test-role':role}:{}),...(data?{'Content-Type':'application/json'}:{})},
     body:data?JSON.stringify(data):undefined});
-   return {status:response.status,json:await response.json(),headers:response.headers};
+   return {status:response.status,json:await response.json().catch(()=>({})),headers:response.headers};
   };
   await fn({api,db,storage});
  }finally{await new Promise(resolve=>server.close(resolve));db.close()}
