@@ -40,7 +40,7 @@ test('Administrator can replace and clear public home media without editing sour
  await form.locator('button[type="submit"]').click();
  await expect(page.locator('#toast')).toContainText('Media updated');
  await page.goto('/#/');
- await expect(page.locator('.home-story img.ref-time-thumb').first()).toHaveAttribute('src','https://example.org/approved-home-timeline.jpg');
+ await expect(page.locator('.home-story img.home-journey-img').first()).toHaveAttribute('src','https://example.org/approved-home-timeline.jpg');
  await page.goto('/#/account');
  await page.locator('.cabinet-nav [data-tab="admin"]').click();
  const groupAgain=page.locator('details.media-admin-row').filter({has:page.locator('[data-media-slot="home_timeline_1"]')});
@@ -53,5 +53,5 @@ test('Administrator can replace and clear public home media without editing sour
  await clearForm.locator('button[type="submit"]').click();
  await expect(page.locator('#toast')).toContainText('Media updated');
  await page.goto('/#/');
- await expect(page.locator('.home-story img.ref-time-thumb')).toHaveCount(0);
+ await expect(page.locator('.home-story img.home-journey-img')).toHaveCount(0);
 });

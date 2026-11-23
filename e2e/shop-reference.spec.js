@@ -4,7 +4,8 @@ test('Classes follow reference structure without a grid of promotional panels',a
  await page.setViewportSize({width:1280,height:900});
  await page.goto('/#/shop');
  await expect(page.locator('.shop-heading h1')).toHaveText('CLASSES');
- await expect(page.locator('.shop-promo')).toBeVisible();
+ await expect(page.locator('.shop-category-links')).toBeVisible();
+ expect(await page.locator('.shop-promo').count()).toBe(0);
  await expect(page.locator('.shop-sidebar')).toBeVisible();
  await expect(page.locator('.shop-catalog #shopSearch')).toBeVisible();
  await expect(page.locator('.shop-direction').first()).toBeVisible();
