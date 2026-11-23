@@ -59,3 +59,15 @@ Lesson video URLs are accepted only from valid HTTPS YouTube addresses. Catalog 
 ## Privileged activity monitoring
 
 The app records an access-controlled, limited-retention activity trail for administrator changes, manual enrollment, payment approval, session revocation, relevant account operations, login successes and known-account failures, and provider callbacks accepted by the payment API. Staff see the latest events under Admin Studio → Security Activity; paginated results are also available to authorized admins. Event entries include only safe identifiers, result/status and allowlisted context — never raw request bodies, password fields, session cookies or private YouTube URLs. Default retention is 180 days (configurable from 30 to 730). This is a best-effort **application log**, not tamper-proof audit infrastructure or a substitute for production alerting and independent payment reconciliation. See [security operations](security-operations.md).
+
+
+## Cloudflare operations (24 Nov 2026)
+
+Cloudflare SQLite Durable Object PITR checkpoints can be recorded by a signed-in
+administrator after re-entering their password. This covers SQL and stored
+WebP images within the provider's up-to-30-day history; it is **not an
+independent backup** and there is deliberately no public restore endpoint.
+The mail outbox also supports admin-only retry of up to ten failed messages
+once the SMTP or Resend sending configuration is corrected. Resend requests
+carry stable per-event idempotency keys. Live provider delivery and an inbox
+verification flow must still be tested by the owner before public registration.

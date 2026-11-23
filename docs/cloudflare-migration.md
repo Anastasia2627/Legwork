@@ -246,3 +246,13 @@ Official references:
 - https://developers.cloudflare.com/workers/platform/limits/
 - https://developers.cloudflare.com/durable-objects/platform/limits/
 - https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/#synchronous-kv-api
+
+
+## Operations update (24 Nov 2026)
+
+The admin now has password-protected 30-day recovery checkpoint creation on
+Cloudflare SQLite Durable Objects (not offsite backup); there is no public
+restore endpoint. Resend uses stable delivery idempotency keys and staff can
+retry a limited number of failed encrypted outbox messages after fixing the
+sender. See [Recovery and email runbook](recovery-and-email.md). Live Cloudflare
+and external inbox acceptance tests still need to be performed.

@@ -62,8 +62,15 @@ test('verification, password reset, resend limits and account notification flows
   assert.equal(granted.status,200);
   const receipt=await findMail(mailFile,'Your course access is ready');assert.equal(receipt.to,'mail-student@example.org');
   assert.ok(!receipt.text.includes('PasswordAfterReset'),'Receipt should not include password');
+  const forbiddenRetry=await request(base,'/api/admin/email-outbox/retry',{method:'POST',cookie:again.cookie,data:{}});
+  assert.equal(forbiddenRetry.status,403,'Only staff can retry failed email deliveries');
+  const retry=await request(base,'/api/admin/email-outbox/retry',{method:'POST',cookie:staff.cookie,data:{}});
+  assert.equal(retry.status,200);
+  assert.equal(retry.data.retried,0,'No failed records are replayed');
   const stats=await request(base,'/api/admin/email-outbox',{cookie:staff.cookie});
   assert.equal(stats.status,200);
   assert.ok(stats.data.stats.some(s=>s.status==='sent'));
+  assert.equal(stats.data.provider,'test');
+  assert.equal(stats.data.delivery_confirmed,false);
  }finally{child.kill('SIGTERM');await rm(dir,{recursive:true,force:true})}
 },{timeout:30000});

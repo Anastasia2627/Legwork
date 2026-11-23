@@ -414,10 +414,19 @@ async function adminExtras(a){
 }
 
 async function adminMailPanel(){
- const response=await api('/admin/email-outbox');
- const root=$('#adminMount');if(!root)return;
- const values=Object.fromEntries(response.stats.map(x=>[x.status,x.n]));
- root.insertAdjacentHTML('beforeend','<h3>EMAIL DELIVERY HEALTH</h3><div class="grid grid-3">'+card('Email '+(response.enabled?'READY':'NOT CONFIGURED'),'SMTP configuration is stored on the server; passwords and message text are never shown here.','DELIVERY')+card(String(values.sent||0)+' SENT','Emails delivered successfully to the configured mail transport.','OUTBOX')+card(String(values.pending||0)+' PENDING / '+String(values.failed||0)+' FAILED','Unsent emails are retried by the server up to eight attempts.','QUEUE')+'</div>');
+ const response=await api('/admin/email-outbox'),root=$('#adminMount');
+ if(!root)return;
+ const counts=Object.fromEntries(response.stats.map(row=>[row.status,row.n]));
+ const method=response.provider==='resend'?'Resend HTTPS':response.provider==='smtp'?'SMTP':response.provider==='test'?'Test transport':'Not configured';
+ const description=response.enabled
+  ?'Sender credentials are configured ('+method+'). This is not proof that an actual student inbox receives the messages.'
+  :'Verify a sending domain and set email credentials before enabling public registrations.';
+ root.insertAdjacentHTML('beforeend','<section class="admin-mail-health"><h3>EMAIL DELIVERY HEALTH</h3><div class="grid grid-3">'+
+  card(response.enabled?'CONFIGURED':'NOT CONFIGURED',description,'EMAIL PROVIDER')+
+  card(String(counts.sent||0)+' ACCEPTED','Messages accepted by the sender; mailbox delivery is not independently verified.','OUTBOX')+
+  card(String(counts.pending||0)+' PENDING / '+String(counts.failed||0)+' FAILED','Encrypted messages automatically retry up to eight times.','QUEUE')+'</div>'+
+  ((counts.failed||0)>0?'<p><button class="btn btn-outline btn-small" id="retryEmailDelivery" type="button" '+(response.enabled?'':'disabled')+'>Retry up to 10 failed emails</button></p>':'')+
+  '<p class="description">Launch check: register a test student, confirm its email, then request a password reset. Never paste the provider key into this dashboard.</p></section>');
 }
 async function adminPaymentPanel(){
  const response=await api('/admin/payments');
@@ -553,6 +562,7 @@ if(button.dataset.tab){state.tab=button.dataset.tab;await account()}
 if(button.dataset.reviewClosure){const result=await api('/admin/deletion-requests/'+Number(button.dataset.reviewClosure)+'/review','POST',{});notice(result.message);await adminPanel();return}
 if(button.dataset.cancelOrder){if(!askConfirmation('Cancel this unpaid order request?'))return;const r=await api('/orders/'+Number(button.dataset.cancelOrder)+'/cancel','POST',{});notice(r.message);await account();return}
 if(button.dataset.cancelMentorship){if(!askConfirmation('Cancel this mentorship request before payment?'))return;const r=await api('/mentorships/'+Number(button.dataset.cancelMentorship)+'/cancel','POST',{});notice(r.message);await account();return}
+if(button.id==='retryEmailDelivery'){if(!askConfirmation('Retry failed emails after verifying the sender and delivery settings?'))return;const result=await api('/admin/email-outbox/retry','POST',{});notice(result.message);await adminPanel();return}
 if(button.id==='resendVerification'){const answer=await api('/auth/resend-verification','POST',{});notice(answer.message);return}
 if(button.id==='logout'){await api('/auth/logout','POST');state.user=null;state.tab='overview';location.hash='#/';await navigate()}
 if(button.dataset.resumePayment){await resumeCheckout(Number(button.dataset.resumePayment),{api});return}

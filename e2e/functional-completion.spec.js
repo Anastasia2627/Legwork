@@ -68,6 +68,9 @@ test('Staff content readiness links to a single full lesson editor',async({page}
  await expect(summary).toContainText('Video sources');
  await expect(summary).toContainText('Cover images');
  await expect(summary).toContainText('Descriptions');
+ await expect(page.locator('.admin-mail-health')).toContainText('EMAIL DELIVERY HEALTH');
+ await expect(page.locator('.admin-recovery-section')).toContainText('DATABASE RECOVERY POINTS');
+ await expect(page.locator('.admin-recovery-section')).toContainText('Node environment');
  await expect(page.locator('[data-edit-lesson]')).toHaveCount(0);
  await expect(page.locator('[data-lesson-full]').first()).toBeAttached();
  await summary.locator('[data-jump-admin="adminLessonEditor"]').click();
