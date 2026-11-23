@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { handleAsNodeRequest } from 'cloudflare:node';
 import { createDurableSqlite } from './sqlite-adapter.js';
+import { secureCloudflareResponse } from './response-security.js';
 import { createCloudflareApp } from './generated/app.js';
 
 const API_PATHS = ['/api/', '/media/'];
@@ -19,13 +20,7 @@ function asText(value) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[character]));
 }
-function security(response, extra = {}) {
-  const headers = new Headers(response.headers);
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  for (const [key, value] of Object.entries(extra)) headers.set(key, value);
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-}
+const security=secureCloudflareResponse;
 
 export class LegworkStore extends DurableObject {
   async fetch(request) {
@@ -96,11 +91,11 @@ export default {
     }
 
     if (path === '/robots.txt') {
-      return new Response('User-agent: *\nDisallow: /\n', {
+      return security(new Response('User-agent: *\nDisallow: /\n', {
         headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-      });
+      }));
     }
-    if (path === '/sitemap.xml') return new Response('Not available before publication', { status: 404 });
+    if (path === '/sitemap.xml') return security(new Response('Not available before publication', { status: 404 }));
 
     if (Object.hasOwn(seo, path)) {
       const asset = await env.ASSETS.fetch(new Request(internalUrl('/index.html', url.origin)));
@@ -117,10 +112,10 @@ export default {
         .replace(/<title>[^<]*<\/title>/, '<title>' + asText(title) + '</title>')
         .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + asText(description) + '">')
         .replace('</head>', tags + '</head>');
-      return new Response(html, { headers: {
+      return security(new Response(html, { headers: {
         'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
-        'X-Robots-Tag': 'noindex, nofollow', 'X-Content-Type-Options': 'nosniff',
-      } });
+        'X-Robots-Tag': 'noindex, nofollow',
+      } }));
     }
 
     if (path.startsWith('/internal/')) return new Response('Not found', { status: 404 });
