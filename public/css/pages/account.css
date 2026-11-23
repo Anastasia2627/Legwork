@@ -101,3 +101,17 @@
 .audit-event-main{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
 .audit-event-main strong{font-size:13px;font-weight:750;letter-spacing:-.01em}
 .audit-event .meta{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+
+/* Compact, factual staff checklist. The complete lesson editor remains below. */
+.admin-content-readiness{border:1px solid var(--border);background:var(--surface);padding:clamp(18px,2.5vw,32px);margin-bottom:28px}
+.admin-readiness-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px}
+.admin-readiness-heading h3{margin:0;font:600 clamp(21px,2.4vw,30px)/1.15 var(--font-body);letter-spacing:-.035em}
+.admin-readiness-heading .eyebrow{margin-bottom:8px}
+.admin-readiness-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:16px 0;margin:0 0 16px}
+.admin-readiness-stats p{margin:0;min-width:0}
+.admin-readiness-stats strong{display:block;font-size:13px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}
+.admin-readiness-stats span{display:block;font-size:12px;line-height:1.5;color:var(--muted);margin-top:3px}
+.admin-content-readiness>.description{margin:8px 0;max-width:740px;font-size:13px}
+.admin-readiness-link{border:0;background:transparent;color:var(--red);text-decoration:underline;text-underline-offset:3px;padding:6px 0;font-weight:600}
+#adminLessonEditor,#adminCourseEditor{scroll-margin-top:100px}
+@media(max-width:640px){.admin-readiness-stats{grid-template-columns:1fr;gap:10px}.admin-readiness-heading .btn{width:100%}}

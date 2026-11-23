@@ -55,3 +55,21 @@ test('Administrator can replace and clear public home media without editing sour
  await page.goto('/#/');
  await expect(page.locator('.home-story img.home-journey-img')).toHaveCount(0);
 });
+
+test('Staff content readiness links to a single full lesson editor',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('.cabinet-nav [data-tab="admin"]').click();
+ const summary=page.locator('.admin-content-readiness');
+ await expect(summary).toBeVisible();
+ await expect(summary).toContainText('Video sources');
+ await expect(summary).toContainText('Cover images');
+ await expect(summary).toContainText('Descriptions');
+ await expect(page.locator('[data-edit-lesson]')).toHaveCount(0);
+ await expect(page.locator('[data-lesson-full]').first()).toBeAttached();
+ await summary.locator('[data-jump-admin="adminLessonEditor"]').click();
+ await expect(page.locator('#adminLessonEditor')).toBeFocused();
+});
