@@ -182,6 +182,7 @@ registerLearningRoutes(app,db,{auth});
 registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
 registerAccountDataRoutes(app,db,{auth,admin,verifyPassword,mail});
+app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 // Public, crawlable paths are deliberately limited to editorial landing pages.
 // Never expose payments, classroom, certificates or admin URLs to a sitemap.
