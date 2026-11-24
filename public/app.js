@@ -469,7 +469,7 @@ async function adminBundlePanel(a){
 }
 function parseYouTube(url){try{const u=new URL(url);let id='';if(['youtu.be','www.youtu.be'].includes(u.hostname))id=u.pathname.slice(1);else if(['youtube.com','www.youtube.com','m.youtube.com','www.youtube-nocookie.com'].includes(u.hostname))id=u.searchParams.get('v')||u.pathname.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1]||'';return /^[\w-]{11}$/.test(id)?id:null}catch{return null}}
 let cartPreviousFocus=null;
-function setMobileMenu(open){
+function setMobileMenu(open){if(!open){document.querySelector('.header-course-menu')?.classList.remove('is-open');document.querySelector('#courseMenuToggle')?.setAttribute('aria-expanded','false');}
  const nav=$('#nav'),toggle=$('#menuBtn');
  nav.classList.toggle('open',open);
  toggle.setAttribute('aria-expanded',String(open));
@@ -546,7 +546,15 @@ else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
 else if(form.dataset.homeworkReview){const [uid,lid]=form.dataset.homeworkReview.split('-');const result=await api('/admin/homework/'+uid+'/'+lid+'/review','POST',{feedback:data.feedback});notice(result.message);await adminPanel()}return}
 if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#shopFiltersClose')?.click();return}
  if(!button||e.type!=='click')return;
- if(button.dataset.programMode){
+ if(button.id==='courseMenuToggle'){
+   e.preventDefault();
+   const shell=document.querySelector('.header-course-menu');
+   const open=!shell?.classList.contains('is-open');
+   shell?.classList.toggle('is-open',open);
+   button.setAttribute('aria-expanded',String(open));
+   return;
+  }
+  if(button.dataset.programMode){
   e.preventDefault();
   const grid=$('#courseProgramGrid');if(!grid)return;
   const mode=button.dataset.programMode==='carousel'?'carousel':'grid';

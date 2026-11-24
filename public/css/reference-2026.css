@@ -361,3 +361,32 @@ body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:2px solid var
  .lesson-details-list{gap:8px}
  .lesson-details-list>div{padding:15px}
 }
+
+/* Course navigation from the supplied shared-header specification. */
+.header-course-menu{position:relative;display:flex;align-items:center;gap:4px;min-width:0}
+.header-course-menu>a{display:inline-flex;align-items:center;min-height:38px}
+.header-course-menu>button{background:transparent;border:0;color:#202022;font-size:16px;
+ min-height:38px;min-width:22px;display:grid;place-items:center;padding:0}
+.header-course-menu .course-menu-popup{display:none;position:absolute;top:calc(100% + 7px);left:-17px;
+ width:265px;padding:9px;background:#fff;border:1px solid #e2e2e2;box-shadow:0 18px 35px #0002;
+ border-radius:6px;z-index:70}
+.header-course-menu .course-menu-popup>a,.header-course-menu .course-menu-popup>span{
+ display:grid;gap:5px;padding:14px 14px;color:#222;text-decoration:none;border-radius:4px}
+.header-course-menu .course-menu-popup>a:hover{background:#f3f3f3}
+.header-course-menu .course-menu-popup strong{font:800 21px/1 var(--font-display);letter-spacing:0}
+.header-course-menu .course-menu-popup small{font:500 11px var(--font-body);color:#666}
+.header-course-menu .course-menu-popup>span{color:#7a7a7a}
+.header-course-menu.is-open .course-menu-popup,
+.header-course-menu:focus-within .course-menu-popup,
+.header-course-menu:hover .course-menu-popup{display:grid}
+@media(max-width:1080px){
+ .header-course-menu{width:100%;justify-content:flex-start}
+ .header-course-menu .course-menu-popup{top:100%;left:0}
+}
+@media(max-width:760px){
+ .header-course-menu{flex-wrap:wrap}
+ .header-course-menu .course-menu-popup{position:static;width:100%;box-shadow:none;
+  border:0;border-left:2px solid var(--red);margin:1px 0 8px;padding:0 0 0 10px}
+ .header-course-menu .course-menu-popup>a,
+ .header-course-menu .course-menu-popup>span{padding:8px 12px}
+}
