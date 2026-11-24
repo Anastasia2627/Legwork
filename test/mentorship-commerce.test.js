@@ -120,6 +120,37 @@ test('Mentorship offer cannot charge without publication and provider approval; 
   assert.equal(cancel.code,200);
   assert.equal((await call('/api/admin/mentorships/'+unpublished.data.id+'/verify-payment',{cookie:staff,method:'POST',body:{}})).code,200,
    'Legacy manually negotiated requests still work');
+  // A second approved package quote has its own immutable order and can be
+  // cancelled atomically before any payment provider attempt starts.
+  assert.equal((await call('/api/admin/mentorship/offers/Basic',{cookie:staff,method:'PATCH',
+   body:{published:true,price_usd_cents:4500,turnaround_business_days:9}})).code,200);
+  const toCancel=await create(user,'Basic','https://example.org/quote-to-cancel');
+  assert.equal(toCancel.code,201);
+  assert.equal((await call('/api/mentorships/'+toCancel.data.id+'/cancel',{cookie:user,method:'POST',body:{}})).code,200);
+  const afterCancel=await call('/api/dashboard',{cookie:user});
+  assert.equal(afterCancel.data.mentorships.find(m=>m.id===toCancel.data.id).status,'cancelled');
+  assert.equal(afterCancel.data.orders.find(o=>o.id===toCancel.data.order_id).status,'cancelled');
+  assert.equal((await call('/api/payments/checkout',{cookie:user,method:'POST',
+   body:{order_ids:[toCancel.data.order_id]}})).code,409);
+  // Duplicate form submissions must never create two active provider invoices.
+  const manual=await create(user,'Basic','https://example.org/manual-quoted-video');
+  assert.equal(manual.code,201);
+  assert.equal((await create(user,'Basic','https://example.org/manual-quoted-video')).code,409);
+  const waiting=await call('/api/payments/checkout',{cookie:user,method:'POST',body:{order_ids:[manual.data.order_id]}});
+  assert.equal(waiting.code,201);
+  const decline=await call('/api/payments/wayforpay/webhook',{method:'POST',
+   body:signed(waiting.data.fields.orderReference,waiting.data.fields.amount,'Declined')});
+  assert.equal(decline.code,200);
+  assert.equal((await call('/api/admin/mentorships/'+manual.data.id+'/verify-payment',{cookie:staff,method:'POST',body:{}})).code,200,
+   'Manual verification can reconcile a declined invoice only after independently confirming payment');
+  assert.equal((await call('/api/dashboard',{cookie:user})).data.orders.find(o=>o.id===manual.data.order_id).status,'approved');
+  assert.equal((await call('/api/payments/wayforpay/webhook',{method:'POST',
+   body:signed(waiting.data.fields.orderReference,waiting.data.fields.amount,'Approved')})).code,200,
+   'Late provider approval after staff verified funds is acknowledged but held for reconciliation');
+  assert.equal((await call('/api/payments/status/'+waiting.data.attempt_id,{cookie:user})).data.payment.status,
+   'review_required','Possible double charge is flagged for staff');
+  assert.equal((await call('/api/admin/mentorships/'+manual.data.id,{cookie:staff,method:'PATCH',body:{feedback:'Do not send before reconciliation'}})).code,409);
+
  }finally{
   child.kill('SIGTERM');
   await new Promise(ok=>{if(child.exitCode!==null)return ok();child.once('exit',ok);setTimeout(ok,1500).unref()});
