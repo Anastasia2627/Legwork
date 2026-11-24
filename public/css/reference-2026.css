@@ -390,3 +390,19 @@ body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:2px solid var
  .header-course-menu .course-menu-popup>a,
  .header-course-menu .course-menu-popup>span{padding:8px 12px}
 }
+
+/* Admin-approved testimonials appear only when the media registry has real assets. */
+.course-review-track,.mentor-review-track{display:flex;gap:15px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 0 15px}
+.course-review-frame,.mentor-review-frame{flex:0 0 min(32%,360px);scroll-snap-align:start;background:#ededed;
+ border:1px solid #e2e2e2;border-radius:6px;margin:0;padding:8px;overflow:hidden}
+.course-review-image,.mentor-review-image{width:100%;height:auto;display:block;object-fit:contain}
+.home-faq{background:#fff}
+.home-faq .faq{max-width:920px;margin:0 auto}
+.home-final-cta{background:#202022;color:#fff;padding:clamp(35px,4vw,58px) max(20px,5vw)}
+.home-final-cta .ref-wrap{max-width:1240px;display:flex;align-items:center;justify-content:space-between;gap:25px}
+.home-final-cta h2{color:#fff;font:800 clamp(37px,4.5vw,64px)/.94 var(--font-display);text-transform:uppercase;margin:0}
+.home-final-cta .eyebrow{color:#c5c5c5}
+@media(max-width:760px){
+ .course-review-frame,.mentor-review-frame{flex-basis:min(75%,340px)}
+ .home-final-cta .ref-wrap{align-items:stretch;flex-direction:column}
+}
