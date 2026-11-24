@@ -500,6 +500,18 @@ async function adminMailPanel(){
   '<p class="description">'+Number(response.suppressed||0)+' addresses locally suppressed after provider rejection or complaint. Suppressed recipients are never automatically retried.</p>'+
   ((counts.failed||0)>0?'<p><button class="btn btn-outline btn-small" id="retryEmailDelivery" type="button" '+(response.enabled?'':'disabled')+'>Retry up to 10 failed emails</button></p>':'')+
   '<p class="description">Launch check: register a disposable student on the deployed site; confirm its email and reset password in a real inbox. Check sender DNS and Resend logs. Never paste secrets into this dashboard.</p></section>');
+ if(Number(response.suppressed||0)>0){
+  const data=await api('/admin/email-suppressions');
+  const rows=(data.suppressed||[]).map(item=>
+   '<form class="form admin-suppressed-address" data-release-suppression="'+esc(item.email)+'">'+
+    '<p><strong>'+esc(item.email)+'</strong> · '+esc(item.reason)+' · '+esc(new Date(item.recorded_at).toLocaleString())+'</p>'+
+    '<label>Confirm administrator password<input type="password" class="field" name="password" autocomplete="current-password" required></label>'+
+    '<button type="submit" class="btn btn-outline btn-small">Release local suppression</button></form>').join('');
+  root.insertAdjacentHTML('beforeend','<section class="admin-suppressions"><h3>BOUNCED / COMPLAINT ADDRESSES</h3>'+
+   '<p class="description">Release only after verifying a corrected address and checking the Resend suppression list. Releasing does not re-subscribe anyone to marketing.</p>'+
+   '<div class="stack">'+rows+'</div></section>');
+ }
+
 }
 async function adminPaymentPanel(){
  const response=await api('/admin/payments');
@@ -583,6 +595,13 @@ else if(form.id==='deletionRequestForm'){if(!askConfirmation('Send an account cl
 else if(form.id==='profileForm'){await api('/profile','PATCH',data);state.user.name=data.name;state.user.instagram=data.instagram;notice('Profile saved');await account()}
 else if(form.id==='passwordForm'){const result=await api('/account/change-password','POST',data);state.user=null;state.tab='overview';location.hash='#/login';await navigate();notice(result.message)}
 else if(form.dataset.editorPage){const page=form.dataset.editorPage,lang=form.dataset.editorLang,revision=Number(form.dataset.revision);await api('/admin/content/'+page+'/'+lang,'PUT',{values:data,expected_revision:revision});state.content=(await api('/content')).pages;notice('Page text updated for '+lang.toUpperCase());await adminPanel();return}
+else if(form.dataset.releaseSuppression){
+ if(!askConfirmation('Release this local email suppression? First verify the address and check the Resend suppression dashboard.'))return;
+ const response=await api('/admin/email-suppressions/release','POST',{email:form.dataset.releaseSuppression,password:data.password});
+ notice(response.message);
+ await adminPanel();
+ return;
+}
 else if(form.id==='adminMfaSetup'){
  const result=await api('/admin/mfa/setup','POST',{password:data.password});
  const root=$('#adminMfaArea');if(!root)return;
