@@ -15,7 +15,7 @@ test('course page shows a readable hierarchy, clear choices and loaded styles',a
   const cards=getComputedStyle(document.querySelector('.course-fit-list'));
   return {heroSize:parseFloat(hero.fontSize),font:hero.fontFamily,body:parseFloat(getComputedStyle(document.body).fontSize),columns:cards.gridTemplateColumns.split(' ').length,overflow:document.documentElement.scrollWidth>innerWidth+4};
  });
- expect(sizes.font).toContain('Instrument Serif');
+ expect(sizes.font).toContain('Barlow Condensed');
  expect(sizes.body).toBeGreaterThanOrEqual(16);
  expect(sizes.heroSize).toBeLessThanOrEqual(96);
  expect(sizes.overflow).toBe(false);
