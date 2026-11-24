@@ -3,6 +3,7 @@ import { handleAsNodeRequest } from 'cloudflare:node';
 import { createDurableSqlite } from './sqlite-adapter.js';
 import { secureCloudflareResponse } from './response-security.js';
 import { createCloudflareApp } from './generated/app.js';
+import { resolveSchoolEnvironment } from './environment.js';
 
 const API_PATHS = ['/api/', '/media/'];
 const seo = {
@@ -24,6 +25,7 @@ const security=secureCloudflareResponse;
 
 export class LegworkStore extends DurableObject {
   async fetch(request) {
+    const deployment = resolveSchoolEnvironment(this.env, request.url);
     if (!this.server) {
       if (!this.env.SESSION_SECRET || this.env.SESSION_SECRET.length < 32 ||
           !this.env.ADMIN_PASSWORD || this.env.ADMIN_PASSWORD.length < 12) {
@@ -46,6 +48,7 @@ export class LegworkStore extends DurableObject {
         PAYMENT_PROVIDER: this.env.PAYMENT_PROVIDER || 'disabled',
         PUBLIC_INDEXING_ENABLED: 'false',
         TRUST_PROXY_HOPS: '1',
+        DEPLOYMENT_STAGE: deployment.stage,
       };
       for (const [key, value] of Object.entries(values)) process.env[key] = String(value);
       try {
@@ -77,6 +80,7 @@ export class LegworkStore extends DurableObject {
 
 export default {
   async fetch(request, env) {
+    const deployment = resolveSchoolEnvironment(env, request.url);
     const url = new URL(request.url);
     const path = url.pathname;
     const isDynamic = API_PATHS.some(prefix => path.startsWith(prefix)) || path === '/health';
@@ -86,7 +90,7 @@ export default {
       headers.set('X-Forwarded-For', request.headers.get('CF-Connecting-IP') || '127.0.0.1');
       headers.delete('X-Legwork-Internal');
       const forwarded = new Request(request, { headers });
-      const object = env.SCHOOL.get(env.SCHOOL.idFromName('legwork-production'));
+      const object = env.SCHOOL.get(env.SCHOOL.idFromName(deployment.objectName));
       return security(await object.fetch(forwarded), { 'Cache-Control': path.startsWith('/api/') ? 'private, no-store' : 'no-store' });
     }
 

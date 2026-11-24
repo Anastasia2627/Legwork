@@ -14,3 +14,7 @@ cloudflare/generated/
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Do not commit database exports or backups
+*.legwork-backup
+backups/

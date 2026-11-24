@@ -43,5 +43,7 @@ jobs:
           node --check cloudflare/webp.js
       - name: Check Cloudflare bundle without deploying
         run: npm run cloudflare:check
+      - name: Validate staging Worker bundle without deploying
+        run: npm run cloudflare:staging:check
       - name: Smoke-test private routes in local Cloudflare runtime
         run: npm run cloudflare:smoke
