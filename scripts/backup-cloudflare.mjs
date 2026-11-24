@@ -77,9 +77,12 @@ if(!originArg||!outputArg){
   async function* chunks(){
    yield {type:'manifest',data:manifest};
    for(const table of manifest.tables){
-    for(let offset=0;offset<table.rows;offset+=100){
-     const page=(await request('/api/admin/backup/table/'+encodeURIComponent(table.name)+'?offset='+offset+'&limit=100')).data;
-     const wanted=Math.min(100,table.rows-offset);
+    // Private attachments are Base64 rows: request only one at a time to
+    // avoid excessive Worker memory and JSON response sizes.
+    const pageSize=table.name==='private_learning_files'?1:100;
+    for(let offset=0;offset<table.rows;offset+=pageSize){
+     const page=(await request('/api/admin/backup/table/'+encodeURIComponent(table.name)+'?offset='+offset+'&limit='+pageSize)).data;
+     const wanted=Math.min(pageSize,table.rows-offset);
      if(page.table!==table.name||page.offset!==offset||page.rows.length!==wanted)fail('Table changed during backup: '+table.name);
      yield {type:'table',name:table.name,offset,rows:page.rows};
     }
