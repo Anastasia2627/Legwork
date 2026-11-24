@@ -184,6 +184,7 @@ registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
 registerAccountDataRoutes(app,db,{auth,admin,verifyPassword,mail});
 registerOperationsRoutes(app,db,{auth,admin,mail});
+app.get('/api/admin/backup',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,reason:'Portable Cloudflare export is available only inside the live SQLite Durable Object.'}));
 app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 // Public, crawlable paths are deliberately limited to editorial landing pages.

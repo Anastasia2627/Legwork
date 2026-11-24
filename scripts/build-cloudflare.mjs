@@ -52,6 +52,11 @@ app = change(app,
   "app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));",
   "registerCloudflareRecoveryRoutes(app,db,{auth,admin,ctx,verifyPassword});",
   'Cloudflare recovery registration');
+app = change(app,
+  "app.get('/api/admin/backup',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,reason:'Portable Cloudflare export is available only inside the live SQLite Durable Object.'}));",
+  "registerCloudflareBackupRoutes(app,db,{auth,admin,ctx,verifyPassword});",
+  'Cloudflare portable backup registration');
+app = "import {registerCloudflareBackupRoutes} from '../portable-backup.js';\n" + app;
 app = "import {registerCloudflareRecoveryRoutes} from '../recovery.js';\n" + app;
 const seoStart = app.indexOf('// Public, crawlable paths are deliberately limited to editorial landing pages.');
 if (seoStart === -1) throw new Error('Cloudflare build contract changed: SEO tail');
