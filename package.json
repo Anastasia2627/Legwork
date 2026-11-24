@@ -16,7 +16,9 @@
     "build": "npm run cloudflare:build",
     "postinstall": "node -e \"const fs=require('node:fs');if(fs.existsSync('scripts/build-cloudflare.mjs')&&fs.existsSync('server.js'))import('./scripts/build-cloudflare.mjs')\"",
     "cloudflare:staging:check": "npm run cloudflare:build && wrangler deploy --env staging --dry-run --outdir .wrangler/staging-check",
-    "cloudflare:staging:deploy": "npm run cloudflare:build && wrangler deploy --env staging"
+    "cloudflare:staging:deploy": "npm run cloudflare:build && wrangler deploy --env staging",
+    "backup:cloudflare": "node scripts/backup-cloudflare.mjs",
+    "backup:verify": "node scripts/verify-cloudflare-backup.mjs"
   },
   "engines": {
     "node": ">=22"
