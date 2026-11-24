@@ -41,6 +41,7 @@ export class LegworkStore extends DurableObject {
         SESSION_SECRET: this.env.SESSION_SECRET,
         ADMIN_PASSWORD: this.env.ADMIN_PASSWORD,
         RESEND_API_KEY: this.env.RESEND_API_KEY || '',
+        RESEND_WEBHOOK_SECRET: this.env.RESEND_WEBHOOK_SECRET || '',
         MAIL_FROM: this.env.MAIL_FROM || '',
         WAYFORPAY_MERCHANT_ACCOUNT: this.env.WAYFORPAY_MERCHANT_ACCOUNT || '',
         WAYFORPAY_SECRET_KEY: this.env.WAYFORPAY_SECRET_KEY || '',

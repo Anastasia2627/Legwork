@@ -20,6 +20,7 @@ import {registerLearningRoutes} from './lib/learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes,unavailablePendingOrder} from './lib/payments.js';
 import {createMailService} from './lib/mailing.js';
+import {registerResendWebhooks} from './lib/resend-webhook.js';
 import {registerCertificateRoutes} from './lib/certificates.js';
 import {registerEditorialRoutes} from './lib/editorial.js';
 import {EDITORIAL_DEFAULTS} from './lib/editorial.js';
@@ -48,7 +49,7 @@ initPayments(db);
 const secret=process.env.ADMIN_PASSWORD;if(secret&&secret.length>=12&&!secret.startsWith('REPLACE_')&&!db.prepare("SELECT 1 FROM users WHERE role='admin'").get())db.prepare('INSERT INTO users(email,name,password_hash,role) VALUES(?,?,?,?)').run('admin@legwork.local','Admin',hashPassword(secret),'admin');else if(!secret)console.warn('Set ADMIN_PASSWORD in environment to create admin');
 if(prod&&!process.env.SITE_ORIGIN)throw Error('SITE_ORIGIN must be set to the HTTPS public origin in production');
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32||process.env.SESSION_SECRET.startsWith('REPLACE_')))throw Error('Set a unique SESSION_SECRET of at least 32 characters for production');
-app.disable('x-powered-by');app.use(helmet({referrerPolicy:{policy:'strict-origin-when-cross-origin'},contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["\u0027self\u0027","https://fonts.googleapis.com"],fontSrc:["\u0027self\u0027","https://fonts.gstatic.com"],styleSrcAttr:["\u0027unsafe-inline\u0027"],imgSrc:["'self'","data:","https:"],mediaSrc:["'self'","https:","blob:"],frameSrc:["'self'","https://www.youtube-nocookie.com"],formAction:["'self'","https://secure.wayforpay.com"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:prod?[]:null}}}));app.use(express.json({limit:'100kb'}));
+app.disable('x-powered-by');app.use(helmet({referrerPolicy:{policy:'strict-origin-when-cross-origin'},contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["\u0027self\u0027","https://fonts.googleapis.com"],fontSrc:["\u0027self\u0027","https://fonts.gstatic.com"],styleSrcAttr:["\u0027unsafe-inline\u0027"],imgSrc:["'self'","data:","https:"],mediaSrc:["'self'","https:","blob:"],frameSrc:["'self'","https://www.youtube-nocookie.com"],formAction:["'self'","https://secure.wayforpay.com"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:prod?[]:null}}}));app.use('/api/email/resend/webhook',express.raw({type:'application/json',limit:'64kb'}));app.use(express.json({limit:'100kb'}));
 // Prices are integer USD cents. Reject NaN, fractional/negative prices and
 // unrealistic values at creation just as strictly as at editing/checkout.
 const validCents=value=>Number.isSafeInteger(value)&&value>=0&&value<=100000000;
@@ -65,6 +66,13 @@ app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow'
 app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
 const audit=registerSecurityAudit(app,db,{getUser:req=>current(req)});
 registerPaymentWebhook(app,db,()=>mail);
+
+const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
+const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
+const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
+const mfa=registerAdminMfa(app,db,{auth,admin,verifyPassword,tokenHash});
+const mail=createMailService(app,db,{auth,hashPassword,cleanText});
+registerResendWebhooks(app,db,{secret:process.env.RESEND_WEBHOOK_SECRET});
 app.use('/api',(req,res,next)=>{
  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
  const configured=process.env.SITE_ORIGIN;
@@ -79,11 +87,6 @@ app.use('/api',(req,res,next)=>{
  if(source&&source!==expected)return res.status(403).json({error:'Invalid origin'});
  next();
 });
-const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
-const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
-const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
-const mfa=registerAdminMfa(app,db,{auth,admin,verifyPassword,tokenHash});
-const mail=createMailService(app,db,{auth,hashPassword,cleanText});
 audit.registerRoutes(auth,admin);
 if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
 db.exec('CREATE INDEX IF NOT EXISTS sessions_user_expiry_idx ON sessions(user_id,expires_at DESC)');

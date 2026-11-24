@@ -85,6 +85,7 @@ mail = change(mail, "import fs from 'node:fs';\n", '', 'mail fs');
 mail = change(mail, "import nodemailer from 'nodemailer';\n", '', 'mail nodemailer');
 mail = change(mail, 'export function createMailService(app,db,{auth,hashPassword,cleanText}){',
   'export function createMailService(app,db,{auth,hashPassword,cleanText,env,ctx}){', 'mail factory');
+mail = change(mail,"from './resend-webhook.js'","from '../../lib/resend-webhook.js'",'Resend delivery tracking import');
 const testLine = " const inTest=process.env.NODE_ENV==='test'&&!!process.env.MAIL_TEST_OUTBOX_PATH;";
 mail = change(mail, testLine, " const inTest=false;", 'mail test mode');
 const smtpLine = " const smtp=!!(process.env.SMTP_HOST&&process.env.SMTP_FROM&&process.env.SMTP_PORT&&((process.env.SMTP_USER&&process.env.SMTP_PASSWORD)||process.env.SMTP_NO_AUTH==='true'));";
@@ -107,11 +108,11 @@ mail = change(mail,
   " const scheduleDispatch=()=>{\n  setImmediate(()=>{dispatch().catch(err=>console.error('Mail outbox worker:',err.code||'query error'))});\n };",
   " const scheduleDispatch=()=>{\n  ctx.waitUntil(dispatch().catch(err=>console.error('Mail outbox delivery:',err.code||'query error')));\n  ctx.waitUntil(ctx.storage.setAlarm(Date.now()+60_000));\n };",
   'mail dispatch scheduling');
-const sendStart = mail.indexOf('     if(inTest){');
-const sendEnd = mail.indexOf("     db.prepare('UPDATE mail_outbox SET", sendStart);
-if (sendStart === -1 || sendEnd === -1) throw new Error('Cloudflare build contract changed: mail dispatch');
+const sendStart = mail.indexOf('     let receipt=null;');
+const sendEnd = mail.indexOf('     const providerId=', sendStart);
+if (sendStart === -1 || sendEnd === -1) throw new Error('Cloudflare build contract changed: Resend delivery receipt');
 mail = mail.slice(0, sendStart) +
-  "     await transport.sendMail({from,to:item.recipient,subject,text});\n" +
+  "     const receipt=await transport.sendMail({from,to:item.recipient,subject,text,idempotencyKey:'legwork-'+crypto.createHash('sha256').update(base+':'+item.event_key).digest('hex')});\n" +
   mail.slice(sendEnd);
 const workerStart = mail.indexOf(' if(enabled){const worker=setInterval(');
 const workerEnd = mail.indexOf('\n', workerStart);
