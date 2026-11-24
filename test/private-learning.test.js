@@ -77,6 +77,26 @@ test('Private PDF and Guru attachments are gated, preserve progress and reset ap
   assert.equal((await call('/api/admin/materials/'+id,{cookie:student,method:'DELETE'})).status,403);
   assert.equal((await call('/api/admin/materials/'+id,{cookie:admin,method:'DELETE'})).status,200);
   assert.equal((await call('/api/learning/materials/'+id+'/download',{cookie:student})).status,404);
+  // Mentorship review queue stays private, filtered and paginated.
+  const application=await call('/api/mentorships',{cookie:student,method:'POST',
+   body:{package:'Deep',video_url:'https://example.org/private-video',goals:'Improve leg lines',experience:'One year'}});
+  assert.equal(application.status,201);
+  const mentorId=application.body.id;
+  assert.equal((await call('/api/admin/mentorship-queue')).status,401);
+  assert.equal((await call('/api/admin/mentorship-queue',{cookie:other})).status,403);
+  assert.equal((await call('/api/admin/mentorship-queue?status=invalid',{cookie:admin})).status,400);
+  assert.equal((await call('/api/admin/mentorship-queue?limit=300',{cookie:admin})).status,400);
+  const pending=await call('/api/admin/mentorship-queue?status=awaiting_payment&limit=1',{cookie:admin});
+  assert.equal(pending.status,200);
+  assert.equal(pending.body.count,1);
+  assert.equal(pending.body.requests[0].id,mentorId);
+  assert.equal(pending.body.requests[0].goals,'Improve leg lines');
+  assert.equal((await call('/api/admin/mentorships/'+mentorId+'/verify-payment',{cookie:admin,method:'POST',body:{}})).status,200);
+  assert.equal((await call('/api/admin/mentorship-queue?status=paid',{cookie:admin})).body.count,1);
+  assert.equal((await call('/api/admin/mentorships/'+mentorId,{cookie:admin,method:'PATCH',body:{feedback:'Work on control'}})).status,200);
+  assert.equal((await call('/api/admin/mentorship-queue?status=answered',{cookie:admin})).body.count,1);
+  assert.equal((await call('/api/dashboard',{cookie:other})).body.mentorships.some(m=>m.id===mentorId),false);
+
  }finally{
   child.kill('SIGTERM');
   await new Promise(resolve=>{if(child.exitCode!==null)return resolve();child.once('exit',resolve);setTimeout(resolve,2000).unref()});
