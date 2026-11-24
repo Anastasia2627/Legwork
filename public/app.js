@@ -3,7 +3,7 @@ import {MEDIA,mediaFigure} from './media.js';
 import {EDITORIAL_DEFAULTS} from './editorial-fallback.js';
 import {editorialEditor} from './editorial-admin.js';
 import {studentCertificatesMarkup,adminCertificatesMarkup,verifyCertificateView} from './certificates.js';
-import {renderStudy} from './learning.js?v=20261111security';
+import {renderStudy} from './learning.js?v=20261124-private-learning';
 import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,paymentHistoryMarkup} from './checkout.js';
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
