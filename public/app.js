@@ -4,7 +4,7 @@ import {EDITORIAL_DEFAULTS} from './editorial-fallback.js';
 import {editorialEditor} from './editorial-admin.js';
 import {studentCertificatesMarkup,adminCertificatesMarkup,verifyCertificateView} from './certificates.js';
 import {renderStudy} from './learning.js?v=20261124-private-learning';
-import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,paymentHistoryMarkup} from './checkout.js';
+import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,paymentHistoryMarkup} from './checkout.js?v=20261124-mentorship-commerce';
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
 const readBundleCart=()=>{try{const ids=JSON.parse(localStorage.getItem('legwork_bundle_cart')||'[]');return Array.isArray(ids)?[...new Set(ids.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};

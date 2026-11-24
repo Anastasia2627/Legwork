@@ -12,10 +12,10 @@ Verified against the application source and integration/browser tests. This is a
 | Admin-approved Guru certificates and verification links | Implemented | Owner must verify actual homework and approve certificates |
 | Individual lessons, editable bundles and mixed cart | Implemented | Confirm real offer prices before launch |
 | Self-service pending order cancellation | Implemented | Blocked once payment starts or approval is complete to avoid lost payments |
-| Pending mentorship cancellation | Implemented | Only before staff marks payment verified |
+| Pending mentorship cancellation | Implemented | Cancels linked order atomically; blocked during pending/reconciliation provider payments |
 | WayForPay hosted checkout, payment attempts, signed webhook and entitlements | Implemented, **disabled by default** | Requires merchant identity, merchant secrets, HTTPS production hosting, fixed USD→UAH rate and real provider test |
 | Admin order approval | Implemented | Requires independent payment verification and now refuses approval when a WayForPay attempt is pending/requires review |
-| Mentorship request, manual payment verification and private feedback | Implemented | Price, delivery deadline and actual payment must be agreed/verified manually |
+| Mentorship Basic/Deep requests, owner-published prices, immutable quotes, manual/WayForPay confirmation and private feedback | Implemented, payments disabled by default | Owner must approve package price/deadline, merchant credentials, service terms, refund policy and live signed webhook |
 | Transactional email queue, email verification and receipts | Implemented, **disabled without SMTP** | SMTP credentials, sender DNS records, session secret and server origin required |
 | Newsletter, free-lesson and book signups | Implemented separately | Consent is saved, receipt sent when mail works, customer can unsubscribe through their email link; no bulk newsletter campaign composer |
 | Free introductory lesson entry | Implemented | A student account is required to watch the free lesson; video must be supplied by the teacher |

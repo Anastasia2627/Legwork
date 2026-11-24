@@ -60,3 +60,56 @@ Run npm test for integration coverage of signature verification, forged notifica
 ## Activation gate
 
 The UI remains in manual-request mode when any payment variable is missing, the provider is not explicitly set to wayforpay, the rate is invalid, or SITE_ORIGIN is not HTTPS. HTTP is accepted only for NODE_ENV=test to exercise the isolated integration suite.
+
+
+## Mentorship package payments (added 24 Nov 2026)
+
+The school can now review and publish its **own** Basic/Deep package
+offers in Admin Studio, using an approved **USD-cent price** and
+**response time in business days after payment confirmation**.
+Neither price nor turnaround is prefilled or published by default.
+Publishing does not enable card processing or a merchant account.
+
+- Public endpoint: \`GET /api/mentorship/offers\`. Until explicitly
+  published, prices and response times are returned as null.
+- Administrative read/write: \`GET /api/admin/mentorship/offers\`
+  and \`PATCH /api/admin/mentorship/offers/:package\`.
+  The PATCH requires both an exact positive price and a business-day
+  deadline when \`published=true\`; unpublished drafts stay private.
+- When a student submits a request under a published offer,
+  the backend atomically creates a private mentorship request and a
+  pending order of kind \`mentorship\`, capturing the exact price and
+  stated turnaround. Editing the catalog afterward cannot reprice
+  that student's pending order or alter its promised deadline.
+- An unpublished package still accepts manual quote requests as
+  before, but **no** online-checkout-eligible order is created until
+  approved terms exist. No client-supplied price is accepted.
+- Existing course/lesson/bundle WayForPay checkout also processes
+  mentorship orders with the same merchant signature, frozen
+  conversion rate, amount verification and trusted callback.
+  Only a signed \`Approved\` notification marks the mentorship request
+  as paid. The browser return URL never triggers this transition.
+- Course/lesson entitlement approval remains separate: paying for
+  mentorship does not unlock unrelated lessons.
+- A pending mentorship quote is cancelled **with its linked order**
+  in one transaction, only if no payment attempt is pending,
+  approved or awaiting reconciliation. Generic order cancellation
+  cannot bypass this rule.
+- An administrator may manually verify an independently confirmed
+  payment only while no active provider attempt is in progress.
+  A late signed provider approval after manual verification moves the
+  provider attempt to \`review_required\`, preventing a second
+  fulfilment. Do not treat the flag as proof of a second charge.
+- Refunds/voids leave access untouched pending staff reconciliation;
+  **new or updated mentorship feedback is blocked** when the provider
+  payment is flagged for review.
+- Provider events and refund records remain read-only until a real
+  merchant/acquirer has approved and tested the payment process.
+
+**Operational gate:** actual prices, service deadline, customer
+contract, refund policy, payment merchant, UAH conversion rate,
+real callback URL and real low-value provider testing must all be
+approved before setting \`PAYMENT_PROVIDER=wayforpay\`.
+The test suite sends only synthetic signed callbacks, never real
+card transactions. WayForPay official Purchase documentation:
+https://wiki.wayforpay.com/en/view/852102
