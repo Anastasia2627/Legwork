@@ -406,3 +406,23 @@ body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:2px solid var
  .course-review-frame,.mentor-review-frame{flex-basis:min(75%,340px)}
  .home-final-cta .ref-wrap{align-items:stretch;flex-direction:column}
 }
+
+
+/* Fix mobile Mentorship overflow: keep the artist/photo section and both
+   pricing options within the viewport even at 320 CSS pixels. The earlier
+   two-column specificity incorrectly overrode mobile stacking. */
+@media(max-width:830px){
+ .ref-mentor-intro{grid-template-columns:minmax(0,1fr);gap:24px}
+ .ref-mentor-intro>*{min-width:0}
+ .mentor-photo{max-width:100%;width:100%}
+ .mentor-photo .media-photo{max-width:100%;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+ body:has(.ref-mentor-hero) .ref-prices{grid-template-columns:minmax(0,1fr)}
+ .ref-mentor-form,.ref-mentor-form form,.mentor-request-stages{max-width:100%;min-width:0}
+ .ref-mentor-hero h1{overflow-wrap:break-word}
+}
+@media(max-width:400px){
+ .ref-mentor-hero .ref-wrap{max-width:100%}
+ body:has(.ref-mentor-hero) .ref-prices .price-card{min-width:0;width:100%;padding:20px}
+ .mentor-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .mentor-steps>div{min-width:0;padding:14px 10px}
+}

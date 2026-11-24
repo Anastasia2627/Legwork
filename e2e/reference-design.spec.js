@@ -27,6 +27,10 @@ test('Reference system uses bold condensed typography, true red CTAs and graysca
 
 test('Courses menu distinguishes a published course from future courses',async({page})=>{
  await page.goto('/#/');
+ if(await page.locator('#menuBtn').isVisible()){
+  await page.locator('#menuBtn').click();
+  await expect(page.locator('#nav')).toHaveClass(/open/);
+ }
  const toggle=page.locator('#courseMenuToggle');
  await toggle.click();
  await expect(toggle).toHaveAttribute('aria-expanded','true');
