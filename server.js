@@ -19,7 +19,7 @@ import {registerAccountDataRoutes} from './lib/account-data.js';
 import {registerLearningRoutes} from './lib/learning.js';
 import {registerPrivateLearningRoutes,homeworkFilePath} from './lib/private-learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
-import {initMentorshipCommerce,registerMentorshipCommerceRoutes,createMentorshipWithQuote,verifyMentorshipManualPayment} from './lib/mentorship-commerce.js';
+import {initMentorshipCommerce,registerMentorshipCommerceRoutes,createMentorshipWithQuote,verifyMentorshipManualPayment,mentorshipPaymentUnderReview} from './lib/mentorship-commerce.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes,unavailablePendingOrder} from './lib/payments.js';
 import {createMailService} from './lib/mailing.js';
 import {registerResendWebhooks,registerResendSuppressionAdminRoutes} from './lib/resend-webhook.js';
@@ -211,7 +211,7 @@ app.get('/api/admin/mentorship-queue',auth,admin,(req,res)=>{
  const params=status==='all'?[]:[status];
  const base=' FROM mentorships m JOIN users u ON u.id=m.user_id';
  const count=db.prepare('SELECT COUNT(*) n'+base+where).get(...params).n;
- const items=db.prepare('SELECT m.id,m.user_id,m.package,m.video_url,m.experience,m.goals,m.instagram,m.training_frequency,m.teaching,m.status,m.feedback,m.created_at,u.email,u.name,q.order_id,q.turnaround_business_days,o.amount AS quoted_price_cents,o.status AS order_status'+base+' LEFT JOIN mentorship_order_quotes q ON q.mentorship_id=m.id LEFT JOIN orders o ON o.id=q.order_id'+where+
+ const items=db.prepare('SELECT m.id,m.user_id,m.package,m.video_url,m.experience,m.goals,m.instagram,m.training_frequency,m.teaching,m.status,m.feedback,m.created_at,u.email,u.name,q.order_id,q.turnaround_business_days,o.amount AS quoted_price_cents,o.status AS order_status,EXISTS(SELECT 1 FROM payment_attempt_orders po JOIN payment_attempts pa ON pa.id=po.attempt_id WHERE po.order_id=q.order_id AND pa.status='review_required') AS payment_review_required'+base+' LEFT JOIN mentorship_order_quotes q ON q.mentorship_id=m.id LEFT JOIN orders o ON o.id=q.order_id'+where+
   ' ORDER BY CASE m.status WHEN \'paid\' THEN 0 WHEN \'awaiting_payment\' THEN 1 WHEN \'answered\' THEN 2 ELSE 3 END,m.id DESC LIMIT ? OFFSET ?').all(...params,limit,offset);
  const totals=Object.fromEntries(statuses.map(s=>[s,Number(db.prepare('SELECT COUNT(*) n'+base+(s==='all'?'':' WHERE m.status=?')).get(...(s==='all'?[]:[s])).n)]));
  res.setHeader('Cache-Control','private, no-store');
@@ -261,7 +261,7 @@ app.post('/api/admin/mentorships/:id/verify-payment',auth,admin,(req,res)=>{
  }
  res.status(result.status).json(result.ok?{ok:true}:{error:result.error});
 });
-app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{const feedback=cleanText(req.body.feedback,8000);if(!feedback)return res.status(400).json({error:'Feedback required'});const r=db.prepare("UPDATE mentorships SET feedback=?,status='answered' WHERE id=? AND status IN ('paid','answered')").run(feedback,req.params.id);if(r.changes){const buyer=db.prepare('SELECT u.email FROM mentorships m JOIN users u ON u.id=m.user_id WHERE m.id=?').get(req.params.id);if(buyer)mail.notify(buyer.email,'mentorship:feedback:'+req.params.id+':'+crypto.createHash('sha256').update(feedback).digest('hex'),'Legwork · Your mentorship feedback is ready','Your mentor has reviewed your video. Sign in to Legwork to see the feedback.')}res.status(r.changes?200:409).json(r.changes?{ok:true}:{error:'Verify payment first'})});
+app.patch('/api/admin/mentorships/:id',auth,admin,(req,res)=>{if(mentorshipPaymentUnderReview(db,req.params.id))return res.status(409).json({error:'Payment refunded, voided, or under reconciliation; resolve before sending feedback'});const feedback=cleanText(req.body.feedback,8000);if(!feedback)return res.status(400).json({error:'Feedback required'});const r=db.prepare("UPDATE mentorships SET feedback=?,status='answered' WHERE id=? AND status IN ('paid','answered')").run(feedback,req.params.id);if(r.changes){const buyer=db.prepare('SELECT u.email FROM mentorships m JOIN users u ON u.id=m.user_id WHERE m.id=?').get(req.params.id);if(buyer)mail.notify(buyer.email,'mentorship:feedback:'+req.params.id+':'+crypto.createHash('sha256').update(feedback).digest('hex'),'Legwork · Your mentorship feedback is ready','Your mentor has reviewed your video. Sign in to Legwork to see the feedback.')}res.status(r.changes?200:409).json(r.changes?{ok:true}:{error:'Verify payment first'})});
 registerExtraRoutes(app,db,{auth,admin,current,cleanText,hashPassword,verifyPassword,safeExternalUrl,safePublicImageUrl,youtubeVideoId,mail});
 registerRequestRoutes(app,db,{auth});
 registerMarketingRoutes(app,db,{auth,admin,mail});
