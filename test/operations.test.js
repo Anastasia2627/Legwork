@@ -5,7 +5,7 @@ import Database from 'better-sqlite3';
 import {registerOperationsRoutes} from '../lib/operations.js';
 test('Operational status is admin-only and exposes aggregate counts, no secrets',async()=>{
  const db=new Database(':memory:');
- db.exec("CREATE TABLE mail_outbox(status TEXT);INSERT INTO mail_outbox VALUES('failed'),('pending'),('sent');"+
+ db.exec("CREATE TABLE mail_outbox(status TEXT,delivery_status TEXT NOT NULL DEFAULT 'unconfirmed');INSERT INTO mail_outbox(status,delivery_status) VALUES('failed','unconfirmed'),('pending','unconfirmed'),('sent','bounced');"+
  "CREATE TABLE payment_attempts(status TEXT,created_at TEXT);INSERT INTO payment_attempts VALUES('review_required','2026-01-01 00:00:00');"+
  "CREATE TABLE uploaded_images(bytes INTEGER);INSERT INTO uploaded_images VALUES(2048), (4096);"+
  "CREATE TABLE account_deletion_requests(status TEXT);INSERT INTO account_deletion_requests VALUES('pending');");
@@ -25,6 +25,9 @@ test('Operational status is admin-only and exposes aggregate counts, no secrets'
   const body=await resp.json();
   assert.equal(body.checks.mail_pending,1);
   assert.equal(body.checks.mail_failed,1);
+  assert.equal(body.checks.mail_rejected_by_provider,1);
+  assert.ok(body.alerts.some(a=>a.code==='provider_email_rejected'));
+
   assert.equal(body.checks.payments_require_review,1);
   assert.equal(body.checks.stored_public_image_bytes,6144);
   assert.equal(body.checks.privacy_requests_open,1);
