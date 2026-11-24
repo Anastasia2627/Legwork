@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl,youtubeVideoId} from './lib/security.js';
 import {registerSecurityAudit} from './lib/security-audit.js';
 import {registerOperationsRoutes} from './lib/operations.js';
+import {registerAdminMfa} from './lib/admin-mfa.js';
 import {registerExtraRoutes} from './lib/features.js';
 import {registerRequestRoutes} from './lib/requests.js';
 import {registerMarketingRoutes} from './lib/marketing.js';
@@ -57,6 +58,7 @@ const e2eRateMultiplier=process.env.NODE_ENV==='test'&&process.env.E2E_RATE_LIMI
 const jsonRateLimit=(limit,windowMs)=>rateLimit({windowMs,limit:limit*e2eRateMultiplier,standardHeaders:'draft-7',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:'Too many requests. Please try again in a moment.'})});
 app.use('/api/auth/login',jsonRateLimit(8,15*60*1000));
 app.use(['/api/account/change-password','/api/account/sessions/revoke-others','/api/account/deletion-request'],jsonRateLimit(8,15*60*1000));
+app.use('/api/admin/mfa',jsonRateLimit(8,15*60*1000));
 app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
 app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow');if(req.headers.cookie?.includes('legwork_session='))res.setHeader('Cache-Control','private, no-store');next()});
@@ -80,6 +82,7 @@ app.use('/api',(req,res,next)=>{
 const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
 const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
 const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
+const mfa=registerAdminMfa(app,db,{auth,admin,verifyPassword,tokenHash});
 const mail=createMailService(app,db,{auth,hashPassword,cleanText});
 audit.registerRoutes(auth,admin);
 if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
@@ -103,7 +106,14 @@ app.post('/api/auth/login',(req,res)=>{
  if(typeof p!=='string'||p.length>128||!p.length)return res.status(401).json({error:'Invalid credentials'});
  const u=id==='admin'?db.prepare("SELECT * FROM users WHERE role='admin'").get():db.prepare('SELECT * FROM users WHERE email=?').get(id);
  const valid=verifyPassword(p,u?.password_hash||dummyLoginHash);
- if(valid&&u){audit.record({actorId:u.id,action:'auth.login',targetType:'account',targetId:String(u.id),outcome:'success',status:200});return login(u,res)}
+ if(valid&&u){
+  if(u.role==='admin'&&!mfa.verifyLogin(u,req.body?.otp)){
+   audit.record({actorId:u.id,action:'auth.mfa_rejected',targetType:'account',targetId:String(u.id),outcome:'denied',status:401});
+   return res.status(401).json({error:'Admin authenticator or backup code required',mfa_required:true});
+  }
+  audit.record({actorId:u.id,action:'auth.login',targetType:'account',targetId:String(u.id),outcome:'success',status:200});
+  return login(u,res);
+ }
  audit.record({actorId:u?.id||null,action:'auth.login_rejected',targetType:'account',targetId:u?String(u.id):'',outcome:'denied',status:401});
  return res.status(401).json({error:'Invalid credentials'});
 });
