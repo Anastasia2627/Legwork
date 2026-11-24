@@ -479,19 +479,27 @@ async function adminExtras(a){
 }
 
 async function adminMailPanel(){
- const response=await api('/admin/email-outbox'),root=$('#adminMount');
- if(!root)return;
- const counts=Object.fromEntries(response.stats.map(row=>[row.status,row.n]));
+ const response=await api('/admin/email-outbox'),root=$('#adminMount');if(!root)return;
+ const counts=Object.fromEntries((response.stats||[]).map(row=>[row.status,row.n]));
+ const delivery=Object.fromEntries((response.delivery||[]).map(row=>[row.status,row.n]));
  const method=response.provider==='resend'?'Resend HTTPS':response.provider==='smtp'?'SMTP':response.provider==='test'?'Test transport':'Not configured';
- const description=response.enabled
-  ?'Sender credentials are configured ('+method+'). This is not proof that an actual student inbox receives the messages.'
-  :'Verify a sending domain and set email credentials before enabling public registrations.';
+ const configured=response.enabled?'Sender transport configured ('+method+'). This does not prove email reached a real mailbox.':'Verify a sending domain and configure credentials before allowing production registration.';
+ const delivered=Number(delivery.delivered||0),bounced=Number(delivery.bounced||0),complained=Number(delivery.complained||0);
+ const delayed=Number(delivery.delayed||0),providerFailed=Number(delivery.failed||0)+Number(delivery.suppressed||0);
+ const webhook=response.provider!=='resend'?'No Resend webhook is needed for this transport.':
+  response.webhook_configured?'Webhook signature verification configured. Delivery metrics depend on real Resend callbacks.':
+   'Missing RESEND_WEBHOOK_SECRET: accepted messages cannot be independently tracked as delivered, bounced or complained.';
  root.insertAdjacentHTML('beforeend','<section class="admin-mail-health"><h3>EMAIL DELIVERY HEALTH</h3><div class="grid grid-3">'+
-  card(response.enabled?'CONFIGURED':'NOT CONFIGURED',description,'EMAIL PROVIDER')+
-  card(String(counts.sent||0)+' ACCEPTED','Messages accepted by the sender; mailbox delivery is not independently verified.','OUTBOX')+
-  card(String(counts.pending||0)+' PENDING / '+String(counts.failed||0)+' FAILED','Encrypted messages automatically retry up to eight times.','QUEUE')+'</div>'+
+  card(response.enabled?'CONFIGURED':'NOT CONFIGURED',configured,'SENDING PROVIDER')+
+  card(String(counts.sent||0)+' ACCEPTED','Resend/SMTP accepted the request. This is not evidence of actual inbox placement.','OUTBOX')+
+  card(String(delivered)+' DELIVERED','Resend confirmed delivery to a receiving mail server, not placement in inbox.','WEBHOOKS')+
+  card(String(counts.pending||0)+' QUEUED / '+String(counts.failed||0)+' FAILED','Transport retry queue; automatic retries stop after eight attempts.','RETRY QUEUE')+
+  card(String(bounced)+' BOUNCED / '+String(complained)+' COMPLAINTS','Provider reported permanent rejection or a spam complaint.','DELIVERY ISSUES')+
+  card(String(delayed)+' DELAYED / '+String(providerFailed)+' FAILED','Provider is attempting again, or has returned a final failure.','PROVIDER STATUS')+
+  '</div><p class="description">'+esc(webhook)+'</p>'+
+  '<p class="description">'+Number(response.suppressed||0)+' addresses locally suppressed after provider rejection or complaint. Suppressed recipients are never automatically retried.</p>'+
   ((counts.failed||0)>0?'<p><button class="btn btn-outline btn-small" id="retryEmailDelivery" type="button" '+(response.enabled?'':'disabled')+'>Retry up to 10 failed emails</button></p>':'')+
-  '<p class="description">Launch check: register a test student, confirm its email, then request a password reset. Never paste the provider key into this dashboard.</p></section>');
+  '<p class="description">Launch check: register a disposable student on the deployed site; confirm its email and reset password in a real inbox. Check sender DNS and Resend logs. Never paste secrets into this dashboard.</p></section>');
 }
 async function adminPaymentPanel(){
  const response=await api('/admin/payments');

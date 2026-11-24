@@ -50,9 +50,9 @@ Cloudflare staging before use on production):
 - Remove the temporary recovery-only code, and run the full smoke and E2E
   suite before reopening the school. Keep your approved incident log private.
 
-For permanent independent backups, plan an offline, encrypted export of both
-SQL data and Durable Object KV images into storage controlled by the owner.
-**That capability is not yet implemented**; do not claim it exists.
+Independent encrypted SQL/KV export and offline verification tooling now exists
+(`docs/portable-backup.md`). This is **manual**, not an automatically scheduled
+or production-verified backup. It must still be run from the owner's private computer.
 
 Official API: https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/#pitr-point-in-time-recovery-api
 
@@ -98,3 +98,50 @@ Official docs:
 - https://resend.com/docs
 - https://resend.com/changelog/idempotency-keys
 - https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/
+
+
+## Resend delivery webhooks (added to the backend)
+
+The Cloudflare Worker now accepts signed Resend events at:
+
+\`POST https://<your-live-Worker-or-domain>/api/email/resend/webhook\`
+
+Create a webhook in Resend for these event types: \`email.sent\`,
+\`email.delivered\`, \`email.delivery_delayed\`, \`email.bounced\`,
+\`email.complained\`, \`email.failed\`, \`email.suppressed\`.
+
+- Save the webhook's **signing secret**, beginning with \`whsec_\`,
+  as protected Cloudflare \`RESEND_WEBHOOK_SECRET\` in the same deployment
+  as the Worker. This is NOT \`RESEND_API_KEY\`.
+- The server verifies Svix HMAC-SHA256 against the **exact raw request
+  body** and validates the timestamp window (±5 minutes). Invalid calls
+  receive HTTP 401. Repeated event IDs are deduplicated.
+- Store no raw webhook bodies, customer email content, IPs or API keys.
+  Only provider IDs, signed event types and receive timestamps are stored.
+- A provider receipt is stored with each queued email; webhook events can
+  arrive before receipts and are reconciled later. Do not mark a message
+  delivered solely because Resend returned HTTP 200.
+- Permanent bounces, provider suppression and spam complaints suppress
+  further automated delivery to the relevant address and unsubscribe
+  active optional marketing preferences. Do not automatically retry a
+  suppressed address.
+- The **Email Delivery Health** admin panel separately displays accepted,
+  delivered-to-mail-server, bounced, delayed, complained and failed counts.
+  Delivery to an email server does not prove placement in an inbox.
+- Webhook delivery failures must be retried by Resend, and the endpoint
+  must be reachable over HTTPS. The backend never treats unsigned callbacks
+  as trusted.
+
+Before using actual users, run a real verification, password reset,
+order approval and teacher feedback in separate inboxes you control;
+inspect Resend logs for delivery/bounce and the exact matching admin
+counts. All passwords, API keys and webhook signing secrets belong in
+the provider's secret manager, never in chat or version control.
+
+Resend documentation:
+- https://resend.com/docs/webhooks/verify-webhooks-requests
+- https://resend.com/docs/webhooks/event-types
+- https://resend.com/docs/dashboard/emails/idempotency-keys
+
+Resend idempotency keys expire after 24 hours. Manual retries of much
+older transport failures should be reviewed to avoid accidental duplicates.
