@@ -147,6 +147,8 @@ app.get('/api/dashboard',auth,(req,res)=>{const id=req.user.id;res.json({enrollm
 app.post('/api/progress/:id',auth,(req,res)=>{
  const l=db.prepare('SELECT * FROM lessons WHERE id=?').get(req.params.id);
  if(!l||!access(req.user,l))return res.status(403).json({error:'Forbidden'});
+ if(db.prepare('SELECT 1 FROM certificates WHERE user_id=? AND course_id=? AND revoked_at IS NULL').get(req.user.id,l.course_id))
+  return res.status(409).json({error:'A certificate has already been issued for this course. Contact support before changing completed work.'});
  const url=cleanText(req.body.homework_url,1000);
  const existingFile=db.prepare("SELECT id FROM private_learning_files WHERE kind='homework' AND owner_id=? AND lesson_id=?").get(req.user.id,l.id);
  const currentPrivate=homeworkFilePath(req.user.id,l.id);
