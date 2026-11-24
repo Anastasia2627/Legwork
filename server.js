@@ -20,7 +20,7 @@ import {registerLearningRoutes} from './lib/learning.js';
 import {registerBundleRoutes} from './lib/bundles.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes,unavailablePendingOrder} from './lib/payments.js';
 import {createMailService} from './lib/mailing.js';
-import {registerResendWebhooks} from './lib/resend-webhook.js';
+import {registerResendWebhooks,registerResendSuppressionAdminRoutes} from './lib/resend-webhook.js';
 import {registerCertificateRoutes} from './lib/certificates.js';
 import {registerEditorialRoutes} from './lib/editorial.js';
 import {EDITORIAL_DEFAULTS} from './lib/editorial.js';
@@ -87,6 +87,7 @@ app.use('/api',(req,res,next)=>{
  if(source&&source!==expected)return res.status(403).json({error:'Invalid origin'});
  next();
 });
+registerResendSuppressionAdminRoutes(app,db,{auth,admin,verifyPassword});
 audit.registerRoutes(auth,admin);
 if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
 db.exec('CREATE INDEX IF NOT EXISTS sessions_user_expiry_idx ON sessions(user_id,expires_at DESC)');
