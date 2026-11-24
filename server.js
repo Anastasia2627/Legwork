@@ -8,6 +8,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {hashPassword,verifyPassword,newToken,tokenHash,cleanText,safeExternalUrl,youtubeVideoId} from './lib/security.js';
 import {registerSecurityAudit} from './lib/security-audit.js';
+import {registerOperationsRoutes} from './lib/operations.js';
 import {registerExtraRoutes} from './lib/features.js';
 import {registerRequestRoutes} from './lib/requests.js';
 import {registerMarketingRoutes} from './lib/marketing.js';
@@ -182,6 +183,7 @@ registerLearningRoutes(app,db,{auth});
 registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
 registerAccountDataRoutes(app,db,{auth,admin,verifyPassword,mail});
+registerOperationsRoutes(app,db,{auth,admin,mail});
 app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
 // Public, crawlable paths are deliberately limited to editorial landing pages.
