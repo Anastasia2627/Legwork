@@ -158,7 +158,7 @@ function course(){
  ];
  const courseLessons=state.lessons.filter(l=>!c||!l.course_id||l.course_id===c.id);
  const freeLesson=courseLessons.find(l=>l.free);
- const tiles=courseLessons.slice(0,12).map((l,i)=>'<a class="course-lesson-row" href="#/lesson/'+l.id+'"><span class="course-lesson-number">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(l.title)+'</strong><span class="course-lesson-meta">'+esc(l.level||'Technique')+' · '+Number(l.duration||12)+' min</span></a>').join('');
+ const tiles=courseLessons.map((l,i)=>'<a class="course-program-card" href="#/lesson/'+l.id+'"><span class="course-program-visual">'+(l.cover_url?'<img src="'+esc(l.cover_url)+'" loading="lazy" decoding="async" alt="">':'<span class="course-program-empty" aria-hidden="true"></span>')+'<span class="course-lesson-number">'+String(i+1).padStart(2,'0')+'</span></span><span class="course-program-info"><strong>'+esc(l.title)+'</strong><small>'+esc(l.equipment||'Any support')+' · '+Number(l.duration||12)+' min'+(l.free?' · FREE':'')+'</small></span></a>').join('');
  const faqItems=[
   ['Do I need to be flexible?','No. Start at a comfortable range of motion. The course focuses on technique and control.'],
   ['Do I need a pole?','Some lessons use a pole or stable support. Equipment is listed with each class.'],
@@ -168,14 +168,16 @@ function course(){
  ];
  layout(
   '<div class="ref-course-bar" id="courseSticky"><div class="ref-wrap"><span class="course-sticky-title">LEGWORK LIKE A BOSS</span><span>from '+price+'</span><a class="btn btn-red" href="#/course#prices">Join the course</a></div></div>'+
-  '<section class="ref-course-hero"><div class="ref-wrap"><p class="course-kicker" data-no-i18n>'+editorial('course','eyebrow')+'</p><h1 data-no-i18n>'+editorial('course','headline')+'</h1><div class="course-hero-layout"><div class="course-hero-copy"><p data-no-i18n>'+editorial('course','intro')+'</p><div class="course-hero-actions"><a href="#/course#prices" class="btn btn-red" data-no-i18n>'+editorial('course','cta')+'</a>'+(freeLesson?'<a class="btn btn-outline" href="#/lesson/'+freeLesson.id+'">Try a free lesson</a>':'')+'</div></div>' +mediaPicture('course_hero','course-photo',mediaFigure('stage','course-photo'))+'</div></div></section>'+
+  '<section class="ref-course-hero"><div class="ref-wrap"><p class="course-kicker" data-no-i18n>'+editorial('course','eyebrow')+'</p><h1 data-no-i18n>'+editorial('course','headline')+'</h1><p class="course-identity"><strong>LEGWORK</strong> LIKE A <em>BOSS</em></p><div class="course-hero-layout"><div class="course-hero-copy"><p data-no-i18n>'+editorial('course','intro')+'</p><div class="course-hero-actions"><a href="#/course#prices" class="btn btn-red" data-no-i18n>'+editorial('course','cta')+'</a>'+(freeLesson?'<a class="btn btn-outline" href="#/lesson/'+freeLesson.id+'">Try a free lesson</a>':'')+'</div></div>' +mediaPicture('course_hero','course-photo',mediaFigure('stage','course-photo'))+'</div></div></section>'+
   section('Who is this for?','<div class="course-fit-list">'+audience.map(([title,desc],i)=>'<div class="course-fit-item"><span>'+String(i+1).padStart(2,'0')+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div></div>').join('')+'</div>','EVERY STAGE HAS A STARTING POINT')+
   section('What will change?','<div class="course-results">'+outcomes.map(([title,desc])=>'<div class="course-result"><span aria-hidden="true">↗</span><div><h3>'+title+'</h3><p>'+desc+'</p></div></div>').join('')+'</div>','MORE THAN JUST MORE MOVES','muted-section')+
   '<section class="course-author"><div class="ref-wrap"><div><span class="eyebrow">YOUR COACH</span><strong>Svitlana Yurchak</strong><p>Exotic pole artist and creator of the Flexi Legs technique.</p></div><a class="course-text-link" href="#/">More about Svitlana →</a></div></section>'+
   section('How it works','<div class="course-steps">'+steps.map(([n,title,desc])=>'<div><span>'+n+'</span><h3>'+title+'</h3><p>'+desc+'</p></div>').join('')+'</div>','A CLEAR PATH, AT YOUR PACE')+
-  section('Inside the course','<div class="course-preview-head"><p>Prestart and technique lessons. Every class has its own level, equipment and duration.</p><a class="course-text-link" href="#/shop">Explore individual classes →</a></div><div class="course-lesson-grid">'+(tiles||'<p class="course-empty">Lessons will appear here when added to the library.</p>')+'</div>','THE PROGRAM','muted-section')+
+  section('Inside the course','<div class="course-preview-head"><p>Prestart foundations and technique lessons · '+courseLessons.length+' classes · equipment and duration per lesson.</p><div class="course-preview-views" role="group" aria-label="Program preview layout"><button type="button" data-program-mode="grid" aria-pressed="true">Grid / hover</button><button type="button" data-program-mode="carousel" aria-pressed="false">Carousel</button></div></div><div class="course-equipment-legend">◯ Pole · ◇ Floor · △ Stable support — see each lesson for exact equipment</div><div class="course-lesson-grid" id="courseProgramGrid">'+(tiles||'<p class="course-empty">Lessons will appear here when added to the library.</p>')+'</div><p class="course-program-note">Class previews are shown only when approved media has been published. Paid YouTube sources remain inside the protected classroom.</p>','THE PROGRAM','muted-section')+
   (freeLesson?'<section class="course-free-section"><div class="ref-wrap">'+mediaPicture('course_preview','course-preview-screen','<div class="course-preview-screen"><span aria-hidden="true">▶</span><small>FREE CLASS PREVIEW</small></div>')+'<div><p class="eyebrow">TRY BEFORE YOU JOIN</p><h2>Your first lesson is on us.</h2><p>'+esc(freeLesson.title)+' · '+Number(freeLesson.duration||12)+' minutes. Explore the teaching style before you choose a package.</p><a class="btn btn-red" href="#/lesson/'+freeLesson.id+'">Open free lesson</a></div></div></section>':'')+
   '<section class="section course-pricing-section" id="prices"><div class="section-inner"><p class="eyebrow">YOUR TRAINING, YOUR WAY</p><h2>Choose your format</h2><p class="course-pricing-intro">One program, with or without personal feedback.</p><div class="ref-prices"><div class="price-card"><h3>Independent</h3><p class="price">'+price+'</p><ul class="course-includes"><li>Full course library</li><li>Learn at your own pace</li><li>Track your progress</li></ul><button class="btn btn-dark" data-order="course" data-id="'+(c?.id||1)+'">Choose Independent</button></div><div class="price-card featured"><span class="course-featured-label">WITH PERSONAL FEEDBACK</span><h3>Guru</h3><p class="price">'+guruPrice+'</p><ul class="course-includes"><li>Everything in Independent</li><li>Submit homework</li><li>Get teacher feedback</li><li>Certificate pathway after completion</li></ul><button class="btn btn-red" data-order="course" data-plan="guru" data-id="'+(c?.id||1)+'">Choose Guru</button></div></div><p class="course-pricing-note">Final access and payment conditions are shown before checkout.</p></div></section>'+
+  section('Work toward your certificate','<div class="course-completion"><div><p class="eyebrow">AFTER THE LAST CLASS</p><h3>Learn. Practise. Complete.</h3><p>With Guru, you can submit homework and receive a teacher review. A course certificate is issued after completing the required assignments and approval.</p></div><a class="btn btn-outline" href="#/account">My learning space →</a></div>','KEEP YOUR MOMENTUM','muted-section')+
+  (state.bundles.length?section('Your next move','<div class="grid grid-3">'+state.bundles.slice(0,3).map(bundleCard).join('')+'</div>','MORE TO PRACTISE'):'')+
   section('Frequently asked questions',faq(faqItems),'','course-faq')
  );
 }function lessonCard(l,studyMode=false){
@@ -530,6 +532,16 @@ else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
 else if(form.dataset.homeworkReview){const [uid,lid]=form.dataset.homeworkReview.split('-');const result=await api('/admin/homework/'+uid+'/'+lid+'/review','POST',{feedback:data.feedback});notice(result.message);await adminPanel()}return}
 if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#shopFiltersClose')?.click();return}
  if(!button||e.type!=='click')return;
+ if(button.dataset.programMode){
+  e.preventDefault();
+  const grid=$('#courseProgramGrid');if(!grid)return;
+  const mode=button.dataset.programMode==='carousel'?'carousel':'grid';
+  grid.classList.toggle('is-carousel',mode==='carousel');
+  document.querySelectorAll('[data-program-mode]').forEach(control=>{
+   control.setAttribute('aria-pressed',String(control.dataset.programMode===mode));
+  });
+  return;
+ }
  if(button.dataset.jumpAdmin){
   e.preventDefault();
   const el=document.getElementById(button.dataset.jumpAdmin);
