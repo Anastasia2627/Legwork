@@ -39,7 +39,7 @@ if(!originArg||!outputArg){
  console.error('Usage: npm run backup:cloudflare -- https://<your-worker-host> ./backups/legwork-YYYY-MM-DD.legwork-backup');
  process.exitCode=1;
 }else{
- let token=null,cookie=null,origin=null,output=null;
+ let token=null,cookie=null,origin=null,output=null,archiveCreated=false;
  const request=async(relative,{method='GET',data,binary=false,backupToken=true}={})=>{
   const headers={'Accept':binary?'image/webp':'application/json','Origin':origin,
    ...(cookie?{'Cookie':cookie}:{}),...(backupToken&&token?{'X-Legwork-Backup-Token':token}:{}),
@@ -96,13 +96,16 @@ if(!originArg||!outputArg){
    yield {type:'finished'};
   }
   await writeEncryptedBackup(output,one,chunks());
+  archiveCreated=true;
   const check=await verifyEncryptedBackup(output,one);
   console.log('Encrypted backup verified locally:',check.tables,'tables,',check.rows,'rows,',check.images,'images.');
   console.log('Saved to',output);
   console.log('Copy it to access-controlled storage outside Cloudflare. This is not an automatic recurring backup.');
   console.log('This read-only export is not a transactionally consistent snapshot during concurrent writes.');
  }catch(error){
-  if(output)await fs.rm(output,{force:true}).catch(()=>{});
+  // Only remove an archive THIS command wrote. Never delete an existing
+  // owner backup on a filename conflict, authentication or network error.
+  if(archiveCreated&&output)await fs.rm(output,{force:true}).catch(()=>{});
   console.error('Backup failed:',error.message);
   process.exitCode=1;
  }finally{
