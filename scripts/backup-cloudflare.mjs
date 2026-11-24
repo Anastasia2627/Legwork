@@ -65,7 +65,8 @@ if(!originArg||!outputArg){
   const one=await hidden('Backup encryption passphrase (16+ characters): ');
   const two=await hidden('Confirm encryption passphrase: ');
   if(one!==two||one.length<16)fail('Passphrases do not match or are too short');
-  const signin=await request('/api/auth/login',{method:'POST',data:{email:'admin',password:adminPassword},backupToken:false});
+  const adminCode=await hidden('Admin authenticator or recovery code (blank if MFA is off): ');
+  const signin=await request('/api/auth/login',{method:'POST',data:{email:'admin',password:adminPassword,otp:adminCode},backupToken:false});
   cookie=signin.response.headers.get('set-cookie')?.match(/legwork_session=[a-f0-9]{64}/)?.[0];
   if(!cookie||signin.data?.user?.role!=='admin')fail('Admin session not established');
   const prepared=await request('/api/admin/backup/start',{method:'POST',data:{password:adminPassword},backupToken:false});
