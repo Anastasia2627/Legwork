@@ -31,7 +31,7 @@ test('Owner publishes an approved Mentorship quote, student sees its immutable o
  await form.locator('button[type="submit"]').click();
  await expect(page).toHaveURL(/#\/account/);
  await page.locator('.cabinet-nav [data-tab="reviews"]').click();
- await expect(page.locator('.cabinet-main')).toContainText('Quote: 25.00 USD');
+ await expect(page.locator('.cabinet-main')).toContainText('25.00 USD · 7 business days after payment confirmation');
  await expect(page.locator('.cabinet-main')).toContainText('7 business days after payment confirmation');
  await page.locator('.cabinet-nav [data-tab="overview"]').click();
  await expect(page.locator('.payment-order-list')).toContainText('mentorship');
