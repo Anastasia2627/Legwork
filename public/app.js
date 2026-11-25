@@ -370,7 +370,7 @@ function lesson(route){
  const suggested=state.lessons.filter(item=>item.id!==l.id&&item.category===l.category).slice(0,3);
  const preparations=state.lessons.filter(item=>item.id!==l.id&&item.kind==='Preparation'&&item.category===l.category).slice(0,3);
  const bundle=state.bundles.find(item=>item.lesson_ids.includes(l.id));
- const cover=l.cover_url?'<img class="lesson-detail-art" src="'+esc(l.cover_url)+'" alt="" loading="eager" decoding="async">':'<div class="lesson-detail-art is-unassigned" aria-hidden="true"></div>';
+ const cover=l.cover_url?'<img class="lesson-detail-art" src="'+esc(l.cover_url)+'" alt="" loading="eager" fetchpriority="high" decoding="async">':'<div class="lesson-detail-art is-unassigned" aria-hidden="true"></div>';
  layout(
   '<section class="section lesson-detail"><div class="section-inner"><nav class="lesson-breadcrumbs" aria-label="Breadcrumb"><a href="#/shop">Classes</a> / <a href="#/shop?category='+encodeURIComponent(l.category)+'">'+esc(l.category)+'</a> / '+esc(l.title)+'</nav><div class="lesson-detail-layout"><div class="lesson-detail-media">'+cover+'<p class="description">The paid training video is available only inside your account after access has been granted.</p><div id="playerMount"></div></div><aside class="lesson-detail-purchase"><p class="eyebrow">SVITLANA YURCHAK / CLASS LIBRARY</p><h1>'+esc(l.title)+'</h1><p class="lesson-detail-meta">'+esc(l.level||'All levels')+' · '+Number(l.duration||0)+' min · '+esc(l.category)+' · '+esc(l.equipment||'Check lesson equipment')+'</p><p class="price">'+(l.free?'FREE':money(l.price))+'</p><p>Explore this technique as an individual lesson or as part of a structured course.</p><button type="button" class="btn btn-dark" data-watch="'+l.id+'">Watch with my access ▶</button>'+(l.free?'':'<button type="button" class="btn btn-red" data-cart="'+l.id+'">Add lesson to bag</button>')+'<p class="description">Payment and access are confirmed by the school. The button above does not bypass purchase verification.</p></aside></div></div></section>'+
   section('What is included','<div class="lesson-details-list"><div><strong>TECHNIQUE</strong><span>'+esc(l.title)+'</span></div><div><strong>LEVEL</strong><span>'+esc(l.level||'All levels')+'</span></div><div><strong>TRAINING TIME</strong><span>'+Number(l.duration||0)+' minutes</span></div><div><strong>EQUIPMENT</strong><span>'+esc(l.equipment||'See the lesson for equipment')+'</span></div></div>','YOUR CLASS','muted-section')+
@@ -868,13 +868,25 @@ function showCart(){
 }
 function closeCart(restoreFocus=true){const drawer=$('#cartDrawer'),wasOpen=drawer.classList.contains('open');$('#shade').hidden=true;drawer.classList.remove('open');drawer.inert=true;$('#cartBtn').setAttribute('aria-expanded','false');if(wasOpen&&restoreFocus){const target=cartPreviousFocus?.isConnected?cartPreviousFocus:$('#cartBtn');target?.focus()}cartPreviousFocus=null}
 function updateCart(){localStorage.setItem('legwork_cart',JSON.stringify(state.cart));localStorage.setItem('legwork_bundle_cart',JSON.stringify(state.bundleCart));syncHeader()}
-async function navigate(){releaseAdminLessonPreviews();closeCart(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship'))mentorship();else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register')authPage(true);else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
+const publicOptionalLoads={};
+async function loadOptionalPublic(key){
+ const cached=publicOptionalLoads[key];
+ if(cached)return cached;
+ const promise=(key==='mentorship'?api('/mentorship/offers'):api('/email/config')).then(data=>{
+  if(key==='mentorship')state.mentorshipOffers=Array.isArray(data.offers)?data.offers:[];
+  else state.registrationOpen=data.registration_open===true;
+  return true;
+ }).catch(()=>{state.serviceIssue=true;delete publicOptionalLoads[key];return false;});
+ publicOptionalLoads[key]=promise;
+ return promise;
+}
+async function navigate(){releaseAdminLessonPreviews();closeCart(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship')){const hash=location.hash;await loadOptionalPublic('mentorship');if(location.hash===hash)mentorship();}else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register'){const hash=location.hash;await loadOptionalPublic('registration');if(location.hash===hash)authPage(true);}else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
 async function init(){
  // A partial outage (including missing deployment secrets) must never hide
  // all public content. Authentication and purchases remain server-controlled.
  const results=await Promise.allSettled([
   api('/me'),api('/courses'),api('/lessons'),
-  api('/bundles'),api('/content'),api('/media'),api('/mentorship/offers'),api('/email/config')
+  api('/bundles'),api('/content'),api('/media')
  ]);
  const data=results.map(r=>r.status==='fulfilled'?r.value:null);
  state.user=data[0]?.user||null;
@@ -883,8 +895,6 @@ async function init(){
  state.bundles=Array.isArray(data[3]?.bundles)?data[3].bundles:[];
  state.content=data[4]?.pages||EDITORIAL_DEFAULTS;
  state.media=data[5]?.assets||{};
- state.mentorshipOffers=Array.isArray(data[6]?.offers)?data[6].offers:[];
- state.registrationOpen=data[7]?.registration_open===true;
  state.serviceIssue=results.some(r=>r.status==='rejected');
  await navigate();
 }
@@ -1021,7 +1031,7 @@ else if(form.dataset.mentorOffer){
  if(published&&!askConfirmation('Publish these exact instructor-approved package terms for NEW requests?'))return;
  await api('/admin/mentorship/offers/'+encodeURIComponent(form.dataset.mentorOffer),'PATCH',
   {price_usd_cents:price,turnaround_business_days:days,published});
- state.mentorshipOffers=(await api('/mentorship/offers')).offers;
+ delete publicOptionalLoads.mentorship;await loadOptionalPublic('mentorship');
  notice('Mentorship terms saved');await adminPanel();return;
 }
 else if(form.id==='adminLessonMaterialForm'){
