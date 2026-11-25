@@ -47,7 +47,7 @@ test('Admin can filter large lesson editor list without saving or losing data',a
  await page.locator('#authForm [name="email"]').fill('Admin');
  await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
  await page.locator('#authForm button[type="submit"]').click();
- await expect(page).toHaveURL(/#\\/account/);
+ await expect(page).toHaveURL(/account/);
  await page.locator('[data-tab="admin"]').click();
  const input=page.locator('#adminLessonSearch');
  await expect(input).toBeVisible();
