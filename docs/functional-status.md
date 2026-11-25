@@ -119,3 +119,11 @@ Admin Studio supports selecting up to 50 visible lessons, including across cours
 The protected bulk endpoint validates the entire selection and allowlisted changes, then performs metadata updates and optional draft publication in one database transaction. If any selected draft is incomplete or belongs to an archived course, none of the requested changes are saved. Existing approved lessons are not unpublished. Previously created order amounts are not rewritten. Changes and the selected count appear in the privileged activity audit (without raw request contents).
 
 After a successful edit the public catalog and admin editor refresh, preserving the search and status filter but clearing selection. Publication checks saved media URL format only, not availability or rights. Integration and browser regression tests cover authorization, invalid input, all-or-nothing behavior, filtered selection, and zero-price edits.
+
+## Account lifecycle hardening
+
+Registration and recovery use the same email format checks; registration rejects non-string input and oversize names rather than truncating them. New user and initial verification token/outbox records are created in one database transaction when delivery is available. Locally suppressed mail does not invalidate an existing usable recovery link. The authenticated resend endpoint reports an unavailable address without disclosing suppression details to anonymous callers. Forgot-password continues to give a generic response for valid addresses.
+
+Changing a password invalidates all sessions and outstanding password-reset tokens; existing email verification links remain usable. Resetting through a valid recovery token revokes all sessions and unused tokens. Profile changes preserve omitted optional fields and return normalized data. The browser clears private state on logout, credential changes or an expired session; stale account responses are ignored. The password-change form requires confirmation.
+
+Account closure remains a password-confirmed, manually reviewed request, not automatic erasure: purchase records and course access are retained pending the school's approved retention/closure policy. Added an account lifecycle integration test using the local test outbox. Actual email delivery and production account flows remain release checks.
