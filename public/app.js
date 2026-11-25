@@ -412,9 +412,9 @@ function renderAdminContentReadiness(a){
   '<div class="admin-readiness-heading"><div><p class="eyebrow">SCHOOL MATERIALS</p><h3>Complete your lesson library</h3></div>'+
   '<button type="button" class="btn btn-outline btn-small" data-jump-admin="adminLessonEditor">All lesson editors</button></div>'+
   '<div class="admin-readiness-stats">'+
-   '<p><strong>'+esc(summary(videos.length,lessons.length,'videos'))+'</strong><span>Video links</span></p>'+
-   '<p><strong>'+esc(summary(covers.length,lessons.length,'covers'))+'</strong><span>Public cover images</span></p>'+
-   '<p><strong>'+esc(summary(descriptions.length,courses.length,'descriptions'))+'</strong><span>Course descriptions</span></p></div>'+
+   '<p><strong>'+esc(summary(videos.length,lessons.length,'videos'))+'</strong><span>Video sources</span></p>'+
+   '<p><strong>'+esc(summary(covers.length,lessons.length,'covers'))+'</strong><span>Cover images</span></p>'+
+   '<p><strong>'+esc(summary(descriptions.length,courses.length,'descriptions'))+'</strong><span>Descriptions</span></p></div>'+
   (pending.length?'<div class="admin-readiness-list"><h4>LESSONS TO COMPLETE <span>'+pending.length+' TOTAL</span></h4>'+priority+(pending.length>12?'<p class="description">Showing the first 12 lessons. Use All lesson editors to review the rest.</p>':'')+'</div>':
    '<p class="description">Every lesson has a video field and cover field filled. Check playback, image rights and access before publishing.</p>')+
   (descriptions.length?'<div class="admin-readiness-list"><h4>COURSES NEEDING A DESCRIPTION</h4>'+missingCourses+
@@ -720,7 +720,7 @@ else if(form.id==='resetPasswordForm'){
  const response=await api('/auth/reset-password','POST',{token,password:data.password});
  state.user=null;state.tab='overview';location.hash='#/login';await navigate();notice(response.message);return
 }
-else if(form.id==='authForm'){const r=await api('/auth/'+data.mode,'POST',data);state.user=r.user;state.tab='overview';location.hash='#/account';await navigate()}
+else if(form.id==='authForm'){const r=await api('/auth/'+data.mode,'POST',data);state.user=r.user;state.tab='overview';if(location.hash==='#/account')await navigate();else location.hash='#/account'}
 else if(form.id==='mentorshipForm'){if(!state.user){location.hash='#/login';notice('Log in before sending a mentorship request');return}const r=await api('/mentorships','POST',data);notice(r.message);location.hash='#/account'}
 else if((form.id==='subscribeForm'||form.id==='footerSubscribeForm')){const r=await api('/subscribe','POST',{email:data.email,purpose:data.purpose,consent:true});notice(r.message);form.reset();if(data.purpose==='free-lesson'){const free=state.lessons.find(l=>l.free);if(free){const current=$('#freeLessonNext');current?.remove();form.insertAdjacentHTML('afterend','<p id="freeLessonNext" role="status" class="free-lesson-next"><a href="#/lesson/'+free.id+'">Open your free introductory lesson →</a></p>')}}}
 else if(form.id==='unsubscribeForm'){const result=await api('/subscriptions/unsubscribe','POST',{token:data.token});layout(section('EMAIL PREFERENCES','<p>'+esc(result.message)+'</p>'+btn('Return to the school',''),'','','muted-section'));notice(result.message);return}
