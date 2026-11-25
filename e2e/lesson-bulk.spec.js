@@ -1,0 +1,30 @@
+import {test,expect} from '@playwright/test';
+
+test('Bulk editor submits only selected visible lessons and nonblank fields',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/account/);
+ await page.locator('[data-tab="admin"]').click();
+ const form=page.locator('#adminLessonBulkForm'),checks=page.locator('.admin-edit-lesson:not([hidden]) .admin-bulk-lesson-check');
+ await expect(form).toBeVisible();
+ await expect(form.locator('button[type="submit"]')).toBeDisabled();
+ await page.locator('#adminBulkSelect').click();
+ await expect(form.locator('button[type="submit"]')).toBeEnabled();
+ await page.locator('#adminLessonSearch').fill('Knee Circle');
+ await expect(checks).toHaveCount(1);
+ await expect(page.locator('#adminBulkCount')).toContainText('1 / 50');
+ await page.locator('#adminBulkClear').click();
+ await expect(form.locator('button[type="submit"]')).toBeDisabled();
+ await checks.first().check();
+ const id=Number(await checks.first().getAttribute('value'));
+ await form.locator('[name="level"]').fill('Advanced');
+ await form.locator('[name="price"]').fill('0');
+ await page.route('**/api/admin/lessons/bulk',route=>route.fulfill({json:{updated:1,published:0,lesson_ids:[id]}}));
+ page.once('dialog',dialog=>dialog.accept());
+ const pending=page.waitForRequest(req=>req.url().endsWith('/api/admin/lessons/bulk')&&req.method()==='POST');
+ await form.locator('button[type="submit"]').click();
+ expect((await pending).postDataJSON()).toEqual({lesson_ids:[id],changes:{level:'Advanced',price:0},publish:false,confirm:true});
+ await expect(page.locator('#adminLessonSearch')).toHaveValue('Knee Circle');
+});
