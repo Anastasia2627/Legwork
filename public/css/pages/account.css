@@ -115,3 +115,21 @@
 .admin-readiness-link{border:0;background:transparent;color:var(--red);text-decoration:underline;text-underline-offset:3px;padding:6px 0;font-weight:600}
 #adminLessonEditor,#adminCourseEditor{scroll-margin-top:100px}
 @media(max-width:640px){.admin-readiness-stats{grid-template-columns:1fr;gap:10px}.admin-readiness-heading .btn{width:100%}}
+
+/* My Library: distinguish individually owned classes from course enrollments. */
+.account-library-lesson{
+ display:flex;flex-direction:column;gap:12px;min-width:0;min-height:210px;
+ border:1px solid var(--border);padding:22px;background:var(--surface,#fff);
+ color:var(--ink,#202022);text-decoration:none;
+ transition:border-color .18s ease,transform .18s ease
+}
+.account-library-lesson:focus-visible,.account-library-lesson:hover{
+ border-color:var(--red);outline-offset:3px
+}
+.account-library-lesson .eyebrow{margin:0;color:var(--red)}
+.account-library-lesson strong{font:700 clamp(18px,2vw,26px)/1.15 var(--font-body);letter-spacing:-.03em}
+.account-library-lesson small{font:400 12px/1.5 var(--font-body);color:var(--muted)}
+.account-library-open{display:block;margin-top:auto;font:700 11px/1.4 var(--font-body);letter-spacing:.08em}
+.account-library-empty{padding:30px;max-width:580px;border:1px solid var(--border);background:var(--surface,#fff)}
+.account-library-empty p{margin:0 0 16px}
+@media(prefers-reduced-motion:reduce){.account-library-lesson{transition:none}}
