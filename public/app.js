@@ -752,6 +752,37 @@ function updateAdminLessonFilter(){
  if(label)label.textContent='Showing '+shown+' of '+cards.length;
 }
 
+// Reloading a large admin workspace must not lose the exact lesson being edited.
+function captureAdminEditorContext(form){
+ return {
+  id:form.closest('details')?.id||'',
+  isLesson:!!form.dataset.lessonFull,
+  search:$('#adminLessonSearch')?.value||'',
+  status:$('#adminLessonStatus')?.value||'all'
+ };
+}
+async function refreshAdminEditor(context){
+ await adminPanel();
+ if(context.isLesson){
+  const search=$('#adminLessonSearch'),status=$('#adminLessonStatus');
+  if(search)search.value=context.search;
+  if(status)status.value=context.status;
+  updateAdminLessonFilter();
+ }
+ const detail=context.id?document.getElementById(context.id):null;
+ if(!detail)return;
+ if(detail.hidden){
+  // A saved video/cover may no longer belong to "missing" results.
+  const search=$('#adminLessonSearch'),status=$('#adminLessonStatus');
+  if(search)search.value='';
+  if(status)status.value='all';
+  updateAdminLessonFilter();
+ }
+ detail.open=true;
+ const summary=detail.querySelector('summary');
+ summary?.scrollIntoView({block:'center',behavior:'auto'});
+ summary?.focus({preventScroll:true});
+}
 async function action(e){const target=e.target,form=target.closest('form'),button=target.closest('button,a');try{
 if(form&&e.type==='submit'){e.preventDefault();const data=formData(form);
 if(form.id==='forgotPasswordForm'){const response=await api('/auth/forgot-password','POST',{email:data.email});notice(response.message);form.reset();return}
@@ -831,8 +862,8 @@ else if(form.id==='courseForm'){await api('/admin/courses','POST',{...data,price
 else if(form.id==='lessonForm'){await api('/admin/lessons','POST',{...data,course_id:Number(data.course_id),price:Number(data.price),duration:Number(data.duration),free:form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;notice('Lesson created');await adminPanel()}
 else if(form.dataset.feedback){await api('/admin/mentorships/'+form.dataset.feedback,'PATCH',{feedback:data.feedback});notice('Feedback sent to student account');await adminPanel()}
 else if(form.dataset.mediaSlot){const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.url=await uploadPublicImage(selected);delete data.upload_image;const result=await api('/admin/media/'+encodeURIComponent(form.dataset.mediaSlot),'PATCH',data);state.media=(await api('/media')).assets;notice('Media updated');await adminPanel();return}
-else if(form.dataset.courseEdit){await api('/admin/courses/'+form.dataset.courseEdit,'PATCH',{...data,price:Number(data.price),guru_price:Number(data.guru_price)});state.courses=(await api('/courses')).courses;notice('Course updated');await adminPanel()}
-else if(form.dataset.lessonFull){const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.cover_url=await uploadPublicImage(selected);delete data.upload_image;await api('/admin/lessons/'+form.dataset.lessonFull+'/full','PATCH',{...data,price:Number(data.price),duration:Number(data.duration),free:form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;notice('Lesson details updated');await adminPanel()}
+else if(form.dataset.courseEdit){const editorContext=captureAdminEditorContext(form);await api('/admin/courses/'+form.dataset.courseEdit,'PATCH',{...data,price:Number(data.price),guru_price:Number(data.guru_price)});state.courses=(await api('/courses')).courses;await refreshAdminEditor(editorContext);notice('Course updated')}
+else if(form.dataset.lessonFull){const editorContext=captureAdminEditorContext(form);const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.cover_url=await uploadPublicImage(selected);delete data.upload_image;await api('/admin/lessons/'+form.dataset.lessonFull+'/full','PATCH',{...data,price:Number(data.price),duration:Number(data.duration),free:form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;await refreshAdminEditor(editorContext);notice('Lesson details updated')}
 else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
  const lesson_ids=[...form.querySelector('[name="lesson_ids"]').selectedOptions].map(option=>Number(option.value));
  const payload={...data,price:Number(data.price),original_price:Number(data.original_price),lesson_ids};
