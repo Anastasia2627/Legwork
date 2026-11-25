@@ -170,3 +170,7 @@
 figure.course-preview-screen.media-slot{position:relative;display:block;margin:0;overflow:hidden;aspect-ratio:16/9;min-height:0}
 figure.course-preview-screen.media-slot .media-photo{display:block;width:100%;height:100%;object-fit:cover}
 figure.course-preview-screen.media-slot figcaption{position:absolute;right:12px;bottom:7px;color:white;background:#1119;padding:3px 7px;font-size:10px}
+
+/* Generic course hero: use a neutral school placeholder if no cover is assigned. */
+.course-dynamic-placeholder{min-height:clamp(240px,34vw,440px);display:grid;place-items:center;background:#252124;color:#fff;padding:32px;border-radius:var(--radius);text-align:center;overflow-wrap:anywhere}
+.course-dynamic-placeholder span{font:400 clamp(26px,4vw,52px)/1.15 var(--font-display);max-width:100%}
