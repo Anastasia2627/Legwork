@@ -102,3 +102,38 @@ test('An unavailable waitlist does not hide course and lesson editors',async({pa
  await expect(page.locator('.admin-section-unavailable')).toContainText('Waitlist unavailable');
  await expect(page.locator('#adminCourseEditor')).toBeAttached();
 });
+
+test('Admin can move a lesson within its course without losing editor context',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\/account/);
+ await page.locator('[data-tab="admin"]').click();
+
+ const course=page.locator('#adminLessonList [data-admin-course-group="1"]');
+ await expect(course.locator('.admin-course-group-heading')).toContainText('LEGWORK');
+ await expect(course.locator('.admin-edit-lesson').first()).toBeVisible();
+ const originalFirst=await course.locator('.admin-edit-lesson').nth(0).getAttribute('id');
+ const originalSecond=await course.locator('.admin-edit-lesson').nth(1).getAttribute('id');
+ assertNotEqual(originalFirst,originalSecond);
+ const second=page.locator('#'+originalSecond);
+ await second.locator('summary').click();
+ await expect(second.locator('[name="sort_order"]')).toBeVisible();
+ await expect(second.locator('button[data-direction="up"]')).toBeEnabled();
+ await second.locator('button[data-direction="up"]').click();
+
+ await expect(course.locator('.admin-edit-lesson').first()).toHaveAttribute('id',originalSecond);
+ await expect(page.locator('#'+originalSecond)).toHaveAttribute('open','');
+ await expect(page.locator('#'+originalSecond+' [name="sort_order"]')).toHaveValue('1');
+ await expect(course.locator('.admin-edit-lesson').first().locator('button[data-direction="up"]')).toBeDisabled();
+
+ // Restore local browser-test data so other tests see the seeded syllabus.
+ await page.locator('#'+originalSecond+' button[data-direction="down"]').click();
+ await expect(course.locator('.admin-edit-lesson').first()).toHaveAttribute('id',originalFirst);
+ await expect(course.locator('.admin-edit-lesson').nth(1)).toHaveAttribute('id',originalSecond);
+});
+
+function assertNotEqual(a,b){
+ if(!a||!b||a===b)throw Error('Expected two distinct course lessons');
+}
