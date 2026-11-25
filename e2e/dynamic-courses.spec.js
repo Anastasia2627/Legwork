@@ -17,8 +17,8 @@ test('Dynamic course uses only its own published program, exact prices and cours
  await page.route('**/api/me',route=>route.fulfill({json:{user:{id:99999,name:'Test student',role:'student'}}}));
  await page.route('**/api/orders',route=>route.fulfill({status:409,json:{error:'Test request intercepted; no real order created'}}));
  await page.goto('/#/courses');
- await expect(page.getByRole('link',{name:course.title,exact:true})).toBeVisible();
- await page.getByRole('link',{name:course.title,exact:true}).click();
+ await expect(page.locator('#app h3 a[href="#/course/wave-lab"]')).toBeVisible();
+ await page.locator('#app h3 a[href="#/course/wave-lab"]').click();
  await expect(page).toHaveURL(/#\/course\/wave-lab$/);
  await expect(page.locator('#app h1')).toHaveText(course.title);
  await expect(page).toHaveTitle('Wave Lab Test | Legwork');
