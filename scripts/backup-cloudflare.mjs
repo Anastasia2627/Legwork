@@ -74,6 +74,7 @@ if(!originArg||!outputArg){
   if(!/^[a-f0-9]{64}$/.test(token||''))fail('Server did not issue a short-lived backup token');
   const {data:manifest}=await request('/api/admin/backup/manifest');
   if(manifest.format!=='LEGWORK-PORTABLE-1')fail('Unsupported backup protocol');
+  const pages=[];
   async function* chunks(){
    yield {type:'manifest',data:manifest};
    for(const table of manifest.tables){
@@ -84,7 +85,10 @@ if(!originArg||!outputArg){
      const page=(await request('/api/admin/backup/table/'+encodeURIComponent(table.name)+'?offset='+offset+'&limit='+pageSize)).data;
      const wanted=Math.min(pageSize,table.rows-offset);
      if(page.table!==table.name||page.offset!==offset||page.rows.length!==wanted)fail('Table changed during backup: '+table.name);
-     yield {type:'table',name:table.name,offset,rows:page.rows};
+     const digest=crypto.createHash('sha256').update(JSON.stringify(page.rows)).digest('hex');
+     if(page.sha256!==digest)fail('Page digest mismatch or server export protocol is outdated: '+table.name);
+     pages.push({name:table.name,offset,limit:pageSize,count:wanted,digest});
+     yield {type:'table',name:table.name,offset,rows:page.rows,sha256:digest};
     }
    }
    for(const item of manifest.images){
@@ -93,6 +97,12 @@ if(!originArg||!outputArg){
     const sha=crypto.createHash('sha256').update(data).digest('hex');
     if(data.length!==item.bytes||sha!==response.headers.get('x-legwork-sha256'))fail('Image changed during export: '+item.name);
     yield {type:'image',name:item.name,data_base64:data.toString('base64'),sha256:sha};
+   }
+   // A row update can leave table counts unchanged. Re-read content digests
+   // without downloading the private rows again before accepting the archive.
+   for(const p of pages){
+    const checked=(await request('/api/admin/backup/table/'+encodeURIComponent(p.name)+'?offset='+p.offset+'&limit='+p.limit+'&digest=1')).data;
+    if(checked.table!==p.name||checked.offset!==p.offset||checked.count!==p.count||checked.sha256!==p.digest)fail('Table content changed during backup: '+p.name+'; retry during maintenance');
    }
    const ending=(await request('/api/admin/backup/manifest')).data;
    if(fingerprint(ending)!==fingerprint(manifest))fail('Database records or images changed during export; retry in a maintenance window');
@@ -104,7 +114,7 @@ if(!originArg||!outputArg){
   console.log('Encrypted backup verified locally:',check.tables,'tables,',check.rows,'rows,',check.images,'images.');
   console.log('Saved to',output);
   console.log('Copy it to access-controlled storage outside Cloudflare. This is not an automatic recurring backup.');
-  console.log('This read-only export is not a transactionally consistent snapshot during concurrent writes.');
+  console.log('Two-pass row digest checks passed. This is not an atomic snapshot; use a maintenance window.');
  }catch(error){
   // Only remove an archive THIS command wrote. Never delete an existing
   // owner backup on a filename conflict, authentication or network error.
@@ -115,5 +125,6 @@ if(!originArg||!outputArg){
   if(token&&origin){
    try{await request('/api/admin/backup/finish',{method:'POST',data:{}})}catch{}
   }
+  if(cookie&&origin){try{await request('/api/auth/logout',{method:'POST',data:{},backupToken:false})}catch{}}
  }
 }
