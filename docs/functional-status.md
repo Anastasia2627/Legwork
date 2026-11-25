@@ -76,7 +76,15 @@ verification flow must still be tested by the owner before public registration.
 ## Course publication workflow
 
 - New courses created through Admin Studio are drafts (`active=0`). Drafts and their lesson listings are excluded from public course/lesson APIs; ordinary learners cannot watch draft lessons, update progress, or add them to a published bundle.
-- The administrator must save the course description, prices, and at least one lesson. Each lesson requires a syntactically valid YouTube URL and public cover URL before the explicit Publish action is accepted. The server checks these requirements again inside the publication transaction.
-- Publication is one-way in this interface. Existing published courses are not changed. Hiding sold courses and individual lessons in an already published course requires a separate entitlement-aware workflow. Legacy API callers that omit the explicit draft flag retain their previous creation behavior.
+- The administrator must save the course description, prices, and approve at least one lesson. Each approved lesson requires a syntactically valid YouTube URL and public cover URL before the explicit course Publish action is accepted. Unapproved lesson drafts remain hidden. The server checks these requirements again inside the publication transaction.
+- Publication is one-way in this interface. Existing published courses are not changed. Hiding sold courses or previously published lessons requires a separate entitlement-aware workflow. Legacy API callers that omit the explicit draft flag retain their previous creation behavior.
 - The public Legwork Lab landing page remains specific to Legwork Lab; separate editorial landing pages and navigation for additional courses are not created by publication.
 - Publication checks URL format, not actual playback, file existence, licensing, legal approval, mail delivery, or real payment readiness. Do not treat publication as approval to charge customers.
+
+## Independent lesson drafts
+
+New lessons created through Admin Studio use the explicit draft flag and start with `published=0`. The additive SQLite migration defaults existing rows to 1, preserving previous public listings and student access. Legacy admin API callers that omit the draft flag retain their previous behavior.
+
+Save the details, then choose Publish Lesson and confirm. The server validates the saved price, duration, YouTube URL and cover URL; these are format checks, not confirmation of licensing or playback. In a draft course this action approves a lesson for later course publication; an approved lesson in a published course becomes visible immediately. Unapproved lessons are excluded from public catalog responses, student syllabus, progress and certificate requirements, private materials, homework operations, and new lesson/bundle purchases. Admins can preview and attach materials to draft lessons.
+
+Publication is one-way; already published lessons are not withdrawn. Publishing a new lesson expands the current syllabus and completion requirements for students who have not received a certificate. Existing issued certificates are not revoked; the existing certificate-lock policy remains unchanged. Reversible publication, versioned curricula and post-certificate assignment policies require a separate design.
