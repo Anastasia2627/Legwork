@@ -60,7 +60,7 @@ test('Production registrations require a separate manual launch after email setu
  const instances=[];
  try{
   // Even with mail SMTP variables, production must not open registration by accident.
-  const configured=await start({directory:dir,indexing:false,mode:'production',smtpEnabled:true,registrationFlag:false});
+  const configured=await start({directory:await mkdtemp(path.join(dir,'case-with-mail-')),indexing:false,mode:'production',smtpEnabled:true,registrationFlag:false});
   instances.push(configured);
   const config=await fetch(configured.url+'/api/email/config').then(r=>r.json());
   assert.equal(config.enabled,true);
@@ -73,7 +73,7 @@ test('Production registrations require a separate manual launch after email setu
   assert.match((await attempt.json()).error,/not yet open/);
 
   // A launch flag without working mail must still fail closed.
-  const noMail=await start({directory:dir,indexing:false,mode:'production',registrationFlag:true});
+  const noMail=await start({directory:await mkdtemp(path.join(dir,'case-no-mail-')),indexing:false,mode:'production',registrationFlag:true});
   instances.push(noMail);
   const config2=await fetch(noMail.url+'/api/email/config').then(r=>r.json());
   assert.equal(config2.enabled,false);
