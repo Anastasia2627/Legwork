@@ -65,7 +65,15 @@ test('Overlapping purchases, late approvals and review-required invoices cannot 
   assert.ok(history.body.payments.some(p=>p.id===second.body.attempt_id&&p.order_ids.includes(course.body.id)));
   // The second buyer's refunded/voided pending invoice is held even if no access was granted.
   const other=await post('/api/auth/register',{name:'Other',email:'review@example.org',password:'StrongUniqueTestPassword#1234'});
+  const bundle=await post('/api/admin/bundles',{title:'Payment conflict bundle',slug:'payment-conflict-bundle',direction:'Legwork',price:2000,original_price:3000,lesson_ids:[3,4]},admin.cookie);
+  assert.equal(bundle.status,201);
+  const bundleOrder=await post('/api/orders/bundle',{bundle_id:bundle.body.id},other.cookie);
+  assert.equal(bundleOrder.status,201);
+  const change=await response(base,'/api/admin/bundles/'+bundle.body.id,{method:'PATCH',cookie:admin.cookie,data:{lesson_ids:[4,5]}});
+  assert.equal(change.status,409);
   const item=await post('/api/orders',{kind:'lesson',item_id:3},other.cookie);
+  assert.equal((await checkout([bundleOrder.body.id,item.body.id])).status,409); // foreign orders must also be rejected
+  assert.equal((await post('/api/payments/checkout',{order_ids:[bundleOrder.body.id,item.body.id]},other.cookie)).status,409);
   const held=await post('/api/payments/checkout',{order_ids:[item.body.id]},other.cookie);
   assert.equal(held.status,201);
   assert.equal((await notify(held.body,'Voided')).status,200);
