@@ -6,7 +6,8 @@ test('Homepage restores the full story and teaching options in the premium desig
  await expect(page.locator('.home-story .home-journey-item')).toHaveCount(5);
  await expect(page.locator('.home-method .home-method-item')).toHaveCount(4);
  await expect(page.locator('.home-courses .home-program-primary')).toHaveCount(1);
- await expect(page.locator('.home-courses .home-program-link')).toHaveCount(2);
+ await expect(page.locator('.home-courses .home-program-link')).toHaveCount(0);
+ await expect(page.locator('.home-program-grid')).toHaveClass(/is-single/);
  await expect(page.locator('.home-recognition .home-tabs button')).toHaveCount(3);
  await expect(page.locator('.home-free-invite')).toBeVisible();
  await expect(page.locator('.home-program-primary')).toHaveAttribute('href','#/course');
