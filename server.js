@@ -316,6 +316,50 @@ app.post('/api/admin/lessons',auth,admin,(req,res)=>{
    cleanText(body.level,40)||'Beginner',duration,price,url,cover,body.free===true?1:0,order,published);
  res.status(201).json({id:r.lastInsertRowid,published});
 });
+// Apply an explicitly selected set of fields in a single transaction.
+// No entitlement, media, title, free status or lesson order changes are allowed here.
+app.post('/api/admin/lessons/bulk',auth,admin,(req,res)=>{
+ const {lesson_ids:ids,changes={},publish=false,confirm}=req.body||{};
+ const fields={category:50,kind:50,level:50,equipment:50,teacher:100,focus:80,tags:280};
+ if(confirm!==true||!Array.isArray(ids)||ids.length<1||ids.length>50||ids.some(id=>!Number.isSafeInteger(id)||id<1)||new Set(ids).size!==ids.length||typeof publish!=='boolean'||!changes||typeof changes!=='object'||Array.isArray(changes))
+  return res.status(400).json({error:'Select 1–50 distinct lessons and confirm the changes'});
+ const patch={};
+ for(const [key,value] of Object.entries(changes)){
+  if(key==='price'){
+   if(!validCents(value))return res.status(400).json({error:'Price must be whole USD cents between 0 and 100000000'});
+   patch.price=value;
+  }else if(Object.hasOwn(fields,key)){
+   if(typeof value!=='string'||!value.trim()||value.trim().length>fields[key])return res.status(400).json({error:'Invalid bulk field: '+key});
+   const cleaned=cleanText(value,fields[key]);
+   if(!cleaned)return res.status(400).json({error:'Invalid bulk field: '+key});
+   patch[key]=cleaned;
+  }else return res.status(400).json({error:'Unsupported bulk field'});
+ }
+ const keys=Object.keys(patch);
+ if(!keys.length&&!publish)return res.status(400).json({error:'Choose at least one field or publication'});
+ const result=db.transaction(()=>{
+  const get=db.prepare('SELECT l.*,c.active AS course_active FROM lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=?');
+  const rows=ids.map(id=>get.get(id));
+  const missing=ids.filter((id,i)=>!rows[i]);
+  if(missing.length)return {status:404,error:'One or more selected lessons no longer exist',lesson_ids:missing};
+  const drafts=publish?rows.filter(l=>l.published!==1):[];
+  const blocked=drafts.filter(l=>l.course_active===2||!String(l.title||'').trim()||!validCents(patch.price??l.price)||!validLessonMinutes(l.duration)||!youtubeVideoId(l.video_url)||!safePublicImageUrl(l.cover_url,safeExternalUrl));
+  if(blocked.length)return {status:409,error:'No changes saved. Some drafts lack valid saved materials or belong to archived courses: '+blocked.map(l=>l.id).join(', '),lesson_ids:blocked.map(l=>l.id)};
+  // Column names come only from the server-side allowlist.
+  if(keys.length){
+   const update=db.prepare('UPDATE lessons SET '+keys.map(k=>k+'=?').join(',')+' WHERE id=?');
+   for(const row of rows)update.run(...keys.map(k=>patch[k]),row.id);
+  }
+  if(drafts.length){
+   const approve=db.prepare('UPDATE lessons SET published=1 WHERE id=? AND published=0');
+   for(const row of drafts)approve.run(row.id);
+  }
+  return {status:200,updated:keys.length?rows.length:0,published:drafts.length,lesson_ids:ids};
+ })();
+ const {status,...body}=result;
+ res.setHeader('Cache-Control','private, no-store');
+ return res.status(status).json(body);
+});
 // Publish saved materials only; there is deliberately no unpublish action.
 app.post('/api/admin/lessons/:id/publish',auth,admin,(req,res)=>{
  const id=Number(req.params.id);
