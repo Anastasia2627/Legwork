@@ -33,3 +33,26 @@ export function courseLearningProgress(courseId, allLessons, progress) {
   progress
  );
 }
+
+/** Prioritize unfinished purchased/enrolled lessons over public previews.
+ * Within each course, keep the saved syllabus order. Never call a completed
+ * lesson "next"; callers can explicitly offer a revisit instead.
+ */
+export function studentLearningModel(lessons,dashboard,role='student'){
+ const accessible=accessibleLessons(lessons,dashboard,role);
+ const enrollments=new Map((dashboard?.enrollments||[]).map(c=>[Number(c.id),c]));
+ const singles=new Set((dashboard?.lessonAccess||[]).map(Number));
+ const progress=new Map((dashboard?.progress||[]).map(row=>[Number(row.lesson_id),row]));
+ const groups=new Map();
+ for(const lesson of accessible){
+  const id=Number(lesson.course_id);
+  if(!groups.has(id))groups.set(id,[]);
+  groups.get(id).push(lesson);
+ }
+ const ordered=[...groups.values()].flatMap(rows=>rows.sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||Number(a.id)-Number(b.id)));
+ const purchased=ordered.filter(l=>enrollments.has(Number(l.course_id))||singles.has(Number(l.id)));
+ const previews=ordered.filter(l=>!purchased.includes(l));
+ const isDone=l=>completed(progress.get(Number(l.id))?.completed);
+ const unfinished=[...purchased,...previews].find(l=>!isDone(l))||null;
+ return {ordered,purchased,previews,unfinished,revisit:unfinished?null:(purchased[0]||ordered[0]||null),progress,groups,enrollments};
+}
