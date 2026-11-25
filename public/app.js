@@ -938,6 +938,22 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   return;
  }
 
+ if(button.dataset.adminReorder){
+  e.preventDefault();
+  const row=button.closest('details.admin-edit-lesson');
+  const form=row?.querySelector('form[data-lesson-full]');
+  if(!form)return;
+  const editorContext=captureAdminEditorContext(form);
+  const id=Number(button.dataset.adminReorder),direction=button.dataset.direction;
+  if(!Number.isSafeInteger(id)||id<1||!['up','down'].includes(direction))return;
+  button.disabled=true;
+  const result=await api('/admin/lessons/'+id+'/reorder','POST',{direction});
+  if(!result.moved){button.disabled=false;notice('This lesson is already at the '+(direction==='up'?'beginning':'end')+' of its course');return}
+  state.lessons=(await api('/lessons')).lessons;
+  await refreshAdminEditor(editorContext);
+  notice(direction==='up'?'Lesson moved earlier in the course':'Lesson moved later in the course');
+  return;
+ }
  if(button.dataset.jumpAdmin){
   e.preventDefault();
   const el=document.getElementById(button.dataset.jumpAdmin);
