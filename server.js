@@ -93,7 +93,7 @@ app.use('/api',(req,res,next)=>{
 registerResendSuppressionAdminRoutes(app,db,{auth,admin,verifyPassword});
 registerMentorshipCommerceRoutes(app,db,{auth,admin});
 audit.registerRoutes(auth,admin);
-if(prod&&!mail.enabled)console.warn('Email delivery unavailable: public registration disabled until SMTP is configured');
+if(prod&&!mail.registrationOpen)console.warn('Public registration closed until email delivery is verified and REGISTRATION_OPEN=true');
 db.exec('CREATE INDEX IF NOT EXISTS sessions_user_expiry_idx ON sessions(user_id,expires_at DESC)');
 const login=(u,res)=>{
  const token=newToken(),digest=tokenHash(token),ttlSeconds=u.role==='admin'?43200:604800;
@@ -107,7 +107,7 @@ const login=(u,res)=>{
  res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role}});
 };
 app.get('/api/me',(req,res)=>res.json({user:current(req)}));
-app.post('/api/auth/register',(req,res)=>{if(prod&&!mail.enabled)return res.status(503).json({error:'Registration requires email delivery configuration'});const name=cleanText(req.body.name,80),email=cleanText(req.body.email,254).toLowerCase(),password=req.body.password;if(!name||!/^.+@.+\..+$/.test(email)||typeof password!=='string'||password.length<12||password.length>128)return res.status(400).json({error:'Name, valid email and 12–128 character password required'});try{const r=db.prepare('INSERT INTO users(email,name,password_hash) VALUES(?,?,?)').run(email,name,hashPassword(password));mail.signup({id:Number(r.lastInsertRowid),email,name,role:'student'});login({id:r.lastInsertRowid,email,name,role:'student'},res)}catch{res.status(409).json({error:'Email already registered'})}});
+app.post('/api/auth/register',(req,res)=>{if(prod&&!mail.registrationOpen)return res.status(503).json({error:'Student registration is not yet open. Email delivery must be verified first.'});const name=cleanText(req.body.name,80),email=cleanText(req.body.email,254).toLowerCase(),password=req.body.password;if(!name||!/^.+@.+\..+$/.test(email)||typeof password!=='string'||password.length<12||password.length>128)return res.status(400).json({error:'Name, valid email and 12–128 character password required'});try{const r=db.prepare('INSERT INTO users(email,name,password_hash) VALUES(?,?,?)').run(email,name,hashPassword(password));mail.signup({id:Number(r.lastInsertRowid),email,name,role:'student'});login({id:r.lastInsertRowid,email,name,role:'student'},res)}catch{res.status(409).json({error:'Email already registered'})}});
 const dummyLoginHash=hashPassword('not-an-actual-login-account','0123456789abcdef0123456789abcdef');
 app.post('/api/auth/login',(req,res)=>{
  const id=cleanText(req.body?.email,254).toLowerCase(),p=req.body?.password;
