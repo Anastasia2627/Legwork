@@ -20,12 +20,11 @@ test('Reference system uses bold condensed typography, true red CTAs and graysca
  expect(design.body).toBe('rgb(255, 255, 255)');
  await expect(page.locator('.home-program-primary')).toContainText('LEGWORK');
  await expect(page.locator('.home-program-primary')).toContainText('BOSS');
- await expect(page.locator('.home-program-link')).toHaveCount(2);
- await expect(page.locator('.home-program-link')).toContainText(['WAVE LIKE A BOSS','SPLIT LIKE A BOSS']);
- await expect(page.locator('.home-program-link a')).toHaveCount(0);
+ await expect(page.locator('.home-program-link')).toHaveCount(0);
+ await expect(page.locator('.home-program-grid')).toHaveClass(/is-single/);
 });
 
-test('Courses menu distinguishes a published course from future courses',async({page})=>{
+test('Courses menu exposes published courses without invented future offers',async({page})=>{
  await page.goto('/#/');
  if(await page.locator('#menuBtn').isVisible()){
   await page.locator('#menuBtn').click();
@@ -36,8 +35,10 @@ test('Courses menu distinguishes a published course from future courses',async({
  await expect(toggle).toHaveAttribute('aria-expanded','true');
  await expect(page.locator('#coursesPopup')).toBeVisible();
  await expect(page.locator('#coursesPopup a[href="#/course"]')).toHaveCount(1);
- await expect(page.locator('#coursesPopup')).toContainText('Coming soon');
- await page.locator('#coursesPopup a').click();
+ await expect(page.locator('#coursesPopup')).toContainText('Available course');
+ await expect(page.locator('#coursesPopup')).not.toContainText('Coming soon');
+ await expect(page.locator('#coursesPopup a[href="#/courses"]')).toHaveCount(1);
+ await page.locator('#coursesPopup a[href="#/course"]').click();
  await expect(page).toHaveURL(/#\/course/);
 });
 
