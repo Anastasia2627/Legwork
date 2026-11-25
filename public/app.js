@@ -8,7 +8,7 @@ import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,pa
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
 const readBundleCart=()=>{try{const ids=JSON.parse(localStorage.getItem('legwork_bundle_cart')||'[]');return Array.isArray(ids)?[...new Set(ids.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
-const state={user:null,courses:[],lessons:[],bundles:[],mentorshipOffers:[],content:null,media:{},dashboard:null,admin:null,cart:readCart(),bundleCart:readBundleCart(),lang:localStorage.getItem('legwork_lang')==='es'?'es':'en',tab:'overview',serviceIssue:false,emailEnabled:false};
+const state={user:null,courses:[],lessons:[],bundles:[],mentorshipOffers:[],content:null,media:{},dashboard:null,admin:null,cart:readCart(),bundleCart:readBundleCart(),lang:localStorage.getItem('legwork_lang')==='es'?'es':'en',tab:'overview',serviceIssue:false,registrationOpen:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=c=>'$'+(c/100).toFixed(0);
 const t=(en,es)=>state.lang==='es'?es:en;
@@ -303,7 +303,7 @@ function mentorship(){
 function authPage(register=false){
  // Real production registrations require verified email delivery; local tests
  // remain supported over HTTP, and existing students can still sign in.
- if(register&&location.protocol==='https:'&&!state.emailEnabled){
+ if(register&&location.protocol==='https:'&&!state.registrationOpen){
   const heading=t('REGISTRATION IS NOT OPEN YET','EL REGISTRO AÚN NO ESTÁ ABIERTO');
   const details=t('We are preparing secure email confirmation for new students. You can explore the courses now; registration will open once email delivery is ready.','Estamos preparando la confirmación de correo para nuevos estudiantes. Puedes explorar los cursos mientras tanto.');
   layout(section(heading,'<div class="auth-panel"><p class="description">'+details+'</p><div class="auth-wait-actions"><a class="btn btn-dark" href="#/shop">'+t('EXPLORE CLASSES','VER CLASES')+'</a><a class="btn btn-outline" href="#/login">'+t('EXISTING STUDENT? LOG IN','¿YA TIENES CUENTA? ENTRA')+'</a></div></div>',t('YOUR PERSONAL LEARNING SPACE','TU ESPACIO DE APRENDIZAJE'),'muted-section'));
@@ -643,7 +643,7 @@ async function init(){
  state.content=data[4]?.pages||EDITORIAL_DEFAULTS;
  state.media=data[5]?.assets||{};
  state.mentorshipOffers=Array.isArray(data[6]?.offers)?data[6].offers:[];
- state.emailEnabled=data[7]?.enabled===true;
+ state.registrationOpen=data[7]?.registration_open===true;
  state.serviceIssue=results.some(r=>r.status==='rejected');
  await navigate();
 }
