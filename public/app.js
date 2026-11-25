@@ -466,7 +466,9 @@ async function account(){
   lessons:['dashboard'],reviews:['dashboard','homeworkReviews'],achievements:['achievement','certificateData'],profile:['deletionStatus','sessionStatus']
  }[tab]||['dashboard'];
  const endpoints={dashboard:'/dashboard',achievement:'/account/achievements',homeworkReviews:'/account/homework-reviews',paymentConfig:'/payments/config',paymentHistory:'/payments/mine',emailStatus:'/account/email-status',certificateData:'/account/certificates',deletionStatus:'/account/deletion-request',sessionStatus:'/account/sessions'};
- const data=Object.fromEntries(await Promise.all(needed.map(async key=>[key,await api(endpoints[key])])));
+ let data;
+ try{data=Object.fromEntries(await Promise.all(needed.map(async key=>[key,await api(endpoints[key])])));}
+ catch(error){if(current())layout(shell('<div class="account-library-empty" role="alert"><h2>'+t('Unable to load account','No se pudo cargar la cuenta')+'</h2><p>'+esc(error.message)+'</p><button type="button" class="btn btn-outline" data-tab="'+tab+'">'+t('Try again','Reintentar')+'</button></div>'));return;}
  if(!current())return;
  const d=data.dashboard||{enrollments:[],lessonAccess:[],progress:[],mentorships:[],orders:[]},achievement=data.achievement||{streak:0,badges:[],completed:0},homeworkReviews=data.homeworkReviews||{reviews:[]},paymentConfig=data.paymentConfig,paymentHistory=data.paymentHistory||{payments:[]},emailStatus=data.emailStatus,certificateData=data.certificateData||{certificates:[]},deletionStatus=data.deletionStatus,sessionStatus=data.sessionStatus;
  if(data.dashboard)state.dashboard=d;
