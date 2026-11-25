@@ -56,49 +56,40 @@ or production-verified backup. It must still be run from the owner's private com
 
 Official API: https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/#pitr-point-in-time-recovery-api
 
-## Email sender: Resend + Cloudflare (without adding billing)
+## Email sender: Resend + Cloudflare (with controlled registration)
 
-The **public website** may remain on `workers.dev`, but the email sender
-must use a domain or subdomain you control and verify in Resend; the
-`workers.dev` hostname is not your own verified sender domain.
+The complete setup and owner-operated production launch steps now live in
+**[registration-launch.md](registration-launch.md)**. In particular,
+`RESEND_API_KEY` and `MAIL_FROM` are necessary but are **not enough**
+to open public student registrations. Production `REGISTRATION_OPEN` defaults
+to false and must be deliberately set to `true` only after staging,
+real-inbox verification and reset tests pass.
 
-1. Set up a sender in Resend and verify its DNS records (SPF/DKIM as required)
-   before any live school registrations.
-2. In **Cloudflare → Workers & Pages → legwork-school → Settings →
-   Variables and Secrets**, save `RESEND_API_KEY` as a **secret** and
-   `MAIL_FROM` as the matching verified sender, e.g.
-   `LEGWORK <hello@your-real-domain.example>`.
-3. Ensure `SITE_ORIGIN` is the exact deployed HTTPS origin and
-   `SESSION_SECRET` / `ADMIN_PASSWORD` are secure. Never put values of
-   these secrets in GitHub or screenshots. Keep `PAYMENT_PROVIDER=disabled`.
-4. Redeploy using **Build: `npm run build`** and **Deploy:
-   `npx wrangler deploy`**. Check `/health` and `/api/email/config`.
-   `enabled:true` only means configuration is present, not that your real
-   mailbox or domain is verified.
-5. Create a disposable student account using **a real inbox you own**.
-   Confirm that its 24-hour email verification link arrives, can be used
-   once and allows the account to make purchase requests. Test a password
-   reset (30-minute expiry and one-time use), the old session becoming
-   invalid, and a second login with the changed password.
-6. In Admin Studio → **Email Delivery Health**, review accepted, pending
-   and failed outbox counts. If the sender configuration was broken, fix it
-   first, then use **Retry up to 10 failed emails**. Failed emails are
-   encrypted in storage and the API returns only aggregate counts.
-   The Resend request carries a stable `Idempotency-Key` per outbox event
-   (provider deduplication window is 24 hours); older manually retried
-   messages may still need independent reconciliation.
-7. Check the real mailbox and Resend delivery logs. Neither a `200` from
-   the mail API nor an outbox entry marked `sent` proves inbox delivery.
+The public website may remain on `workers.dev`, while Resend needs an
+owned, verified sending domain. The provider's DNS records must be copied
+exactly from its dashboard, and webhook signing uses the separate
+`RESEND_WEBHOOK_SECRET` secret.
 
-The repository's automated tests exercise token validation, resend limits,
-password rotation, permission checks, provider-HTTP request construction
-and retry authorization with mocks. **They do not send a real production email**.
+To configure production email while keeping registration closed:
+
+1. Verify the sending domain and provider configuration.
+2. Add production runtime secrets `RESEND_API_KEY`,
+   `RESEND_WEBHOOK_SECRET` and public `MAIL_FROM` in Cloudflare
+   **Worker → Settings → Variables and Secrets**, not Build variables.
+3. Explicitly set runtime `REGISTRATION_OPEN=false`; leave
+   `PAYMENT_PROVIDER=disabled` and existing database secrets alone.
+4. Confirm `/api/email/config` reports `enabled:true` with
+   `registration_open:false`. Check admin email health, sender logs
+   and webhook signatures.
+5. Perform real-inbox tests on isolated staging, then enable
+   registration intentionally according to the launch runbook.
+
+The repository includes mocked token, expiration, receipt, retry and webhook
+tests; these **do not** prove production inbox delivery.
 
 Official docs:
 - https://resend.com/docs
-- https://resend.com/changelog/idempotency-keys
-- https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/
-
+- https://developers.cloudflare.com/workers/configuration/environment-variables/
 
 ## Resend delivery webhooks (added to the backend)
 
