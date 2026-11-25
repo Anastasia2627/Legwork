@@ -27,3 +27,12 @@ test('a failed public API request cannot replace the entire school with a connec
  assert.match(source,/state\.serviceIssue=results\.some/);
  assert.ok(!source.includes("layout(section('Connection error'"));
 });
+
+test('production signup is held until the email verification service is ready',()=>{
+ assert.match(source,/api\('\/email\/config'\)/);
+ assert.match(source,/state\.emailEnabled=data\[7\]\?\.enabled===true/);
+ assert.match(source,/register&&location\.protocol==='https:'&&!state\.emailEnabled/);
+ assert.ok(source.includes('REGISTRATION IS NOT OPEN YET'));
+ assert.ok(source.includes('EXISTING STUDENT? LOG IN'));
+ assert.ok(stylesheet.includes('.auth-wait-actions'));
+});
