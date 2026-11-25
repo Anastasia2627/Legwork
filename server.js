@@ -113,7 +113,7 @@ const login=(u,res)=>{
  res.setHeader('Cache-Control','private, no-store');
  res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role}});
 };
-app.get('/api/me',(req,res)=>res.json({user:current(req)}));
+app.get('/api/me',(req,res)=>res.json({user:current(req)||null}));
 app.post('/api/auth/register',(req,res)=>{
  if(prod&&!mail.registrationOpen)return res.status(503).json({error:'Student registration is not yet open. Email delivery must be verified first.'});
  const body=req.body||{},name=typeof body.name==='string'?body.name.trim():'',email=typeof body.email==='string'?body.email.trim().toLowerCase():'',password=body.password;
