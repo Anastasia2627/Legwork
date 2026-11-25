@@ -21,6 +21,8 @@ test('Student account shows real accessible progress and a useful My Lessons vie
  await page.locator('#studyComplete').click();
  await expect(page.locator('#studyComplete')).toContainText(/Completed|Completada/);
  await page.goto('/#/account');
+ // Switching back from the course player preserves the last cabinet tab.
+ await page.locator('.cabinet-nav [data-tab="overview"]').click();
  await expect(page.locator('.account-continue')).toContainText('1 / 1 LESSONS · 100% COMPLETE');
  await expect(page.locator('.account-continue [role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
 });
