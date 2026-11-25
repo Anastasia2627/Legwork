@@ -41,3 +41,25 @@ test('Admin material checklist opens the exact lesson editor without mutating co
  await expect(editor.locator('[name="video_url"]')).toBeVisible();
  await expect(editor.locator('[name="upload_image"]')).toBeVisible();
 });
+
+test('Admin can filter large lesson editor list without saving or losing data',async({page})=>{
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/#\\/account/);
+ await page.locator('[data-tab="admin"]').click();
+ const input=page.locator('#adminLessonSearch');
+ await expect(input).toBeVisible();
+ await input.fill('Knee Circle');
+ await expect(page.locator('#adminLessonList .admin-edit-lesson:visible')).toHaveCount(1);
+ await expect(page.locator('#adminLessonCount')).toContainText('Showing 1 of');
+ await expect(page.locator('#adminLessonList .admin-edit-lesson:visible summary')).toContainText('Knee Circle');
+ await page.locator('#adminLessonStatus').selectOption('missing-video');
+ await expect(page.locator('#adminLessonList .admin-edit-lesson:visible')).toHaveCount(1);
+ await page.locator('#adminLessonStatus').selectOption('complete');
+ await expect(page.locator('#adminLessonList .admin-edit-lesson:visible')).toHaveCount(0);
+ await input.fill('');
+ await page.locator('#adminLessonStatus').selectOption('all');
+ await expect(page.locator('#adminLessonList .admin-edit-lesson:visible').first()).toBeVisible();
+});
