@@ -195,3 +195,16 @@
 .admin-preview-note{max-width:640px;margin:12px 0 0;color:var(--muted);font:400 11px/1.5 var(--font-body)}
 @media(max-width:470px){.admin-lesson-preview{padding:14px}.admin-preview-top{align-items:flex-start;flex-direction:column;gap:3px}.admin-preview-top small{text-align:left}.admin-preview-layout{grid-template-columns:105px minmax(0,1fr);gap:12px}.admin-preview-copy h4{font-size:19px}}
 @media(max-width:360px){.admin-preview-layout{grid-template-columns:1fr}.admin-preview-cover{max-width:240px}}
+
+/* Course-first lesson editing, with deliberate sequence controls. */
+.admin-course-group{display:block;margin:24px 0 28px;min-width:0}
+.admin-course-group[hidden]{display:none!important}
+.admin-course-group-heading{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border);padding:0 0 11px;margin:0 0 8px}
+.admin-course-group-heading h4{margin:0;font:700 clamp(16px,2.3vw,21px)/1.2 var(--font-body);letter-spacing:-.015em}
+.admin-course-group-heading span{font:500 11px/1.5 var(--font-body);color:var(--muted)}
+.admin-order-badge{display:inline-block;min-width:2em;margin-right:12px;color:var(--red);font:700 12px/1.3 var(--font-body);letter-spacing:.04em}
+.admin-lesson-order-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding:13px 0;margin:0 0 16px}
+.admin-lesson-order-actions span{margin-right:auto;font:500 12px/1.5 var(--font-body);color:var(--muted)}
+.admin-lesson-order-actions .btn[disabled]{opacity:.4;cursor:not-allowed}
+#adminLessonNoResults:not([hidden]){display:block;padding:20px;border:1px solid var(--border)}
+@media(max-width:640px){.admin-course-group-heading{align-items:flex-start;flex-direction:column}.admin-lesson-order-actions span{width:100%}.admin-lesson-order-actions .btn{flex:1 1 auto;min-width:90px}}
