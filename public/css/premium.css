@@ -324,3 +324,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .drawer-head{display:flex;align-items:flex-start;gap:12px;min-width:0}
 .drawer-head h2{min-width:0;flex:1 1 auto;margin:0}
 .drawer-head #closeCart{position:relative;z-index:2;display:grid;place-items:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;touch-action:manipulation}
+
+/* Registration is intentionally held until production email verification works. */
+.auth-wait-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.auth-wait-actions .btn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+@media(max-width:520px){.auth-wait-actions{flex-direction:column}.auth-wait-actions .btn{width:100%}}
