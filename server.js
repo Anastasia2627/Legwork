@@ -122,7 +122,7 @@ app.post('/api/auth/register',(req,res)=>{
   user=db.transaction(()=>{
    const result=db.prepare('INSERT INTO users(email,name,password_hash) VALUES(?,?,?)').run(email,name,hashPassword(password));
    const created={id:Number(result.lastInsertRowid),email,name,role:'student'};
-   mail.signup(created);
+   mail.signup(created,true);
    return created;
   })();
  }catch(err){
