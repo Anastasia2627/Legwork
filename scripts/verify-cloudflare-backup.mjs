@@ -24,6 +24,6 @@ try{
  if(!process.argv[2])throw Error('Usage: npm run backup:verify -- ./backups/name.legwork-backup');
  const passphrase=await hidden('Backup encryption passphrase: ');
  const result=await verifyEncryptedBackup(path.resolve(process.argv[2]),passphrase);
- console.log('VERIFIED offline:',result.tables,'tables,',result.rows,'rows,',result.images,'images.');
- console.log('Temporary plaintext database and image files were deleted after verification.');
+ console.log('VERIFIED offline:',result.tables,'tables,',result.rows,'rows,',result.images,'images,',result.privateFiles,'private attachments.');
+ console.log('Temporary plaintext verification files were removed (not guaranteed securely erased).');
 }catch(error){console.error('Backup verification failed:',error.message);process.exitCode=1}
