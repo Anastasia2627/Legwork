@@ -5,8 +5,21 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
+import http from 'node:http';
 
 const openPort=()=>new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p))})});
+// Node fetch/Undici may normalize Host; exercise the real proxy request with
+// node:http so the exact Host and X-Forwarded-Proto reach Express.
+const proxyGet=(url,headers)=>new Promise((resolve,reject)=>{
+ const req=http.get(url,{headers},res=>{
+  const chunks=[];
+  res.on('data',chunk=>chunks.push(chunk));
+  res.on('error',reject);
+  res.on('end',()=>resolve({status:res.statusCode,text:async()=>Buffer.concat(chunks).toString('utf8')}));
+ });
+ req.setTimeout(10000,()=>req.destroy(Error('Proxy request timed out')));
+ req.on('error',reject);
+});
 const start=async({directory,indexing,mode,smtpEnabled=false,registrationFlag=false})=>{
  const port=await openPort(),url='http://127.0.0.1:'+port;
  const env={...process.env,PORT:String(port),NODE_ENV:mode,ADMIN_PASSWORD:'Ephemeral-Testing-Only-Secret-456789',SESSION_SECRET:'legwork-temporary-test-secret-unique-2026-12345',DATABASE_PATH:path.join(directory,indexing?'indexed.sqlite':'unindexed.sqlite'),TRUST_PROXY_HOPS:'1',SITE_ORIGIN:mode==='production'?'https://legwork.example':url,PUBLIC_INDEXING_ENABLED:indexing?'true':'false',PAYMENT_PROVIDER:'disabled',REGISTRATION_OPEN:registrationFlag?'true':'false',
@@ -44,12 +57,14 @@ test('Production opt-in sitemap contains only public pages and uses the configur
   service=await start({directory:dir,indexing:true,mode:'production'});
   const headers={Host:'legwork.example','X-Forwarded-Proto':'https'};
   assert.equal((await fetch(service.url+'/sitemap.xml')).status,404);
-  const sitemap=await fetch(service.url+'/sitemap.xml',{headers});
+  assert.equal((await proxyGet(service.url+'/sitemap.xml',{Host:'other.example','X-Forwarded-Proto':'https'})).status,404);
+  assert.equal((await proxyGet(service.url+'/sitemap.xml',{Host:'legwork.example','X-Forwarded-Proto':'http'})).status,404);
+  const sitemap=await proxyGet(service.url+'/sitemap.xml',headers);
   assert.equal(sitemap.status,200);const xml=await sitemap.text();
   for(const route of ['/','/course','/courses','/shop','/mentorship','/es','/es/course','/es/mentorship'])assert.ok(xml.includes('<loc>https://legwork.example'+route+'</loc>'),route);
   assert.ok(!xml.includes('account'));assert.ok(!xml.includes('payment'));assert.ok(!xml.includes('study'));
-  const robots=await fetch(service.url+'/robots.txt',{headers});assert.match(await robots.text(),/Sitemap: https:\/\/legwork\.example\/sitemap\.xml/);
-  const catalog=await fetch(service.url+'/shop',{headers});const html=await catalog.text();
+  const robots=await proxyGet(service.url+'/robots.txt',headers);assert.match(await robots.text(),/Sitemap: https:\/\/legwork\.example\/sitemap\.xml/);
+  const catalog=await proxyGet(service.url+'/shop',headers);const html=await catalog.text();
   assert.match(html,/<meta name="robots" content="index,follow"/);
   assert.match(html,/<title>Online Dance Classes &amp; Bundles \| Legwork<\/title>/);
   assert.match(html,/<meta property="og:url" content="https:\/\/legwork\.example\/shop"/);
