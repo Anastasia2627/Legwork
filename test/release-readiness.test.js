@@ -9,7 +9,7 @@ import net from 'node:net';
 const openPort=()=>new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p))})});
 const start=async({directory,indexing,mode,smtpEnabled=false,registrationFlag=false})=>{
  const port=await openPort(),url='http://127.0.0.1:'+port;
- const env={...process.env,PORT:String(port),NODE_ENV:mode,ADMIN_PASSWORD:'Ephemeral-Testing-Only-Secret-456789',SESSION_SECRET:'legwork-temporary-test-secret-unique-2026-12345',DATABASE_PATH:path.join(directory,indexing?'indexed.sqlite':'unindexed.sqlite'),SITE_ORIGIN:mode==='production'?'https://legwork.example':url,PUBLIC_INDEXING_ENABLED:indexing?'true':'false',PAYMENT_PROVIDER:'disabled',REGISTRATION_OPEN:registrationFlag?'true':'false',
+ const env={...process.env,PORT:String(port),NODE_ENV:mode,ADMIN_PASSWORD:'Ephemeral-Testing-Only-Secret-456789',SESSION_SECRET:'legwork-temporary-test-secret-unique-2026-12345',DATABASE_PATH:path.join(directory,indexing?'indexed.sqlite':'unindexed.sqlite'),TRUST_PROXY_HOPS:'1',SITE_ORIGIN:mode==='production'?'https://legwork.example':url,PUBLIC_INDEXING_ENABLED:indexing?'true':'false',PAYMENT_PROVIDER:'disabled',REGISTRATION_OPEN:registrationFlag?'true':'false',
   SMTP_HOST:smtpEnabled?'smtp.invalid':'',SMTP_FROM:smtpEnabled?'LEGWORK <school@example.org>':'',SMTP_PORT:smtpEnabled?'587':'',SMTP_USER:smtpEnabled?'unused-test-user':'',SMTP_PASSWORD:smtpEnabled?'unused-test-password':''};
  const child=spawn(process.execPath,['server.js'],{env,cwd:process.cwd(),stdio:['ignore','pipe','pipe']});
  let errors='';child.stderr.on('data',chunk=>errors+=chunk.toString());
@@ -42,12 +42,14 @@ test('Production opt-in sitemap contains only public pages and uses the configur
  const dir=await mkdtemp(path.join(tmpdir(),'legwork-index-'));let service;
  try{
   service=await start({directory:dir,indexing:true,mode:'production'});
-  const sitemap=await fetch(service.url+'/sitemap.xml');
+  const headers={Host:'legwork.example','X-Forwarded-Proto':'https'};
+  assert.equal((await fetch(service.url+'/sitemap.xml')).status,404);
+  const sitemap=await fetch(service.url+'/sitemap.xml',{headers});
   assert.equal(sitemap.status,200);const xml=await sitemap.text();
-  for(const route of ['/','/course','/shop','/mentorship'])assert.ok(xml.includes('<loc>https://legwork.example'+route+'</loc>'),route);
+  for(const route of ['/','/course','/courses','/shop','/mentorship','/es','/es/course','/es/mentorship'])assert.ok(xml.includes('<loc>https://legwork.example'+route+'</loc>'),route);
   assert.ok(!xml.includes('account'));assert.ok(!xml.includes('payment'));assert.ok(!xml.includes('study'));
-  const robots=await fetch(service.url+'/robots.txt');assert.match(await robots.text(),/Sitemap: https:\/\/legwork\.example\/sitemap\.xml/);
-  const catalog=await fetch(service.url+'/shop');const html=await catalog.text();
+  const robots=await fetch(service.url+'/robots.txt',{headers});assert.match(await robots.text(),/Sitemap: https:\/\/legwork\.example\/sitemap\.xml/);
+  const catalog=await fetch(service.url+'/shop',{headers});const html=await catalog.text();
   assert.match(html,/<meta name="robots" content="index,follow"/);
   assert.match(html,/<title>Online Dance Classes &amp; Bundles \| Legwork<\/title>/);
   assert.match(html,/<meta property="og:url" content="https:\/\/legwork\.example\/shop"/);
