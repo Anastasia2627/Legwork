@@ -207,6 +207,25 @@ function bundlePage(route){
  const lessons=b.lesson_ids.map(id=>state.lessons.find(l=>l.id===id)).filter(Boolean);
  layout(section(esc(b.title),'<p class="eyebrow"><a href="#/shop">CLASSES</a> / '+esc(b.direction)+' / BUNDLE</p><div class="grid grid-2"><div>'+bundleCard(b)+'</div><div><p class="description">'+esc(b.description)+'</p><p class="eyebrow">'+lessons.length+' INCLUDED LESSONS</p><div class="stack">'+lessons.map(l=>'<a class="item-row row" href="#/lesson/'+l.id+'"><span>'+esc(l.title)+'</span><span>'+esc(l.level)+' · '+l.duration+' min</span></a>').join('')+'</div><p class="description">One request grants access to every lesson in this bundle after independent payment confirmation.</p><button type="button" class="btn btn-red" data-cart-bundle="'+b.id+'">ADD COMPLETE BUNDLE TO BAG</button></div></div>','BUILD YOUR PRACTICE'));
 }
+let shopSearchTimer=null;
+function applyShopSearch(value,restoreFocus=false,caret=null){
+ if(!location.hash.startsWith('#/shop'))return;
+ const params=new URLSearchParams(location.hash.split('?')[1]||'');
+ const term=String(value||'').trim().slice(0,120);
+ if(term)params.set('q',term);else params.delete('q');
+ const next='#/shop'+(params.toString()?'?'+params.toString():'');
+ if(next===location.hash)return;
+ const scroll=window.scrollY;
+ // One replaceState per search avoids browser-history entries for every key.
+ history.replaceState(null,'',next);
+ shop();
+ if(restoreFocus){
+  const input=$('#shopSearch');
+  input?.focus({preventScroll:true});
+  if(input&&Number.isInteger(caret)){try{input.setSelectionRange(Math.min(caret,input.value.length),Math.min(caret,input.value.length))}catch{}}
+ }
+ window.scrollTo(0,scroll);
+}
 function shop(){
  const q=new URLSearchParams(location.hash.split('?')[1]||'');
  const query={search:q.get('q')||'',category:q.get('category')||'',level:q.get('level')||'',kind:q.get('kind')||'',teacher:q.get('teacher')||'',equipment:q.get('equipment')||'',focus:q.get('focus')||'',duration:q.get('duration')||''};
@@ -248,13 +267,13 @@ function shop(){
  };
  const categoryLinks=categories.map(c=>'<a href="'+hrefFor(c,'')+'" '+(query.category===c?'aria-current="page"':'')+'>'+esc(c)+'</a>').join('');
  const filterNames={category:'Direction',kind:'Type',equipment:'Equipment',level:'Level',focus:'Focus',teacher:'Teacher',duration:'Duration'};
- const activeChips=Object.entries(filterNames).filter(([key])=>query[key]).map(([key,label])=>'<button type="button" class="shop-active-chip" data-shop-filter="'+key+'" data-shop-value="'+esc(query[key])+'">'+label+': '+esc(query[key])+' <span aria-hidden="true">×</span></button>').join('');
+ const activeChips=(query.search?'<button type="button" class="shop-active-chip" data-shop-search-clear="1" aria-label="Remove search term '+esc(query.search)+'">Search: '+esc(query.search)+' <span aria-hidden="true">×</span></button>':'')+Object.entries(filterNames).filter(([key])=>query[key]).map(([key,label])=>'<button type="button" class="shop-active-chip" data-shop-filter="'+key+'" data-shop-value="'+esc(query[key])+'">'+label+': '+esc(query[key])+' <span aria-hidden="true">×</span></button>').join('');
  const results=lessons.map(l=>lessonCard(l)).join('')+bundles.map(bundleCard).join('');
  layout(
   '<section class="shop-heading"><div class="section-inner"><h1>CLASSES</h1><p>Learn only what you need right now.</p></div></section>'+
 
   '<section class="shop-main"><div class="shop-layout"><div class="shop-filter-shade" id="shopFilterShade" hidden></div>'+sidebar+
-  '<div class="shop-catalog"><div class="shop-search-row"><label class="sr-only" for="shopSearch">Search classes by name or hashtag</label><input class="field" id="shopSearch" type="search" placeholder="Search a lesson or #hashtag (#kneecircle, #legwave)" value="'+esc(query.search)+'"><button type="button" id="shopFiltersToggle" aria-controls="shopFilterPanel" aria-expanded="false">Filters <span aria-hidden="true">☷</span></button></div>'+
+  '<div class="shop-catalog"><div class="shop-search-row"><label class="sr-only" for="shopSearch">Search classes by name or hashtag</label><input class="field" id="shopSearch" type="search" placeholder="Search a lesson or #hashtag (#kneecircle, #legwave)" value="'+esc(query.search)+'"><button type="button" id="shopSearchApply" aria-label="Search classes">Search</button><button type="button" id="shopFiltersToggle" aria-controls="shopFilterPanel" aria-expanded="false">Filters <span aria-hidden="true">☷</span></button></div>'+
   '<nav class="shop-category-links" aria-label="Class directions"><a href="#/shop" '+(!query.category?'aria-current="page"':'')+'>All</a>'+categoryLinks+'</nav>'+
   (active?'<div class="shop-results-head"><div><p class="shop-overline">FILTERED CLASSES</p><h2>Search results</h2></div><div class="shop-results-meta">'+(lessons.length+bundles.length)+' found</div></div><div class="shop-active-filters">'+activeChips+'<button type="button" class="shop-clear" data-shop-clear="1">Clear all</button></div><div class="shop-results-grid">'+(results||'<p class="shop-empty">No lessons match these filters. Try changing your selection.</p>')+'</div>':
   categories.map(shelf).join('')||'<p class="shop-empty">Classes will appear here once the school library is published.</p>')+
@@ -819,6 +838,13 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   if(open)$('#shopFiltersClose')?.focus();else toggle.focus();
   return
  }
+ if(button.id==='shopSearchApply'){
+  e.preventDefault();clearTimeout(shopSearchTimer);
+  const input=$('#shopSearch');applyShopSearch(input?.value||'',true,input?.selectionStart??null);return;
+ }
+ if(button.dataset.shopSearchClear){
+  e.preventDefault();clearTimeout(shopSearchTimer);applyShopSearch('',false);return;
+ }
  if(button.dataset.shopFilter){
   const key=button.dataset.shopFilter,value=button.dataset.shopValue||'',params=new URLSearchParams(location.hash.split('?')[1]||'');
   params.get(key)===value?params.delete(key):params.set(key,value);
@@ -886,7 +912,7 @@ document.addEventListener('keydown',e=>{
   else if(!e.shiftKey&&(document.activeElement===last||!drawer.contains(document.activeElement))){e.preventDefault();first.focus()}
  }
 });$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
-document.addEventListener('change',e=>{if(e.target.id==='mentorshipPackage'){$('#deepFields')?.classList.toggle('hidden',e.target.value!=='Deep');sessionStorage.setItem('legwork_package',e.target.value)}if(['filterCategory','filterLevel','filterKind','filterTeacher','filterEquipment','filterFocus','filterDuration'].includes(e.target.id)){const p=new URLSearchParams(location.hash.split('?')[1]||'');const key={filterCategory:'category',filterLevel:'level',filterKind:'kind',filterTeacher:'teacher',filterEquipment:'equipment',filterFocus:'focus',filterDuration:'duration'}[e.target.id];e.target.value?p.set(key,e.target.value):p.delete(key);location.hash='#/shop?'+p;}});document.addEventListener('keydown',e=>{if(e.target.id==='shopSearch'&&e.key==='Enter'){const p=new URLSearchParams(location.hash.split('?')[1]||'');e.target.value?p.set('q',e.target.value):p.delete('q');location.hash='#/shop?'+p}});document.querySelector('.skip-link')?.addEventListener('click',e=>{e.preventDefault();$('#app').focus()});window.addEventListener('hashchange',navigate);
+document.addEventListener('change',e=>{if(e.target.id==='mentorshipPackage'){$('#deepFields')?.classList.toggle('hidden',e.target.value!=='Deep');sessionStorage.setItem('legwork_package',e.target.value)}if(['filterCategory','filterLevel','filterKind','filterTeacher','filterEquipment','filterFocus','filterDuration'].includes(e.target.id)){const p=new URLSearchParams(location.hash.split('?')[1]||'');const key={filterCategory:'category',filterLevel:'level',filterKind:'kind',filterTeacher:'teacher',filterEquipment:'equipment',filterFocus:'focus',filterDuration:'duration'}[e.target.id];e.target.value?p.set(key,e.target.value):p.delete(key);location.hash='#/shop?'+p;}});document.addEventListener('input',e=>{if(e.target.id!=='shopSearch')return;clearTimeout(shopSearchTimer);const value=e.target.value,caret=e.target.selectionStart;shopSearchTimer=setTimeout(()=>applyShopSearch(value,true,caret),300)});document.addEventListener('keydown',e=>{if(e.target.id==='shopSearch'&&e.key==='Enter'){e.preventDefault();clearTimeout(shopSearchTimer);applyShopSearch(e.target.value,true,e.target.selectionStart)}});document.querySelector('.skip-link')?.addEventListener('click',e=>{e.preventDefault();$('#app').focus()});window.addEventListener('hashchange',navigate);
 window.addEventListener('scroll',()=>{const sticky=$('#courseSticky'),hero=$('.ref-course-hero');if(sticky&&hero){const navigationHeight=document.querySelector('.header')?.getBoundingClientRect().height||64;sticky.classList.toggle('visible',hero.getBoundingClientRect().bottom<=navigationHeight)}},{passive:true});
 document.addEventListener('click',e=>{const anchor=e.target.closest('a[href="#/course#prices"],a[href="#/mentorship#request"]');if(!anchor)return;if(location.hash===anchor.getAttribute('href')){e.preventDefault();document.getElementById(anchor.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'})}});
 init();
