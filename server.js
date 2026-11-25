@@ -26,6 +26,7 @@ import {registerResendWebhooks,registerResendSuppressionAdminRoutes} from './lib
 import {registerCertificateRoutes} from './lib/certificates.js';
 import {registerEditorialRoutes} from './lib/editorial.js';
 import {EDITORIAL_DEFAULTS} from './lib/editorial.js';
+import {publicSeoModel,renderPublicSeo,sitemapXml,robotsText,seoIndexAllowed} from './lib/public-seo.js';
 const app=express(),port=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==='production',dbPath=process.env.DATABASE_PATH||'./data/legwork.sqlite';
 const siteOrigin=(()=>{try{const u=new URL(process.env.SITE_ORIGIN||'http://localhost:3000');return u.pathname==='/'&&!u.username&&!u.password&&!u.search&&!u.hash?u.origin:null}catch{return null}})();
 if(prod&&(!siteOrigin||!siteOrigin.startsWith('https://')))throw Error('Production SITE_ORIGIN must be a public HTTPS origin without a path');
@@ -442,39 +443,23 @@ registerOperationsRoutes(app,db,{auth,admin,mail});
 app.get('/api/admin/backup',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,reason:'Portable Cloudflare export is available only inside the live SQLite Durable Object.'}));
 app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
+// Public metadata is derived only from published catalog and editorial copy.
+app.get('/api/public-seo',(req,res)=>{
+ const route=req.query.path;
+ if(typeof route!=='string'||route.length>120)return res.status(400).json({error:'Invalid public path'});
+ const model=publicSeoModel(db,route);
+ if(!model)return res.status(404).json({error:'Public page not found'});
+ res.json(model);
+});
 // Public, crawlable paths are deliberately limited to editorial landing pages.
-// Never expose payments, classroom, certificates or admin URLs to a sitemap.
-// Read the current HTML for each request in development so a git pull cannot mix
-// new JS/CSS with a previously cached HTML document in a still-running server.
 const htmlTemplatePath=path.resolve('public/index.html');
 const productionHtmlTemplate=prod?fs.readFileSync(htmlTemplatePath,'utf8'):null;
 const currentHtmlTemplate=()=>prod?productionHtmlTemplate:fs.readFileSync(htmlTemplatePath,'utf8');
-const seoRoutes={
- '/':{page:'home',title:'Svitlana Yurchak | Online Dance School',description:'Explore exotic pole dance classes, Legwork Lab and personal dance mentorship.'},
- '/course':{page:'course',title:'Legwork Lab | Online Dance Course',description:'Learn the Legwork Lab technique through a structured online course.'},
- '/shop':{page:'shop',title:'Online Dance Classes & Bundles | Legwork',description:'Browse individual pole dance technique classes and lesson bundles.'},
- '/mentorship':{page:'mentorship',title:'Dance Video Mentorship | Legwork',description:'Receive personal dance video feedback and technique guidance.'}
-};
-const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[x]));
-const seoCopy=(route)=>{
- const entry=seoRoutes[route];if(!entry)return null;
- if(!['home','course','mentorship'].includes(entry.page))return entry;
- try{
-  const stored=db.prepare('SELECT content_json FROM editorial_content WHERE page=? AND lang=?').get(entry.page,'en');
-  const parsed=stored?JSON.parse(stored.content_json):{};
-  const defaults=EDITORIAL_DEFAULTS[entry.page].en;
-  return {...entry,title:String(parsed.metaTitle||defaults.metaTitle).slice(0,100),description:String(parsed.metaDescription||defaults.metaDescription).slice(0,170),heading:String(parsed.headline||[parsed.headlineTop||defaults.headlineTop,parsed.headlineAccent||defaults.headlineAccent].join(' ')).slice(0,170),intro:String(parsed.intro||defaults.intro).slice(0,380)};
- }catch{return entry}
-};
-app.get('/robots.txt',(req,res)=>{
- res.type('text/plain').set('Cache-Control','no-store');
- res.send(indexingEnabled?'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: '+siteOrigin+'/sitemap.xml\n':'User-agent: *\nDisallow: /\n');
-});
+const indexForRequest=req=>seoIndexAllowed({enabled:indexingEnabled,stage:process.env.DEPLOYMENT_STAGE||'production',origin:siteOrigin,requestOrigin:req.protocol+'://'+req.get('host')});
+app.get('/robots.txt',(req,res)=>res.type('text/plain').set('Cache-Control','no-store').send(robotsText(siteOrigin,indexForRequest(req))));
 app.get('/sitemap.xml',(req,res)=>{
- if(!indexingEnabled)return res.status(404).type('text/plain').send('Not available before publication');
- res.type('application/xml').set('Cache-Control','public, max-age=3600');
- const urls=Object.keys(seoRoutes).map(route=>'<url><loc>'+escapeHtml(siteOrigin+route)+'</loc></url>').join('');
- res.send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls+'</urlset>');
+ if(!indexForRequest(req))return res.status(404).type('text/plain').set('Cache-Control','no-store').send('Not available before publication');
+ res.type('application/xml').set('Cache-Control','public, max-age=300').send(sitemapXml(siteOrigin,publicSeoModel(db,'sitemap').paths));
 });
 app.get('/health',(req,res)=>{
  try{db.prepare('SELECT 1 AS ready').get();res.set('Cache-Control','no-store').json({ok:true})}
@@ -484,25 +469,12 @@ app.use(express.static('public',{extensions:['html'],index:false,setHeaders:(res
  if(file.endsWith('.html')){res.setHeader('Cache-Control','no-store');res.setHeader('X-Robots-Tag','noindex, nofollow')}
  else if(/\.(?:js|css)$/.test(file))res.setHeader('Cache-Control',prod?'public, max-age=300':'no-store');
 }}));
-app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
- const info=seoCopy(req.path),canonical=(siteOrigin||'http://localhost:3000')+req.path;
- const title=escapeHtml(info.title),desc=escapeHtml(info.description);
- const indexAllowed=indexingEnabled;
- const heading=escapeHtml(info.heading||info.title),intro=escapeHtml(info.intro||info.description);
- const tags=[
- '<meta name="robots" content="'+(indexAllowed?'index,follow':'noindex,nofollow')+'" data-index-enabled="'+String(indexAllowed)+'">',
- '<link rel="canonical" href="'+escapeHtml(canonical)+'">',
- '<meta property="og:type" content="website">',
- '<meta property="og:title" content="'+title+'">',
- '<meta property="og:description" content="'+desc+'">',
- '<meta property="og:url" content="'+escapeHtml(canonical)+'">',
- '<meta name="twitter:card" content="summary">'
- ].join('');
- const html=currentHtmlTemplate().replace(/<title>[^<]*<\/title>/,'<title>'+title+'</title>')
-  .replace(/<meta name="description" content="[^"]*">/,'<meta name="description" content="'+desc+'">')
-  .replace('</head>',tags+'</head>')
-  .replace('<div class="loading">Preparing your experience…</div>','<section class="seo-fallback"><h1>'+heading+'</h1><p>'+intro+'</p></section>');
- res.type('html').set('Cache-Control','no-store').set('X-Robots-Tag',indexAllowed?'index, follow':'noindex, nofollow').send(html);
+app.get(['/', '/courses','/course','/course/:slug','/shop','/mentorship','/es','/es/course','/es/mentorship'],(req,res)=>{
+ const model=publicSeoModel(db,req.path);
+ if(!model)return res.status(404).set('X-Robots-Tag','noindex, nofollow').type('text/plain').send('Page not found');
+ if(req.path!==model.path)return res.redirect(301,model.path);
+ const indexAllowed=indexForRequest(req);
+ res.type('html').set('Cache-Control','no-store').set('X-Robots-Tag',indexAllowed?'index, follow':'noindex, nofollow').send(renderPublicSeo(currentHtmlTemplate(),model,siteOrigin||'http://localhost:3000',indexAllowed));
 });
 app.get('*',(req,res)=>res.status(404).set('X-Robots-Tag','noindex, nofollow').type('text/plain').send('Page not found'));
 app.use((err,req,res,next)=>{if(res.headersSent)return next(err);if(err.type==='entity.too.large')return res.status(413).json({error:'Request body too large'});if(err.type==='entity.parse.failed')return res.status(400).json({error:'Invalid request body'});console.error('API error:',err.code||err.name||'unknown');res.status(500).json({error:'Internal server error'})});
