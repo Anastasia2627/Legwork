@@ -55,6 +55,12 @@ test('Archiving course sales preserves enrolled and individually purchased acces
   const overview=await request('/api/admin/overview',{cookie:admin});
   const uid=overview.body.users.find(u=>u.email==='archive-student@example.org').id;
   assert.equal((await request('/api/admin/enroll',{method:'POST',cookie:admin,data:{user_id:uid,course_id:cid,tier:'guru'}})).status,200);
+  const bundle=await request('/api/admin/bundles',{method:'POST',cookie:admin,data:{title:'Archive test bundle',slug:'archive-test-bundle',direction:'Legwork',price:1000,original_price:2000,lesson_ids:[paid[0].id,paid[1].id]}});
+  assert.equal(bundle.status,201);
+  const bundleOrder=await request('/api/orders/bundle',{method:'POST',cookie:outsider,data:{bundle_id:bundle.body.id}});
+  assert.equal(bundleOrder.status,201);
+  assert.equal((await request(archive,{method:'POST',cookie:admin,data:{confirm:true}})).status,409);
+  assert.equal((await request('/api/orders/'+bundleOrder.body.id+'/cancel',{method:'POST',cookie:outsider,data:{}})).status,200);
   const order=await request('/api/orders',{method:'POST',cookie:buyer,data:{kind:'lesson',item_id:paid[0].id}});
   assert.equal(order.status,201);
   assert.equal((await request(archive,{method:'POST',cookie:admin,data:{confirm:true}})).status,409);
@@ -64,6 +70,8 @@ test('Archiving course sales preserves enrolled and individually purchased acces
   assert.equal((await request(archive,{method:'POST',cookie:admin,data:{confirm:true}})).status,200);
   assert.equal((await request('/api/courses')).body.courses.some(c=>c.id===cid),false);
   assert.equal((await request('/api/lessons')).body.lessons.some(l=>l.course_id===cid),false);
+  assert.equal((await request('/api/bundles')).body.bundles.some(b=>b.id===bundle.body.id),false);
+  assert.equal((await request('/api/orders/bundle',{method:'POST',cookie:outsider,data:{bundle_id:bundle.body.id}})).status,404);
   assert.equal((await request('/api/orders',{method:'POST',cookie:outsider,data:{kind:'course',item_id:cid}})).status,404);
   assert.equal((await request('/api/lessons/'+free.id+'/watch',{cookie:outsider})).status,403);
   assert.equal((await request('/api/learning/'+paid[0].id,{cookie:student})).status,200);
@@ -81,6 +89,7 @@ test('Archiving course sales preserves enrolled and individually purchased acces
   assert.equal((await request('/api/account/certificates',{cookie:student})).body.certificates.find(c=>c.course_id===cid).total,lessons.length);
   assert.equal((await request(restore,{method:'POST',cookie:admin,data:{confirm:true}})).status,200);
   assert.equal((await request('/api/courses')).body.courses.some(c=>c.id===cid),true);
+  assert.equal((await request('/api/bundles')).body.bundles.some(b=>b.id===bundle.body.id),true);
   assert.equal((await request('/api/lessons/'+free.id+'/watch',{cookie:outsider})).status,200);
   assert.equal((await request('/api/dashboard',{cookie:student})).body.archived_lessons.length,0);
  }finally{
