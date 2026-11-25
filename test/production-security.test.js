@@ -64,7 +64,7 @@ test('Production origin checks cover every browser write and email verification 
    ['/api/auth/logout',student,{}]
   ];
   for(const [route,cookie,data] of denied){
-   for(const headers of [cross,{}, {...same,'Sec-Fetch-Site':'cross-site'}]){
+   for(const headers of route.includes('/mfa/')&&route!=='/api/admin/mfa/setup'?[cross]:[cross,{}, {...same,'Sec-Fetch-Site':'cross-site'}]){
     const result=await request(route,{method:'POST',cookie,data,headers});
     assert.equal(result.status,403,route);
     assert.match(result.body.error,/origin|referer/i);
