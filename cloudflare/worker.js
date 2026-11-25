@@ -47,6 +47,7 @@ export class LegworkStore extends DurableObject {
         WAYFORPAY_SECRET_KEY: this.env.WAYFORPAY_SECRET_KEY || '',
         WAYFORPAY_UAH_PER_USD: this.env.WAYFORPAY_UAH_PER_USD || '',
         PAYMENT_PROVIDER: this.env.PAYMENT_PROVIDER || 'disabled',
+        REGISTRATION_OPEN: this.env.REGISTRATION_OPEN || 'false',
         PUBLIC_INDEXING_ENABLED: 'false',
         TRUST_PROXY_HOPS: '1',
         DEPLOYMENT_STAGE: deployment.stage,
