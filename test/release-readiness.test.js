@@ -7,9 +7,10 @@ import path from 'node:path';
 import net from 'node:net';
 
 const openPort=()=>new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p))})});
-const start=async({directory,indexing,mode})=>{
+const start=async({directory,indexing,mode,smtpEnabled=false,registrationFlag=false})=>{
  const port=await openPort(),url='http://127.0.0.1:'+port;
- const env={...process.env,PORT:String(port),NODE_ENV:mode,ADMIN_PASSWORD:'Ephemeral-Testing-Only-Secret-456789',SESSION_SECRET:'legwork-temporary-test-secret-unique-2026-12345',DATABASE_PATH:path.join(directory,indexing?'indexed.sqlite':'unindexed.sqlite'),SITE_ORIGIN:mode==='production'?'https://legwork.example':url,PUBLIC_INDEXING_ENABLED:indexing?'true':'false',PAYMENT_PROVIDER:'disabled',SMTP_HOST:'',SMTP_FROM:''};
+ const env={...process.env,PORT:String(port),NODE_ENV:mode,ADMIN_PASSWORD:'Ephemeral-Testing-Only-Secret-456789',SESSION_SECRET:'legwork-temporary-test-secret-unique-2026-12345',DATABASE_PATH:path.join(directory,indexing?'indexed.sqlite':'unindexed.sqlite'),SITE_ORIGIN:mode==='production'?'https://legwork.example':url,PUBLIC_INDEXING_ENABLED:indexing?'true':'false',PAYMENT_PROVIDER:'disabled',REGISTRATION_OPEN:registrationFlag?'true':'false',
+  SMTP_HOST:smtpEnabled?'smtp.invalid':'',SMTP_FROM:smtpEnabled?'LEGWORK <school@example.org>':'',SMTP_PORT:smtpEnabled?'587':'',SMTP_USER:smtpEnabled?'unused-test-user':'',SMTP_PASSWORD:smtpEnabled?'unused-test-password':''};
  const child=spawn(process.execPath,['server.js'],{env,cwd:process.cwd(),stdio:['ignore','pipe','pipe']});
  let errors='';child.stderr.on('data',chunk=>errors+=chunk.toString());
  let healthy=false;for(let i=0;i<80;i++){try{healthy=(await fetch(url+'/health')).ok;if(healthy)break}catch{}await new Promise(r=>setTimeout(r,100))}
@@ -51,4 +52,45 @@ test('Production opt-in sitemap contains only public pages and uses the configur
   assert.match(html,/<title>Online Dance Classes &amp; Bundles \| Legwork<\/title>/);
   assert.match(html,/<meta property="og:url" content="https:\/\/legwork\.example\/shop"/);
  }finally{service?.child.kill('SIGTERM');await rm(dir,{recursive:true,force:true})}
+},{timeout:30000});
+
+
+test('Production registrations require a separate manual launch after email setup',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'legwork-register-release-'));
+ const instances=[];
+ try{
+  // Even with mail SMTP variables, production must not open registration by accident.
+  const configured=await start({directory:dir,indexing:false,mode:'production',smtpEnabled:true,registrationFlag:false});
+  instances.push(configured);
+  const config=await fetch(configured.url+'/api/email/config').then(r=>r.json());
+  assert.equal(config.enabled,true);
+  assert.equal(config.registration_open,false);
+  const attempt=await fetch(configured.url+'/api/auth/register',{
+   method:'POST',headers:{'Content-Type':'application/json',Origin:'https://legwork.example'},
+   body:JSON.stringify({name:'Preview Student',email:'preview@example.org',password:'LongPassword-Preview-1234'})
+  });
+  assert.equal(attempt.status,503);
+  assert.match((await attempt.json()).error,/not yet open/);
+
+  // A launch flag without working mail must still fail closed.
+  const noMail=await start({directory:dir,indexing:false,mode:'production',registrationFlag:true});
+  instances.push(noMail);
+  const config2=await fetch(noMail.url+'/api/email/config').then(r=>r.json());
+  assert.equal(config2.enabled,false);
+  assert.equal(config2.registration_open,false);
+  const attempt2=await fetch(noMail.url+'/api/auth/register',{
+   method:'POST',headers:{'Content-Type':'application/json',Origin:'https://legwork.example'},
+   body:JSON.stringify({name:'Preview Student',email:'another@example.org',password:'LongPassword-Preview-1234'})
+  });
+  assert.equal(attempt2.status,503);
+  // Existing administrator login must remain possible during the closed launch.
+  const login=await fetch(noMail.url+'/api/auth/login',{
+   method:'POST',headers:{'Content-Type':'application/json',Origin:'https://legwork.example'},
+   body:JSON.stringify({email:'admin',password:'Ephemeral-Testing-Only-Secret-456789'})
+  });
+  assert.equal(login.status,200);
+ }finally{
+  for(const service of instances)service.child.kill('SIGTERM');
+  await rm(dir,{recursive:true,force:true});
+ }
 },{timeout:30000});
