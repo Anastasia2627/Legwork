@@ -249,3 +249,11 @@
 .student-library-group .account-section-head h3{overflow-wrap:anywhere}
 .student-library-group .grid{min-width:0}
 @media(max-width:550px){.student-library-tools>label{width:100%}.student-feedback-card{flex-direction:column}.student-feedback-card .btn{width:100%}.student-next-actions{grid-template-columns:1fr}}
+
+/* Stable, low-cost loading placeholders. Respect reduced-motion preferences. */
+.account-skeleton{display:grid;gap:20px;max-width:100%;min-height:420px;padding:12px 0}
+.account-skeleton span{display:block;min-height:118px;border-radius:4px;background:#f0eded;background-image:linear-gradient(90deg,#f0eded 25%,#f8f7f7 50%,#f0eded 75%);background-size:200% 100%;animation:account-placeholder 1.5s linear infinite}
+.account-skeleton span:first-child{width:46%;min-height:36px}
+.account-skeleton span:nth-child(2){min-height:190px}
+@keyframes account-placeholder{from{background-position:200% 0}to{background-position:0 0}}
+@media(prefers-reduced-motion:reduce){.account-skeleton span{animation:none;background-image:none}}
