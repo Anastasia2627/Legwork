@@ -439,9 +439,23 @@ function renderAdminContentReadiness(a){
  const covers=lessons.filter(l=>!String(l.cover_url||'').trim());
  const descriptions=courses.filter(c=>!String(c.description||'').trim());
  const summary=(missing,total,unit)=>missing?missing+' of '+total+' '+unit+' need attention':'All '+total+' '+unit+' filled';
- const pending=lessons.filter(l=>!l.video_url||!l.cover_url);
+ const hasField=value=>Boolean(String(value||'').trim());
+ const pending=lessons.filter(l=>!hasField(l.video_url)||!hasField(l.cover_url));
+ const perCourse=courses.map(course=>{
+  const items=lessons.filter(l=>Number(l.course_id)===Number(course.id));
+  const missingVideos=items.filter(l=>!hasField(l.video_url)).length;
+  const missingCovers=items.filter(l=>!hasField(l.cover_url)).length;
+  const complete=items.filter(l=>hasField(l.video_url)&&hasField(l.cover_url)).length;
+  const noDescription=!hasField(course.description);
+  const next=items.find(l=>!hasField(l.video_url)||!hasField(l.cover_url))||items[0];
+  const target=!items.length?'lessonForm':noDescription?'admin-course-detail-'+Number(course.id):'admin-lesson-detail-'+Number(next.id);
+  const action=!items.length?t('ADD LESSON','AÑADIR CLASE'):noDescription?t('EDIT COURSE','EDITAR CURSO'):complete<items.length?t('COMPLETE','COMPLETAR'):t('REVIEW','REVISAR');
+  const status=!items.length?t('No lessons yet','Todavía no hay clases'):complete+' / '+items.length+' '+t('lessons with materials','clases con materiales');
+  const issues=[missingVideos?missingVideos+' '+t('missing video','sin vídeo'):null,missingCovers?missingCovers+' '+t('missing cover','sin portada'):null,noDescription?t('Description missing','Falta descripción'):null].filter(Boolean).join(' · ');
+  return '<button type="button" class="admin-readiness-row" data-readiness-course="'+Number(course.id)+'" data-jump-admin="'+target+'"><span><strong>'+esc(course.title)+'</strong><small>'+esc(status)+(issues?' · '+esc(issues):'')+'</small></span><span class="admin-readiness-open">'+esc(action)+'</span></button>';
+ }).join('');
  const priority=pending.slice(0,12).map(l=>{
-  const flags=[!l.video_url?'Video':null,!l.cover_url?'Cover':null].filter(Boolean).join(' + ');
+  const flags=[!hasField(l.video_url)?'Video':null,!hasField(l.cover_url)?'Cover':null].filter(Boolean).join(' + ');
   return '<button type="button" class="admin-readiness-row" data-jump-admin="admin-lesson-detail-'+Number(l.id)+'" aria-label="Edit '+esc(l.title)+'; missing '+flags+'"><span><strong>'+esc(l.title)+'</strong><small>'+esc(l.category||'Class')+' · '+esc(flags)+' missing</small></span><span class="admin-readiness-open">EDIT ↗</span></button>';
  }).join('');
  const missingCourses=descriptions.slice(0,6).map(course=>
@@ -454,8 +468,9 @@ function renderAdminContentReadiness(a){
    '<p><strong>'+esc(summary(videos.length,lessons.length,'videos'))+'</strong><span>Video sources</span></p>'+
    '<p><strong>'+esc(summary(covers.length,lessons.length,'covers'))+'</strong><span>Cover images</span></p>'+
    '<p><strong>'+esc(summary(descriptions.length,courses.length,'descriptions'))+'</strong><span>Descriptions</span></p></div>'+
+  '<div class="admin-readiness-list" id="adminCourseReadiness"><h4>'+t('MATERIALS BY COURSE','MATERIALES POR CURSO')+'</h4>'+(perCourse||'<p class="description">'+t('No courses yet. Add a course to begin.','Todavía no hay cursos. Añade un curso para empezar.')+'</p>')+'</div>'+
   (pending.length?'<div class="admin-readiness-list"><h4>LESSONS TO COMPLETE <span>'+pending.length+' TOTAL</span></h4>'+priority+(pending.length>12?'<p class="description">Showing the first 12 lessons. Use All lesson editors to review the rest.</p>':'')+'</div>':
-   '<p class="description">Every lesson has a video field and cover field filled. Check playback, image rights and access before publishing.</p>')+
+   '<p class="description">'+(lessons.length?'Every lesson has a video field and cover field filled. Check playback, image rights and access before publishing.':'No lessons have been added. Add lessons before preparing the catalog for publication.')+'</p>')+
   (descriptions.length?'<div class="admin-readiness-list"><h4>COURSES NEEDING A DESCRIPTION</h4>'+missingCourses+
    (descriptions.length>6?'<button type="button" class="admin-readiness-link" data-jump-admin="adminCourseEditor">Review all course descriptions</button>':'')+'</div>':'')+
   '<p class="description">This checklist checks fields only. Video permissions, licensing, email, payments and legal pages require separate verification.</p>'+
@@ -966,7 +981,11 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
     updateAdminLessonFilter();
    }
    if(el.tagName==='DETAILS')el.open=true;
-   const focusTarget=el.tagName==='DETAILS'?el.querySelector('summary')||el:el;
+   if(el.id==='lessonForm'&&button.dataset.readinessCourse){
+    const courseSelect=el.querySelector('[name="course_id"]');
+    if(courseSelect&&[...courseSelect.options].some(option=>option.value===button.dataset.readinessCourse))courseSelect.value=button.dataset.readinessCourse;
+   }
+   const focusTarget=el.tagName==='DETAILS'?el.querySelector('summary')||el:el.id==='lessonForm'?el.querySelector('[name="title"]')||el:el;
    focusTarget.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
    focusTarget.focus({preventScroll:true});
   }
