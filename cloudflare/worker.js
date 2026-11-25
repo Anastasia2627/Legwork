@@ -93,7 +93,13 @@ export default {
       headers.delete('X-Legwork-Internal');
       const forwarded = new Request(request, { headers });
       const object = env.SCHOOL.get(env.SCHOOL.idFromName(deployment.objectName));
-      return security(await object.fetch(forwarded), { 'Cache-Control': path.startsWith('/api/') ? 'private, no-store' : 'no-store' });
+      const response = await object.fetch(forwarded);
+      // Only successfully assigned public images may reuse a short browser cache.
+      // No shared CDN caching of DO responses; all API, health and errors remain uncached.
+      const image = path.startsWith('/media/') &&
+        ((response.ok && response.headers.get('Content-Type') === 'image/webp') || response.status === 304) &&
+        !response.headers.has('Set-Cookie');
+      return security(response, { 'Cache-Control': path.startsWith('/api/') ? 'private, no-store' : image ? 'private, max-age=300' : 'no-store' });
     }
 
     if (path === '/robots.txt') {
