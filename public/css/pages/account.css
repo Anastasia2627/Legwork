@@ -154,3 +154,12 @@
 .cabinet-main .lesson-card.is-complete{border-color:#b7b7b7}
 .cabinet-main .lesson-card.is-complete .lesson-library-status{color:#38594a}
 .cabinet-main .lesson-card .card-body .row{gap:10px;align-items:center;flex-wrap:wrap}
+
+/* Small, non-destructive admin filters for lesson material editing. */
+.admin-lesson-tools{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,220px) auto;align-items:end;gap:13px;margin:16px 0 20px}
+.admin-lesson-tools>label{display:flex;flex-direction:column;gap:6px;min-width:0;font:600 12px/1.4 var(--font-body)}
+.admin-lesson-tools .field{height:43px;min-height:43px;max-width:100%;width:100%;background:var(--surface,#fff)}
+.admin-lesson-count{margin:0 0 10px;color:var(--muted);font:500 12px/1.5 var(--font-body);white-space:nowrap}
+#adminLessonList .admin-edit-lesson[hidden]{display:none!important}
+@media(max-width:760px){.admin-lesson-tools{grid-template-columns:1fr 1fr}.admin-lesson-count{grid-column:1/-1;margin:0}}
+@media(max-width:420px){.admin-lesson-tools{grid-template-columns:1fr}}
