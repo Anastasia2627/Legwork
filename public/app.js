@@ -559,6 +559,7 @@ async function adminMailPanel(){
   response.webhook_configured?'Webhook signature verification configured. Delivery metrics depend on real Resend callbacks.':
    'Missing RESEND_WEBHOOK_SECRET: accepted messages cannot be independently tracked as delivered, bounced or complained.';
  root.insertAdjacentHTML('beforeend','<section class="admin-mail-health"><h3>EMAIL DELIVERY HEALTH</h3><div class="grid grid-3">'+
+  card(response.registration_open?'OPEN':'CLOSED',response.registration_open?'New students may register. Continue monitoring sender delivery and password resets.':'Public registration stays closed until the verified email sender is tested and REGISTRATION_OPEN is explicitly set to true.','STUDENT REGISTRATION')+
   card(response.enabled?'CONFIGURED':'NOT CONFIGURED',configured,'SENDING PROVIDER')+
   card(String(counts.sent||0)+' ACCEPTED','Resend/SMTP accepted the request. This is not evidence of actual inbox placement.','OUTBOX')+
   card(String(delivered)+' DELIVERED','Resend confirmed delivery to a receiving mail server, not placement in inbox.','WEBHOOKS')+
