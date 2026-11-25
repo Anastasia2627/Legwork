@@ -133,3 +133,18 @@
 .account-library-empty{padding:30px;max-width:580px;border:1px solid var(--border);background:var(--surface,#fff)}
 .account-library-empty p{margin:0 0 16px}
 @media(prefers-reduced-motion:reduce){.account-library-lesson{transition:none}}
+
+/* Actionable missing-content queue: jump straight to the relevant editor. */
+.admin-readiness-list{margin:20px 0 22px}
+.admin-readiness-list h4{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font:700 12px/1.5 var(--font-body);letter-spacing:.075em;margin:0 0 11px}
+.admin-readiness-list h4 span{font:500 11px/1.5 var(--font-body);color:var(--muted);letter-spacing:0}
+.admin-readiness-row{display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;border:0;border-top:1px solid var(--border);padding:13px 5px;background:transparent;text-align:left;color:var(--ink);cursor:pointer}
+.admin-readiness-row:last-of-type{border-bottom:1px solid var(--border)}
+.admin-readiness-row>span:first-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.admin-readiness-row strong{font:600 13px/1.45 var(--font-body);overflow-wrap:anywhere}
+.admin-readiness-row small{font:400 12px/1.5 var(--font-body);color:var(--muted)}
+.admin-readiness-open{flex:none;color:var(--red);font:700 11px/1.4 var(--font-body);letter-spacing:.04em}
+.admin-readiness-row:hover{background:rgba(208,6,53,.035)}
+[id^="admin-lesson-detail-"],[id^="admin-course-detail-"]{scroll-margin-top:90px}
+[id^="admin-lesson-detail-"][open],[id^="admin-course-detail-"][open]{border-left:3px solid var(--red)}
+@media(max-width:640px){.admin-readiness-row{gap:9px;padding:14px 2px}.admin-readiness-list h4{align-items:flex-start;flex-direction:column;gap:0}}
