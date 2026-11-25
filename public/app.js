@@ -58,6 +58,32 @@ const getId=(route)=>Number(route.split('/')[1]);
 const courseRoute=c=>c.slug==='legwork-lab'?'course':'course/'+encodeURIComponent(c.slug);
 const courseByRoute=route=>state.courses.find(c=>courseRoute(c)===route||(c.slug==='legwork-lab'&&route==='course/legwork-lab'));
 const courseMoney=c=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:c%100===0?0:2,maximumFractionDigits:2}).format(c/100);
+const orderedPublicCourses=()=>[...state.courses].sort((a,b)=>Number(b.slug==='legwork-lab')-Number(a.slug==='legwork-lab')||Number(a.id)-Number(b.id));
+const courseEntryRoute=()=>state.courses.length===1?courseRoute(state.courses[0]):'courses';
+function syncCourseNavigation(){
+ const popup=$('#coursesPopup'),toggle=$('#courseMenuToggle');
+ const items=orderedPublicCourses();
+ const markup=items.map(c=>'<a href="#/'+courseRoute(c)+'"><strong>'+esc(c.title)+'</strong><small>'+t('Available course','Curso disponible')+'</small></a>').join('')+
+  (items.length?'<a class="course-menu-all" href="#/courses">'+t('All courses','Todos los cursos')+' →</a>':'<span>'+t('No courses on sale right now','No hay cursos a la venta')+'</span>');
+ // Avoid replacing a focused link when only the cart count has changed.
+ if(popup&&popup.dataset.rendered!==markup){popup.innerHTML=markup;popup.dataset.rendered=markup}
+ if(toggle)toggle.setAttribute('aria-label',t('Show course list','Mostrar cursos'));
+ const start=document.querySelector('.header-cta');if(start)start.href='#/'+courseEntryRoute();
+}
+function homeCoursePrograms(){
+ const courses=orderedPublicCourses();
+ if(!courses.length)return '<p class="description">'+t('No courses are on sale right now. Explore the class library or check your account.','No hay cursos a la venta. Explora las clases o consulta tu cuenta.')+'</p>'+btn(t('Explore classes','Explorar clases'),'shop','btn-outline');
+ const [primary,...others]=courses;
+ const featured=primary.slug==='legwork-lab';
+ const main='<a class="home-program-primary" href="#/'+courseRoute(primary)+'"><span class="program-top">'+(featured?t('THE SIGNATURE COURSE','EL CURSO PRINCIPAL'):t('ONLINE COURSE','CURSO ONLINE'))+'</span><strong class="program-name">'+(featured?'<span class="course-color-legwork">LEGWORK</span> <span>LIKE A</span> <em>BOSS</em>':esc(primary.title))+'</strong><span class="program-bottom"><small>'+esc(primary.description||'')+'</small><span class="program-cta">'+t('To course page','Ver curso')+' →</span></span></a>';
+ const cards=others.map(c=>'<a class="home-program-link" href="#/'+courseRoute(c)+'"><span class="program-top">'+t('AVAILABLE COURSE','CURSO DISPONIBLE')+'</span><h3>'+esc(c.title)+'</h3><small>'+t('From','Desde')+' '+courseMoney(c.price)+'</small><span class="program-cta">'+t('To course page','Ver curso')+' →</span></a>').join('');
+ return '<div class="home-program-grid'+(others.length?'':' is-single')+'">'+main+(cards?'<div class="home-program-links">'+cards+'</div>':'')+'</div>';
+}
+async function refreshPublicCatalog(){
+ const [courses,lessons,bundles]=await Promise.all([api('/courses'),api('/lessons'),api('/bundles')]);
+ state.courses=courses.courses;state.lessons=lessons.lessons;state.bundles=bundles.bundles;
+ syncHeader();
+}
 const mediaInline=(slot,className,fallback='')=>{
  const item=state.media?.[slot];
  return item?.type==='image'&&item.url?'<img class="'+esc(className)+'" src="'+esc(item.url)+'" alt="'+esc(item.alt||'')+'" loading="lazy" decoding="async">':fallback;
@@ -69,7 +95,7 @@ const mediaPicture=(slot,className,fallback)=>{
  return '<figure class="'+esc(className)+' media-slot">'+mediaInline(slot,'media-photo')+credit+'</figure>';
 };
 
-const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length+state.bundleCart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;const cartLabel=$('#cartBtn')?.firstChild;if(cartLabel)cartLabel.nodeValue=(state.lang==='es'?'Cesta ':'Bag ');$('#cartDrawer')?.setAttribute('aria-label',state.lang==='es'?'Cesta de compra':'Shopping cart');document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases'],mentorship:['Mentorship','Mentoría']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar':'Get started';}
+const syncHeader=()=>{$('#accountLink').textContent=state.user?(state.lang==='es'?'Mi cuenta':'My account'):(state.lang==='es'?'Iniciar sesión':'Log in');$('#cartCount').textContent=state.cart.length+state.bundleCart.length;$('#langBtn').textContent=state.lang.toUpperCase()+' / '+(state.lang==='en'?'ES':'EN');document.documentElement.lang=state.lang;const cartLabel=$('#cartBtn')?.firstChild;if(cartLabel)cartLabel.nodeValue=(state.lang==='es'?'Cesta ':'Bag ');$('#cartDrawer')?.setAttribute('aria-label',state.lang==='es'?'Cesta de compra':'Shopping cart');document.querySelectorAll('#nav [data-i18n]').forEach(a=>{const labels={about:['About','Sobre mí'],courses:['Courses','Cursos'],classes:['Classes','Clases'],mentorship:['Mentorship','Mentoría']};a.textContent=labels[a.dataset.i18n]?.[state.lang==='es'?1:0]||a.textContent});const start=document.querySelector('.header-cta');if(start)start.textContent=state.lang==='es'?'Empezar':'Get started';syncCourseNavigation();}
 const editorial=(page,key)=>{
  const value=state.content?.[page]?.[state.lang]?.[key]??EDITORIAL_DEFAULTS[page]?.[state.lang]?.[key]??'';
  // Old locally seeded editorial values can outlive a redesign.
@@ -129,13 +155,13 @@ function home(){
   ?'<section class="section home-section home-reviews-published"><div class="section-inner"><p class="home-section-note">'+t('FROM OUR STUDENTS','DE NUESTRAS ALUMNAS')+'</p><h2>'+t('Their words.','Sus palabras.')+'</h2><div class="home-approved-reviews">'+reviewKeys.map(key=>'<div class="home-review-frame">'+mediaInline(key,'home-review-img')+'</div>').join('')+'</div></div></section>'
   :'';
  const freeLesson=state.lessons.find(l=>l.free);
- const freeInvite='<section class="home-free-invite"><div class="ref-wrap"><div><p class="eyebrow">'+t('01 / YOUR FIRST CLASS','01 / TU PRIMERA CLASE')+'</p><h2>'+t('GET YOUR FREE LESSON','RECIBE TU CLASE GRATIS')+'</h2><p class="home-free-description">'+t('Try the introduction before choosing a full course. A free account is needed to watch.','Prueba la clase introductoria antes de elegir un curso. Necesitas una cuenta gratuita para verla.')+'</p></div><div class="home-free-actions">'+(freeLesson?'<a class="btn btn-dark" href="#/lesson/'+freeLesson.id+'">'+t('Try free lesson','Probar clase gratis')+' →</a>':'<a class="btn btn-dark" href="#/course">'+t('Explore the course','Explorar el curso')+' →</a>')+'</div></div></section>';
+ const freeInvite='<section class="home-free-invite"><div class="ref-wrap"><div><p class="eyebrow">'+t('01 / YOUR FIRST CLASS','01 / TU PRIMERA CLASE')+'</p><h2>'+t('GET YOUR FREE LESSON','RECIBE TU CLASE GRATIS')+'</h2><p class="home-free-description">'+t('Try the introduction before choosing a full course. A free account is needed to watch.','Prueba la clase introductoria antes de elegir un curso. Necesitas una cuenta gratuita para verla.')+'</p></div><div class="home-free-actions">'+(freeLesson?'<a class="btn btn-dark" href="#/lesson/'+freeLesson.id+'">'+t('Try free lesson','Probar clase gratis')+' →</a>':'<a class="btn btn-dark" href="#/'+courseEntryRoute()+'">'+t('Explore courses','Explorar cursos')+' →</a>')+'</div></div></section>';
 
  layout(
-  '<section class="ref-hero home-hero"><div class="ref-wrap"><div class="hero-copy"><p class="hero-kicker">'+editorial('home','eyebrow')+'</p><h1 data-no-i18n>'+editorial('home','headlineTop')+' '+editorial('home','headlineAccent')+'</h1><p data-no-i18n>'+editorial('home','intro')+'</p><div class="hero-actions"><a class="btn btn-red" href="#/course" data-no-i18n>'+editorial('home','cta')+'</a><a class="btn btn-outline" href="#/shop">'+t('Explore classes','Explorar clases')+'</a></div></div><div class="home-hero-media">'+heroMedia+'<span class="hero-side-note">'+t('THE ART OF MOVEMENT','EL ARTE DEL MOVIMIENTO')+'</span></div></div></section>'+
+  '<section class="ref-hero home-hero"><div class="ref-wrap"><div class="hero-copy"><p class="hero-kicker">'+editorial('home','eyebrow')+'</p><h1 data-no-i18n>'+editorial('home','headlineTop')+' '+editorial('home','headlineAccent')+'</h1><p data-no-i18n>'+editorial('home','intro')+'</p><div class="hero-actions"><a class="btn btn-red" href="#/'+courseEntryRoute()+'" data-no-i18n>'+editorial('home','cta')+'</a><a class="btn btn-outline" href="#/shop">'+t('Explore classes','Explorar clases')+'</a></div></div><div class="home-hero-media">'+heroMedia+'<span class="hero-side-note">'+t('THE ART OF MOVEMENT','EL ARTE DEL MOVIMIENTO')+'</span></div></div></section>'+
   '<section class="section home-section home-story"><div class="section-inner"><div class="home-story-head"><div><p class="home-section-note">'+t('THE STORY','LA HISTORIA')+'</p><h2>'+t('A practice shaped by experience.','Una práctica marcada por la experiencia.')+'</h2></div><p class="home-intro-lead">'+t('Every technique has a story. This one started long before an online school.','Cada técnica tiene una historia. Esta comenzó mucho antes de la escuela online.')+'</p></div><ol class="home-journey">'+journey+'</ol></div></section>'+
   '<section class="section home-section home-method"><div class="section-inner"><div class="home-method-head"><p class="home-section-note">'+t('THE APPROACH','EL ENFOQUE')+'</p><h2>'+t('More than memorising moves.','Más que memorizar movimientos.')+'</h2></div><div class="home-method-grid">'+benefits+'</div></div></section>'+
-  '<section class="section home-section home-courses"><div class="section-inner"><div class="home-courses-head"><div><p class="home-section-note">'+t('OUR COURSES','NUESTROS CURSOS')+'</p><h2>'+t('Find your next move.','Encuentra tu próximo movimiento.')+'</h2></div><a class="btn btn-outline" href="#/courses">'+t('All courses','Todos los cursos')+'</a></div><div class="home-program-grid"><a class="home-program-primary" href="#/course"><span class="program-top">'+t('THE SIGNATURE COURSE','EL CURSO PRINCIPAL')+'</span><strong class="program-name"><span class="course-color-legwork">LEGWORK</span> <span>LIKE A</span> <em>BOSS</em></strong><span class="program-bottom"><small>'+t('Legwork technique, transitions and control — one move at a time.','Técnica, transiciones y control de piernas, paso a paso.')+'</small><span class="program-cta">'+t('To course page','Ver curso')+' →</span></span></a><div class="home-program-links"><article class="home-program-link is-coming-soon"><span class="program-top">'+t('NEXT IN THE SCHOOL','PRÓXIMAMENTE')+'</span><h3><span class="course-color-wave">WAVE</span> LIKE A <em>BOSS</em></h3><span class="program-soon">'+t('Coming soon','Próximamente')+'</span></article><article class="home-program-link is-coming-soon"><span class="program-top">'+t('NEXT IN THE SCHOOL','PRÓXIMAMENTE')+'</span><h3><span class="course-color-split">SPLIT</span> LIKE A <em>BOSS</em></h3><span class="program-soon">'+t('Coming soon','Próximamente')+'</span></article></div></div></div></section>'+
+  '<section class="section home-section home-courses"><div class="section-inner"><div class="home-courses-head"><div><p class="home-section-note">'+t('OUR COURSES','NUESTROS CURSOS')+'</p><h2>'+t('Find your next move.','Encuentra tu próximo movimiento.')+'</h2></div><a class="btn btn-outline" href="#/courses">'+t('All courses','Todos los cursos')+'</a></div>'+homeCoursePrograms()+'</div></section>'+
   '<section class="section home-section home-recognition"><div class="section-inner"><div class="home-proof-grid"><div><p class="home-section-note">'+t('ON STAGE AND IN THE STUDIO','EN EL ESCENARIO Y EL ESTUDIO')+'</p><h2>'+t('Experience behind the movement.','Experiencia detrás de cada movimiento.')+'</h2><p class="proof-intro">'+t('Dance, performance and teaching all inform the method.','La danza, la interpretación y la enseñanza forman parte del método.')+'</p></div><div><div class="home-proof-list"><p>Exotic Dancer of the Year · 2016</p><p>TOP-15 · UPA</p><p>Ukraine’s Got Talent · semifinalist</p><p>'+t('Creator of the YURCHAK apparel brand','Creadora de la marca de ropa YURCHAK')+'</p></div><div class="home-experience-tabs"><div class="home-tabs" role="tablist" aria-label="'+t('Experience','Experiencia')+'"><button type="button" id="home-tab-championships" class="active" data-showtab="championships" role="tab" aria-controls="showsPanel" aria-selected="true">'+t('Competitions','Competiciones')+'</button><button type="button" id="home-tab-shows" data-showtab="shows" role="tab" aria-controls="showsPanel" aria-selected="false">'+t('Shows','Espectáculos')+'</button><button type="button" id="home-tab-judging" data-showtab="judging" role="tab" aria-controls="showsPanel" aria-selected="false">'+t('Teaching & judging','Enseñar y evaluar')+'</button></div><div class="home-tab-panel" id="showsPanel" role="tabpanel" aria-labelledby="home-tab-championships"><h3>'+t('Competitions','Competiciones')+'</h3><p>'+t('Experience on the competitive and international pole dance stage.','Experiencia en competiciones y escenarios internacionales de pole dance.')+'</p></div></div></div></div></div></section>'+
   gallery+reviews+freeInvite+
    section('Your questions, answered',faq([
@@ -146,12 +172,12 @@ function home(){
     ['How does personal feedback work?','The Guru course plan includes homework and teacher feedback; Mentorship offers an individual video review.'],
     ['Will I receive a certificate?','With Guru, certificates require completion of the specified homework and teacher approval.']
    ]),'GOOD TO KNOW','home-faq')+
-   '<section class="home-final-cta"><div class="ref-wrap"><div><p class="eyebrow">A NEW WAY TO MOVE</p><h2>READY TO BEGIN?</h2></div><a class="btn btn-red" href="#/course">Explore Legwork Lab →</a></div></section>'
+   '<section class="home-final-cta"><div class="ref-wrap"><div><p class="eyebrow">A NEW WAY TO MOVE</p><h2>READY TO BEGIN?</h2></div><a class="btn btn-red" href="#/'+courseEntryRoute()+'">'+t('Explore courses','Explorar cursos')+' →</a></div></section>'
  );
 }
 // Generic published course pages use only the course's own public metadata.
 function courseDirectory(){
- const cards=state.courses.map(c=>{
+ const cards=orderedPublicCourses().map(c=>{
   const lessons=state.lessons.filter(l=>Number(l.course_id)===Number(c.id));
   const cover=lessons.find(l=>l.cover_url)?.cover_url;
   return '<article class="card"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+courseRoute(c)+'">'+(cover?'<img class="lesson-cover-image" src="'+esc(cover)+'" alt="" loading="lazy" decoding="async">':'')+'<span class="lesson-cover-top">'+esc(c.title)+'</span></a><div class="card-body"><h3><a href="#/'+courseRoute(c)+'">'+esc(c.title)+'</a></h3><p>'+esc(c.description||'')+'</p><p class="meta">'+lessons.length+' '+t('lessons','clases')+' · '+t('From','Desde')+' '+courseMoney(c.price)+'</p>'+btn(t('Explore course','Ver curso'),courseRoute(c),'btn-outline')+'</div></article>';
@@ -317,7 +343,7 @@ function shop(){
   '<nav class="shop-category-links" aria-label="Class directions"><a href="#/shop" '+(!query.category?'aria-current="page"':'')+'>All</a>'+categoryLinks+'</nav>'+
   (active?'<div class="shop-results-head"><div><p class="shop-overline">FILTERED CLASSES</p><h2>Search results</h2></div><div class="shop-results-meta">'+(lessons.length+bundles.length)+' found</div></div><div class="shop-active-filters">'+activeChips+'<button type="button" class="shop-clear" data-shop-clear="1">Clear all</button></div><div class="shop-results-grid">'+(results||'<p class="shop-empty">No lessons match these filters. Try changing your selection.</p>')+'</div>':
   categories.map(shelf).join('')||'<p class="shop-empty">Classes will appear here once the school library is published.</p>')+
-  '<div class="shop-course-link"><div><span>THE COMPLETE COURSE</span><h2>WANT IT ALL? THE FULL COURSE IS A BETTER DEAL.</h2></div><a class="btn btn-red" href="#/course">See course</a></div>'+
+  (state.courses.length?'<div class="shop-course-link"><div><span>'+t('FULL COURSES','CURSOS COMPLETOS')+'</span><h2>'+t('EXPLORE THE FULL PROGRAMS','EXPLORA LOS PROGRAMAS COMPLETOS')+'</h2></div><a class="btn btn-red" href="#/'+courseEntryRoute()+'">'+t('See courses','Ver cursos')+'</a></div>':'')+
   '<section class="shop-faq"><p class="shop-overline">QUESTIONS</p><h2>Good to know</h2>'+faq([
    ['How do I access a class?','Purchased lessons appear in your account after payment has been verified.'],
    ['Do I need a pole?','Each lesson lists its equipment. Some can be done on the floor or with another stable support.'],
@@ -936,7 +962,7 @@ else if(form.id==='courseForm'){await api('/admin/courses','POST',{...data,price
 else if(form.id==='lessonForm'){const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.cover_url=await uploadPublicImage(selected);delete data.upload_image;await api('/admin/lessons','POST',{...data,course_id:Number(data.course_id),price:Number(data.price),duration:Number(data.duration),sort_order:Number(data.sort_order),free:form.querySelector('[name=free]').checked,draft:true});state.lessons=(await api('/lessons')).lessons;notice(t('Draft lesson created','Borrador de clase creado'));await adminPanel()}
 else if(form.dataset.feedback){await api('/admin/mentorships/'+form.dataset.feedback,'PATCH',{feedback:data.feedback});notice('Feedback sent to student account');await adminPanel()}
 else if(form.dataset.mediaSlot){const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.url=await uploadPublicImage(selected);delete data.upload_image;const result=await api('/admin/media/'+encodeURIComponent(form.dataset.mediaSlot),'PATCH',data);state.media=(await api('/media')).assets;notice('Media updated');await adminPanel();return}
-else if(form.dataset.courseEdit){const editorContext=captureAdminEditorContext(form);await api('/admin/courses/'+form.dataset.courseEdit,'PATCH',{...data,price:Number(data.price),guru_price:Number(data.guru_price)});state.courses=(await api('/courses')).courses;await refreshAdminEditor(editorContext);notice('Course updated')}
+else if(form.dataset.courseEdit){const editorContext=captureAdminEditorContext(form);await api('/admin/courses/'+form.dataset.courseEdit,'PATCH',{...data,price:Number(data.price),guru_price:Number(data.guru_price)});await refreshPublicCatalog();await refreshAdminEditor(editorContext);notice('Course updated')}
 else if(form.dataset.lessonFull){const editorContext=captureAdminEditorContext(form);const selected=form.querySelector('[name="upload_image"]')?.files?.[0];if(selected?.size)data.cover_url=await uploadPublicImage(selected);delete data.upload_image;await api('/admin/lessons/'+form.dataset.lessonFull+'/full','PATCH',{...data,price:Number(data.price),duration:Number(data.duration),sort_order:Number(data.sort_order),free:form.querySelector('[name=free]').checked});state.lessons=(await api('/lessons')).lessons;await refreshAdminEditor(editorContext);notice('Lesson details updated')}
 else if(form.id==='bundleCreateForm'||form.dataset.bundleEdit){
  const lesson_ids=[...form.querySelector('[name="lesson_ids"]').selectedOptions].map(option=>Number(option.value));
@@ -1024,8 +1050,7 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   button.disabled=true;
   try{
    await api('/admin/courses/'+id+'/'+(archiving?'archive':'restore'),'POST',{confirm:true});
-   const [courses,lessons,bundles]=await Promise.all([api('/courses'),api('/lessons'),api('/bundles')]);
-   state.courses=courses.courses;state.lessons=lessons.lessons;state.bundles=bundles.bundles;
+   await refreshPublicCatalog();
    await refreshAdminEditor({id:'admin-course-detail-'+id,isLesson:false});
    notice(archiving?t('Course sales archived','Ventas archivadas'):t('Course sales restored','Ventas restauradas'));
   }finally{button.disabled=false;}
@@ -1038,8 +1063,7 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   button.disabled=true;
   try{
    await api('/admin/courses/'+id+'/publish','POST',{confirm:true});
-   state.courses=(await api('/courses')).courses;
-   state.lessons=(await api('/lessons')).lessons;
+   await refreshPublicCatalog();
    await refreshAdminEditor({id:'admin-course-detail-'+id,isLesson:false});
    notice(t('Course published','Curso publicado'));
   }finally{button.disabled=false;}
@@ -1141,12 +1165,14 @@ document.addEventListener('toggle',e=>{if(e.target?.matches?.('details.admin-edi
 document.addEventListener('click',action);document.addEventListener('submit',async e=>{if(e.target.id==='progressForm'){e.preventDefault();try{const d=formData(e.target);await api('/progress/'+d.lesson_id,'POST',{completed:true,homework_url:d.homework_url});notice('Progress saved')}catch(err){notice(err.message)}return}action(e)});
 $('#menuBtn').onclick=()=>setMobileMenu(!$('#nav').classList.contains('open'));
 $('#nav').addEventListener('click',e=>{if(e.target.closest('a'))setMobileMenu(false)});
+document.addEventListener('click',e=>{if(!e.target.closest('.header-course-menu')){$('.header-course-menu')?.classList.remove('is-open');$('#courseMenuToggle')?.setAttribute('aria-expanded','false')}});
 $('#cartBtn').onclick=showCart;$('#closeCart').onclick=()=>closeCart();$('#shade').onclick=()=>closeCart();
 document.addEventListener('keydown',e=>{
  const drawer=$('#cartDrawer');
  if(e.key==='Escape'){
   if(drawer.classList.contains('open')){e.preventDefault();closeCart();return}
   if($('#shopFilterPanel')?.classList.contains('is-open')){$('#shopFilterPanel').classList.remove('is-open');$('#shopFilterShade').hidden=true;$('#shopFiltersToggle').setAttribute('aria-expanded','false');document.body.classList.remove('shop-filters-open');$('#shopFiltersToggle').focus();return}
+   if($('.header-course-menu')?.classList.contains('is-open')){$('.header-course-menu').classList.remove('is-open');$('#courseMenuToggle').setAttribute('aria-expanded','false');$('#courseMenuToggle').focus();return}
    if($('#nav').classList.contains('open')){setMobileMenu(false);$('#menuBtn').focus()}
  }
  if(e.key==='Tab'&&drawer.classList.contains('open')){
