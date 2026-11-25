@@ -111,3 +111,11 @@ Generic pages share existing course styles and EN/ES interface labels; custom co
 The header course dropdown, homepage course cards, course directory, footer and store entry links use the published catalog. Legwork Lab remains the flagship when available; otherwise the first published course is featured. With one course, primary calls to action open that course; with multiple or no courses, they open the course directory. Draft and archived courses are not advertised. Static Wave Lab / Split Lab coming-soon placeholders were removed rather than presenting archived courses as upcoming releases.
 
 The admin publication, archive, restore and course edit actions refresh public catalog state and update navigation immediately in that browser. Other open sessions receive the new catalog on page reload; this is not a live push subscription. Menu controls use explicit click/keyboard state, and scrollable lists accommodate multiple courses on desktop and mobile.
+
+## Bulk lesson editing
+
+Admin Studio supports selecting up to 50 visible lessons, including across course groups. Filters deselect hidden rows; blank input fields leave saved data unchanged, while a price of 0 is an explicit price update. Editable batch fields are category, type, level, equipment, teacher, focus, tags and integer USD-cent price. Titles, ordering, media, free status, course ownership and student entitlements are excluded. A confirmation precedes the operation; unsaved individual edits should be saved first.
+
+The protected bulk endpoint validates the entire selection and allowlisted changes, then performs metadata updates and optional draft publication in one database transaction. If any selected draft is incomplete or belongs to an archived course, none of the requested changes are saved. Existing approved lessons are not unpublished. Previously created order amounts are not rewritten. Changes and the selected count appear in the privileged activity audit (without raw request contents).
+
+After a successful edit the public catalog and admin editor refresh, preserving the search and status filter but clearing selection. Publication checks saved media URL format only, not availability or rights. Integration and browser regression tests cover authorization, invalid input, all-or-nothing behavior, filtered selection, and zero-price edits.
