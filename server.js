@@ -36,7 +36,7 @@ const schema=[
 'CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL DEFAULT "student",instagram TEXT DEFAULT "")',
 'CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL)',
 'CREATE TABLE IF NOT EXISTS courses(id INTEGER PRIMARY KEY,slug TEXT UNIQUE NOT NULL,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT "",price INTEGER NOT NULL DEFAULT 16000,active INTEGER NOT NULL DEFAULT 1)',
-'CREATE TABLE IF NOT EXISTS lessons(id INTEGER PRIMARY KEY,course_id INTEGER NOT NULL REFERENCES courses(id),title TEXT NOT NULL,category TEXT DEFAULT "Legwork",kind TEXT DEFAULT "Element",level TEXT DEFAULT "Beginner",duration INTEGER DEFAULT 12,price INTEGER DEFAULT 1500,video_url TEXT,cover_url TEXT NOT NULL DEFAULT "",free INTEGER DEFAULT 0,sort_order INTEGER DEFAULT 0)',
+'CREATE TABLE IF NOT EXISTS lessons(id INTEGER PRIMARY KEY,course_id INTEGER NOT NULL REFERENCES courses(id),title TEXT NOT NULL,category TEXT DEFAULT "Legwork",kind TEXT DEFAULT "Element",level TEXT DEFAULT "Beginner",duration INTEGER DEFAULT 12,price INTEGER DEFAULT 1500,video_url TEXT,cover_url TEXT NOT NULL DEFAULT "",free INTEGER DEFAULT 0,sort_order INTEGER DEFAULT 0,published INTEGER NOT NULL DEFAULT 1 CHECK(published IN (0,1)))',
 'CREATE TABLE IF NOT EXISTS enrollments(user_id INTEGER REFERENCES users(id),course_id INTEGER REFERENCES courses(id),PRIMARY KEY(user_id,course_id))',
 'CREATE TABLE IF NOT EXISTS lesson_access(user_id INTEGER REFERENCES users(id),lesson_id INTEGER REFERENCES lessons(id),PRIMARY KEY(user_id,lesson_id))',
 'CREATE TABLE IF NOT EXISTS progress(user_id INTEGER REFERENCES users(id),lesson_id INTEGER REFERENCES lessons(id),completed INTEGER DEFAULT 0,homework_url TEXT,PRIMARY KEY(user_id,lesson_id))',
@@ -45,6 +45,8 @@ const schema=[
 ];for(const sql of schema)db.exec(sql);
 // Add media metadata in-place for existing SQLite databases. No data is deleted.
 if(!db.pragma('table_info(lessons)').some(column=>column.name==='cover_url'))db.exec("ALTER TABLE lessons ADD COLUMN cover_url TEXT NOT NULL DEFAULT ''");
+// Keep all existing lessons visible; only explicitly created drafts are hidden.
+if(!db.pragma('table_info(lessons)').some(column=>column.name==='published'))db.exec('ALTER TABLE lessons ADD COLUMN published INTEGER NOT NULL DEFAULT 1 CHECK(published IN (0,1))');
 db.prepare('INSERT OR IGNORE INTO courses(slug,title,description,price) VALUES(?,?,?,?)').run('legwork-lab','Legwork Lab','Improve your legwork without exhausting stretching.',16000);
 const c=db.prepare('SELECT id FROM courses WHERE slug=?').get('legwork-lab');if(!db.prepare('SELECT COUNT(*) n FROM lessons').get().n){const add=db.prepare('INSERT INTO lessons(course_id,title,category,kind,level,duration,price,free,sort_order) VALUES(?,?,?,?,?,?,?,?,?)');['Prestart · The basics','Warm-up for ankles','Flexi Legs foundation','Point your feet','Knee Circle','Leg Wave','Hip mobility','Floorwork fundamentals','Beautiful transitions','Knee balance','Extended lines','Power and control','Advanced leg circles','Wave combinations','Floor flow','Musicality','Choreography practice','Signature movement','Final routine','Recovery','Technique notes','Practice checklist','Final challenge'].forEach((name,i)=>add.run(c.id,name,i<4?'Warm-up':i<14?'Legwork':'Floor work',i<4?'Warm-up':'Element',i<7?'Beginner':i<17?'Intermediate':'Advanced',10+i%8,1500,i===0?1:0,i+1))}
 initPayments(db);
@@ -143,8 +145,8 @@ app.post('/api/account/sessions/revoke-others',auth,(req,res)=>{
  res.json({ok:true,revoked_sessions:removed,message:'Other devices have been signed out.'});
 });
 app.get('/api/courses',(req,res)=>res.json({courses:db.prepare('SELECT id,slug,title,description,price,guru_price FROM courses WHERE active=1').all()}));
-app.get('/api/lessons',(req,res)=>res.json({lessons:db.prepare('SELECT l.id,l.course_id,l.title,l.category,l.kind,l.level,l.duration,l.price,l.free,l.sort_order,l.cover_url,l.tags,l.equipment,l.focus,l.teacher,c.slug FROM lessons l JOIN courses c ON c.id=l.course_id WHERE c.active=1 ORDER BY l.course_id,l.sort_order,l.id').all()}));
-const access=(u,l)=>!!u&&(u.role==='admin'||(!!db.prepare('SELECT 1 FROM courses WHERE id=? AND active=1').get(l.course_id)&&(l.free||db.prepare('SELECT 1 FROM enrollments WHERE user_id=? AND course_id=?').get(u.id,l.course_id)||db.prepare('SELECT 1 FROM lesson_access WHERE user_id=? AND lesson_id=?').get(u.id,l.id))));
+app.get('/api/lessons',(req,res)=>res.json({lessons:db.prepare('SELECT l.id,l.course_id,l.title,l.category,l.kind,l.level,l.duration,l.price,l.free,l.sort_order,l.cover_url,l.tags,l.equipment,l.focus,l.teacher,c.slug FROM lessons l JOIN courses c ON c.id=l.course_id WHERE c.active=1 AND l.published=1 ORDER BY l.course_id,l.sort_order,l.id').all()}));
+const access=(u,l)=>!!u&&(u.role==='admin'||(l.published===1&&!!db.prepare('SELECT 1 FROM courses WHERE id=? AND active=1').get(l.course_id)&&(l.free||db.prepare('SELECT 1 FROM enrollments WHERE user_id=? AND course_id=?').get(u.id,l.course_id)||db.prepare('SELECT 1 FROM lesson_access WHERE user_id=? AND lesson_id=?').get(u.id,l.id))));
 app.get('/api/lessons/:id/watch',(req,res)=>{const l=db.prepare('SELECT * FROM lessons WHERE id=?').get(req.params.id);if(!l)return res.status(404).json({error:'Not found'});const viewer=current(req);if(!viewer)return res.status(401).json({error:'Log in to watch lessons'});if(!access(viewer,l))return res.status(403).json({error:'Purchase required'});res.setHeader('Cache-Control','private, no-store');res.json({title:l.title,video_url:l.video_url})});
 app.get('/api/dashboard',auth,(req,res)=>{const id=req.user.id;res.json({enrollments:db.prepare('SELECT c.*,e.tier FROM enrollments e JOIN courses c ON c.id=e.course_id WHERE e.user_id=?').all(id),lessonAccess:db.prepare('SELECT lesson_id FROM lesson_access WHERE user_id=?').all(id).map(x=>x.lesson_id),progress:db.prepare('SELECT * FROM progress WHERE user_id=?').all(id),mentorships:db.prepare('SELECT m.*,q.order_id,q.turnaround_business_days,o.amount AS quoted_price_cents,o.status AS order_status FROM mentorships m LEFT JOIN mentorship_order_quotes q ON q.mentorship_id=m.id LEFT JOIN orders o ON o.id=q.order_id WHERE m.user_id=? ORDER BY m.id DESC').all(id),orders:db.prepare('SELECT * FROM orders WHERE user_id=? ORDER BY id DESC').all(id)})});
 app.post('/api/progress/:id',auth,(req,res)=>{
@@ -169,7 +171,7 @@ app.post('/api/progress/:id',auth,(req,res)=>{
  })();
  res.json({ok:true});
 });
-app.post('/api/orders',auth,mail.requireVerified,(req,res)=>{const kind=req.body.kind,id=Number(req.body.item_id),plan=req.body.plan==='guru'?'guru':'self';if(!['course','lesson'].includes(kind)||!Number.isInteger(id)||id<1)return res.status(400).json({error:'Invalid item'});if(kind==='lesson'&&req.body.plan==='guru')return res.status(400).json({error:'Plan not valid for this item'});const item=kind==='course'?db.prepare('SELECT price,guru_price FROM courses WHERE id=? AND active=1').get(id):db.prepare('SELECT l.price,l.free,l.course_id FROM lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=? AND c.active=1').get(id);if(!item)return res.status(404).json({error:'Not found'});if(kind==='lesson'&&item.free===1)return res.status(409).json({error:'This lesson is already available for free'});const already=kind==='course'?db.prepare('SELECT tier FROM enrollments WHERE user_id=? AND course_id=?').get(req.user.id,id):!!(db.prepare('SELECT 1 FROM lesson_access WHERE user_id=? AND lesson_id=?').get(req.user.id,id)||db.prepare('SELECT 1 FROM enrollments WHERE user_id=? AND course_id=?').get(req.user.id,item.course_id));
+app.post('/api/orders',auth,mail.requireVerified,(req,res)=>{const kind=req.body.kind,id=Number(req.body.item_id),plan=req.body.plan==='guru'?'guru':'self';if(!['course','lesson'].includes(kind)||!Number.isInteger(id)||id<1)return res.status(400).json({error:'Invalid item'});if(kind==='lesson'&&req.body.plan==='guru')return res.status(400).json({error:'Plan not valid for this item'});const item=kind==='course'?db.prepare('SELECT price,guru_price FROM courses WHERE id=? AND active=1').get(id):db.prepare('SELECT l.price,l.free,l.course_id FROM lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=? AND c.active=1 AND l.published=1').get(id);if(!item)return res.status(404).json({error:'Not found'});if(kind==='lesson'&&item.free===1)return res.status(409).json({error:'This lesson is already available for free'});const already=kind==='course'?db.prepare('SELECT tier FROM enrollments WHERE user_id=? AND course_id=?').get(req.user.id,id):!!(db.prepare('SELECT 1 FROM lesson_access WHERE user_id=? AND lesson_id=?').get(req.user.id,id)||db.prepare('SELECT 1 FROM enrollments WHERE user_id=? AND course_id=?').get(req.user.id,item.course_id));
 if(already&&(kind==='lesson'||already.tier==='guru'||plan==='self'))return res.status(409).json({error:'You already have access to this content'});
 const amount=kind==='course'&&plan==='guru'?item.guru_price:item.price;if(!Number.isSafeInteger(amount)||amount<0)return res.status(500).json({error:'Invalid product price'});const existing=db.prepare("SELECT id FROM orders WHERE user_id=? AND kind=? AND item_id=? AND plan=? AND status='pending'").get(req.user.id,kind,id,plan);if(existing)return res.status(409).json({error:'This item already has a pending request'});const r=db.prepare('INSERT INTO orders(user_id,kind,item_id,amount,plan) VALUES(?,?,?,?,?)').run(req.user.id,kind,id,amount,plan);mail.notify(req.user.email,'order:requested:'+r.lastInsertRowid,'Legwork · Your order request was received','We saved your order request #'+r.lastInsertRowid+'. No payment has been taken and no access has been granted. The school will confirm payment and access separately.');res.status(201).json({id:r.lastInsertRowid,status:'pending',amount,message:'Request saved. No payment has been taken. Access only after verified payment and admin approval.'})});
 app.post('/api/mentorships',auth,mail.requireVerified,(req,res)=>{
@@ -244,10 +246,10 @@ app.post('/api/admin/courses/:id/publish',auth,admin,(req,res)=>{
   const c=db.prepare('SELECT * FROM courses WHERE id=?').get(id);
   if(!c)return {status:404,error:'Course not found'};
   if(c.active===1)return {status:200,active:1,already_published:true};
-  const lessons=db.prepare('SELECT id,video_url,cover_url FROM lessons WHERE course_id=? ORDER BY sort_order,id').all(id);
+  const lessons=db.prepare('SELECT id,video_url,cover_url FROM lessons WHERE course_id=? AND published=1 ORDER BY sort_order,id').all(id);
   const missing=lessons.filter(l=>!l.video_url||!youtubeVideoId(l.video_url)||!l.cover_url||!safePublicImageUrl(l.cover_url,safeExternalUrl)).map(l=>l.id);
   if(!String(c.description||'').trim()||!lessons.length||missing.length||!validCents(c.price)||!validCents(c.guru_price))
-   return {status:409,error:'Complete the course description, prices, and at least one lesson with valid video and cover URLs before publication.',missing_lesson_ids:missing};
+   return {status:409,error:'Complete the course description, prices, and at least one approved lesson with valid video and cover URLs before publication. Draft lessons remain hidden.',missing_lesson_ids:missing};
   db.prepare('UPDATE courses SET active=1 WHERE id=? AND active=0').run(id);
   return {status:200,active:1,already_published:false};
  })();
@@ -257,6 +259,7 @@ app.post('/api/admin/courses/:id/publish',auth,admin,(req,res)=>{
 app.post('/api/admin/lessons',auth,admin,(req,res)=>{
  const body=req.body||{},title=cleanText(body.title,120),url=cleanText(body.video_url,1000),
   cover=cleanText(body.cover_url,1000),course=Number(body.course_id),price=Number(body.price);
+ if(body.draft!==undefined&&typeof body.draft!=='boolean')return res.status(400).json({error:'Draft must be a boolean'});
  const duration=body.duration===undefined?12:Number(body.duration);
  const order=body.sort_order===undefined?100:Number(body.sort_order);
  if(!title||!Number.isSafeInteger(course)||course<1||body.price===undefined||body.price===null||body.price===''||
@@ -267,10 +270,28 @@ app.post('/api/admin/lessons',auth,admin,(req,res)=>{
     !db.prepare('SELECT 1 FROM courses WHERE id=?').get(course)){
   return res.status(400).json({error:'Invalid lesson: check course, integer price in cents, 1–600 minutes, image and YouTube URLs'});
  }
- const r=db.prepare('INSERT INTO lessons(course_id,title,category,kind,level,duration,price,video_url,cover_url,free,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+ const published=body.draft===true?0:1;
+ const r=db.prepare('INSERT INTO lessons(course_id,title,category,kind,level,duration,price,video_url,cover_url,free,sort_order,published) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
   .run(course,title,cleanText(body.category,50)||'Legwork',cleanText(body.kind,40)||'Element',
-   cleanText(body.level,40)||'Beginner',duration,price,url,cover,body.free===true?1:0,order);
- res.status(201).json({id:r.lastInsertRowid});
+   cleanText(body.level,40)||'Beginner',duration,price,url,cover,body.free===true?1:0,order,published);
+ res.status(201).json({id:r.lastInsertRowid,published});
+});
+// Publish saved materials only; there is deliberately no unpublish action.
+app.post('/api/admin/lessons/:id/publish',auth,admin,(req,res)=>{
+ const id=Number(req.params.id);
+ if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:'Invalid lesson ID'});
+ if(req.body?.confirm!==true)return res.status(400).json({error:'Explicit publication confirmation required'});
+ const result=db.transaction(()=>{
+  const l=db.prepare('SELECT l.*,c.active AS course_active FROM lessons l JOIN courses c ON c.id=l.course_id WHERE l.id=?').get(id);
+  if(!l)return {status:404,error:'Lesson not found'};
+  if(l.published===1)return {status:200,published:1,already_published:true,course_active:l.course_active};
+  if(!String(l.title||'').trim()||!validCents(l.price)||!validLessonMinutes(l.duration)||!youtubeVideoId(l.video_url)||!safePublicImageUrl(l.cover_url,safeExternalUrl))
+   return {status:409,error:'Save valid lesson details, a YouTube video URL and a public cover before publication.'};
+  db.prepare('UPDATE lessons SET published=1 WHERE id=? AND published=0').run(id);
+  return {status:200,published:1,already_published:false,course_active:l.course_active};
+ })();
+ const {status,...body}=result;
+ return res.status(status).json(body);
 });
 app.patch('/api/admin/lessons/:id',auth,admin,(req,res)=>{const l=db.prepare('SELECT * FROM lessons WHERE id=?').get(req.params.id);if(!l)return res.status(404).json({error:'Not found'});const url=cleanText(req.body.video_url??l.video_url,1000);if(url&&!youtubeVideoId(url))return res.status(400).json({error:'Use a valid YouTube video URL'});db.prepare('UPDATE lessons SET video_url=?,title=?,free=? WHERE id=?').run(url,cleanText(req.body.title??l.title,120),req.body.free===undefined?l.free:(req.body.free?1:0),l.id);res.json({ok:true})});
 app.post('/api/admin/mentorships/:id/verify-payment',auth,admin,(req,res)=>{
