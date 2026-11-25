@@ -67,19 +67,14 @@ app.use(['/api/account/change-password','/api/account/sessions/revoke-others','/
 app.use('/api/admin/mfa',jsonRateLimit(8,15*60*1000));
 app.use('/api/auth',jsonRateLimit(30,15*60*1000));
 const apiReadLimiter=jsonRateLimit(1200,60*1000),apiWriteLimiter=jsonRateLimit(180,60*1000);
-app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow');if(req.headers.cookie?.includes('legwork_session='))res.setHeader('Cache-Control','private, no-store');next()});
+app.use('/api',(req,res,next)=>{res.setHeader('X-Robots-Tag','noindex, nofollow');res.setHeader('Cache-Control','private, no-store');next()});
 app.use('/api',(req,res,next)=>['GET','HEAD','OPTIONS'].includes(req.method)?apiReadLimiter(req,res,next):apiWriteLimiter(req,res,next));
 const audit=registerSecurityAudit(app,db,{getUser:req=>current(req)});
-registerPaymentWebhook(app,db,()=>mail);
-
-const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
-const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
-const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
-const mfa=registerAdminMfa(app,db,{auth,admin,verifyPassword,tokenHash});
-const mail=createMailService(app,db,{auth,hashPassword,cleanText});
-registerResendWebhooks(app,db,{secret:process.env.RESEND_WEBHOOK_SECRET});
 app.use('/api',(req,res,next)=>{
  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
+ // Exact signed provider endpoints authenticate their requests independently.
+ if(req.method==='POST'&&['/payments/wayforpay/webhook','/email/resend/webhook'].includes(req.path))return next();
+ if(req.get('sec-fetch-site')==='cross-site')return res.status(403).json({error:'Invalid origin'});
  const configured=process.env.SITE_ORIGIN;
  let expected,source;
  try{
@@ -92,6 +87,15 @@ app.use('/api',(req,res,next)=>{
  if(source&&source!==expected)return res.status(403).json({error:'Invalid origin'});
  next();
 });
+registerPaymentWebhook(app,db,()=>mail);
+
+const cookie=(t,maxAge=604800)=>'legwork_session='+t+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAge+(prod?'; Secure':'');
+const current=req=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];return token?db.prepare('SELECT u.id,u.email,u.name,u.instagram,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').get(tokenHash(token),Date.now()):null};
+const auth=(req,res,next)=>{req.user=current(req);return req.user?next():res.status(401).json({error:'Please log in'})};const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({error:'Forbidden'});
+const mfa=registerAdminMfa(app,db,{auth,admin,verifyPassword,tokenHash});
+const mail=createMailService(app,db,{auth,hashPassword,cleanText});
+registerResendWebhooks(app,db,{secret:process.env.RESEND_WEBHOOK_SECRET});
+
 registerResendSuppressionAdminRoutes(app,db,{auth,admin,verifyPassword});
 registerMentorshipCommerceRoutes(app,db,{auth,admin});
 audit.registerRoutes(auth,admin);
@@ -127,7 +131,7 @@ app.post('/api/auth/login',(req,res)=>{
  audit.record({actorId:u?.id||null,action:'auth.login_rejected',targetType:'account',targetId:u?String(u.id):'',outcome:'denied',status:401});
  return res.status(401).json({error:'Invalid credentials'});
 });
-app.post('/api/auth/logout',(req,res)=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];if(token)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(tokenHash(token));res.setHeader('Set-Cookie',cookie('')+'; Max-Age=0');res.json({ok:true})});
+app.post('/api/auth/logout',(req,res)=>{const token=/\blegwork_session=([a-f0-9]{64})\b/.exec(req.headers.cookie||'')?.[1];if(token)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(tokenHash(token));res.setHeader('Set-Cookie',cookie('',0));res.json({ok:true})});
 app.get('/api/account/sessions',auth,(req,res)=>{
  res.setHeader('Cache-Control','private, no-store');
  const active=db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id=? AND expires_at>?').get(req.user.id,Date.now()).n;
@@ -469,7 +473,7 @@ app.get(['/', '/course', '/shop', '/mentorship'],(req,res)=>{
  res.type('html').set('Cache-Control','no-store').set('X-Robots-Tag',indexAllowed?'index, follow':'noindex, nofollow').send(html);
 });
 app.get('*',(req,res)=>res.status(404).set('X-Robots-Tag','noindex, nofollow').type('text/plain').send('Page not found'));
-app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})});
+app.use((err,req,res,next)=>{if(res.headersSent)return next(err);if(err.type==='entity.too.large')return res.status(413).json({error:'Request body too large'});if(err.type==='entity.parse.failed')return res.status(400).json({error:'Invalid request body'});console.error('API error:',err.code||err.name||'unknown');res.status(500).json({error:'Internal server error'})});
 const server=app.listen(port,()=>console.log('Legwork listening on '+port));
 function shutdown(signal){
  console.log('Shutting down Legwork after '+signal);
