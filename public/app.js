@@ -5,7 +5,7 @@ import {accessibleLessons,learningProgress,courseLearningProgress,studentLearnin
 import {updateAdminLessonPreview,releaseAdminLessonPreviews} from './admin-lesson-preview.js';
 const loadEditorialEditor=()=>import('./editorial-admin.js');
 import {studentCertificatesMarkup,adminCertificatesMarkup,verifyCertificateView} from './certificates.js';
-const renderStudy=(...args)=>import('./learning.js?v=20261124-private-learning').then(m=>m.renderStudy(...args));
+const renderStudy=(...args)=>import('./learning.js?v=20261126-mobile').then(m=>m.renderStudy(...args));
 import {beginCheckout,resumeCheckout,renderPaymentStatus,orderSelectionMarkup,paymentHistoryMarkup} from './checkout.js?v=20261126-payment-safety';
 const $=s=>document.querySelector(s),app=$('#app');
 const readCart=()=>{try{const v=JSON.parse(localStorage.getItem('legwork_cart')||'[]');return Array.isArray(v)?[...new Set(v.filter(Number.isSafeInteger))].slice(0,30):[]}catch{return []}};
