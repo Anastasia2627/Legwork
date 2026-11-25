@@ -137,3 +137,31 @@ test('Admin can move a lesson within its course without losing editor context',a
 function assertNotEqual(a,b){
  if(!a||!b||a===b)throw Error('Expected two distinct course lessons');
 }
+
+test('Course readiness counts whitespace as missing and links empty courses to preselected lesson creation',async({page})=>{
+ await page.route('**/api/admin/overview',async route=>{
+  const response=await route.fetch();
+  const data=await response.json();
+  data.courses.push({id:999001,title:'Empty readiness course',slug:'empty-readiness',description:' ',price:16000,guru_price:36000});
+  const course=data.courses.find(c=>Number(c.id)===1);
+  const items=data.lessons.filter(l=>Number(l.course_id)===1);
+  if(!course||!items.length)throw Error('Expected seeded course and lessons');
+  for(const item of items){item.video_url=' ';item.cover_url=' ';}
+  await route.fulfill({response,json:data});
+ });
+ await page.goto('/#/login');
+ await page.locator('#authForm [name="email"]').fill('Admin');
+ await page.locator('#authForm [name="password"]').fill('LegworkTestAdminPassword-2026-only');
+ await page.locator('#authForm button[type="submit"]').click();
+ await expect(page).toHaveURL(/account/);
+ await page.locator('[data-tab="admin"]').click();
+ const readiness=page.locator('#adminCourseReadiness');
+ await expect(readiness).toBeVisible();
+ await expect(readiness.locator('[data-readiness-course="1"]')).toContainText(/0 \/ \d+ lessons with materials/);
+ const empty=readiness.locator('[data-readiness-course="999001"]');
+ await expect(empty).toContainText('No lessons yet');
+ await expect(empty).toContainText('Description missing');
+ await empty.click();
+ await expect(page.locator('#lessonForm [name="course_id"]')).toHaveValue('999001');
+ await expect(page.locator('#lessonForm [name="title"]')).toBeFocused();
+});
