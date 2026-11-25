@@ -6,21 +6,8 @@ import { createCloudflareApp } from './generated/app.js';
 import { resolveSchoolEnvironment } from './environment.js';
 
 const API_PATHS = ['/api/', '/media/'];
-const seo = {
-  '/': ['Svitlana Yurchak | Online Dance School', 'Exotic pole dance education, technique classes and personal mentorship.'],
-  '/course': ['Legwork Lab | Online Dance Course', 'Develop legwork technique through structured online classes.'],
-  '/shop': ['Online Dance Classes & Bundles | Legwork', 'Browse individual pole dance classes and lesson bundles.'],
-  '/mentorship': ['Dance Video Mentorship | Legwork', 'Get personal video feedback on your dance technique.'],
-};
-
-function internalUrl(path, origin) {
-  return new URL(path, origin).toString();
-}
-function asText(value) {
-  return String(value ?? '').replace(/[&<>"']/g, character => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[character]));
-}
+import {canonicalOrigin,seoIndexAllowed,renderPublicSeo,sitemapXml,robotsText} from '../lib/public-seo.js';
+const isPublicPage=path=>['/','/courses','/course','/shop','/mentorship','/es','/es/course','/es/mentorship'].includes(path)||/^\/course\/[a-z0-9-]{2,80}$/.test(path);
 const security=secureCloudflareResponse;
 
 export class LegworkStore extends DurableObject {
@@ -48,7 +35,7 @@ export class LegworkStore extends DurableObject {
         WAYFORPAY_UAH_PER_USD: this.env.WAYFORPAY_UAH_PER_USD || '',
         PAYMENT_PROVIDER: this.env.PAYMENT_PROVIDER || 'disabled',
         REGISTRATION_OPEN: this.env.REGISTRATION_OPEN || 'false',
-        PUBLIC_INDEXING_ENABLED: 'false',
+        PUBLIC_INDEXING_ENABLED: deployment.stage==='production'&&this.env.PUBLIC_INDEXING_ENABLED==='true'?'true':'false',
         TRUST_PROXY_HOPS: '1',
         DEPLOYMENT_STAGE: deployment.stage,
       };
@@ -102,32 +89,35 @@ export default {
       return security(response, { 'Cache-Control': path.startsWith('/api/') ? 'private, no-store' : image ? 'private, max-age=300' : 'no-store' });
     }
 
+    const origin=canonicalOrigin(env.SITE_ORIGIN)||url.origin;
+    const indexAllowed=seoIndexAllowed({enabled:env.PUBLIC_INDEXING_ENABLED==='true',stage:deployment.stage,origin:env.SITE_ORIGIN,requestOrigin:url.origin});
     if (path === '/robots.txt') {
-      return security(new Response('User-agent: *\nDisallow: /\n', {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-      }));
+      return security(new Response(robotsText(origin,indexAllowed),{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}}));
     }
-    if (path === '/sitemap.xml') return security(new Response('Not available before publication', { status: 404 }));
-
-    if (Object.hasOwn(seo, path)) {
-      const asset = await env.ASSETS.fetch(new Request(internalUrl('/index.html', url.origin)));
-      if (!asset.ok) return security(asset);
-      const [title, description] = seo[path];
-      const tags = [
-        '<meta name="robots" content="noindex,nofollow">',
-        '<link rel="canonical" href="' + asText(url.origin + path) + '">',
-        '<meta property="og:type" content="website">',
-        '<meta property="og:title" content="' + asText(title) + '">',
-        '<meta property="og:description" content="' + asText(description) + '">',
-      ].join('');
-      const html = (await asset.text())
-        .replace(/<title>[^<]*<\/title>/, '<title>' + asText(title) + '</title>')
-        .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + asText(description) + '">')
-        .replace('</head>', tags + '</head>');
-      return security(new Response(html, { headers: {
-        'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
-        'X-Robots-Tag': 'noindex, nofollow',
-      } }));
+    if (path === '/sitemap.xml'&&!indexAllowed)return security(new Response('Not available before publication',{status:404,headers:{'Cache-Control':'no-store'}}));
+    if (isPublicPage(path)||path==='/sitemap.xml') {
+      if(!['GET','HEAD'].includes(request.method))return security(new Response('Method not allowed',{status:405,headers:{Allow:'GET, HEAD'}}));
+      const target=new URL('/api/public-seo',url.origin);
+      target.searchParams.set('path',path==='/sitemap.xml'?'sitemap':path);
+      let model=null,status=503;
+      try{
+       const object=env.SCHOOL.get(env.SCHOOL.idFromName(deployment.objectName));
+       const response=await object.fetch(new Request(target,{headers:{'X-Forwarded-For':request.headers.get('CF-Connecting-IP')||'127.0.0.1'}}));
+       status=response.status;
+       if(response.ok)model=await response.json();
+      }catch{}
+      if(status===404)return security(new Response('Page not found',{status:404,headers:{'X-Robots-Tag':'noindex, nofollow','Cache-Control':'no-store'}}));
+      if(path==='/sitemap.xml'){
+       if(!model||!Array.isArray(model.paths))return security(new Response('Sitemap temporarily unavailable',{status:503,headers:{'Cache-Control':'no-store','Retry-After':'60'}}));
+       return security(new Response(request.method==='HEAD'?null:sitemapXml(origin,model.paths),{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=300'}}));
+      }
+      if(model&&model.path!==path)return security(new Response(null,{status:301,headers:{Location:model.path,'Cache-Control':'no-store'}}));
+      if(!model&&path.startsWith('/course/'))return security(new Response('Course temporarily unavailable',{status:503,headers:{'Cache-Control':'no-store','Retry-After':'60','X-Robots-Tag':'noindex, nofollow'}}));
+      const asset=await env.ASSETS.fetch(new Request(new URL('/index.html',url.origin)));
+      if(!asset.ok)return security(asset);
+      const template=await asset.text();
+      const html=model?renderPublicSeo(template,model,origin,indexAllowed):template.replace('</head>','<meta name="robots" content="noindex,nofollow"></head>');
+      return security(new Response(request.method==='HEAD'?null:html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Robots-Tag':model&&indexAllowed?'index, follow':'noindex, nofollow'}}),{'X-Robots-Tag':model&&indexAllowed?'index, follow':'noindex, nofollow'});
     }
 
     if (path.startsWith('/internal/')) return new Response('Not found', { status: 404 });
