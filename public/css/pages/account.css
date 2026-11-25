@@ -148,3 +148,9 @@
 [id^="admin-lesson-detail-"],[id^="admin-course-detail-"]{scroll-margin-top:90px}
 [id^="admin-lesson-detail-"][open],[id^="admin-course-detail-"][open]{border-left:3px solid var(--red)}
 @media(max-width:640px){.admin-readiness-row{gap:9px;padding:14px 2px}.admin-readiness-list h4{align-items:flex-start;flex-direction:column;gap:0}}
+
+/* Owned lesson cards never display a misleading checkout price. */
+.cabinet-main .lesson-library-status{font:700 10px/1.35 var(--font-body);letter-spacing:.065em;color:var(--red)}
+.cabinet-main .lesson-card.is-complete{border-color:#b7b7b7}
+.cabinet-main .lesson-card.is-complete .lesson-library-status{color:#38594a}
+.cabinet-main .lesson-card .card-body .row{gap:10px;align-items:center;flex-wrap:wrap}
