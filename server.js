@@ -430,6 +430,15 @@ registerBundleRoutes(app,db,{auth,admin,cleanText,mail});
 registerPaymentRoutes(app,db,{auth,admin,mail});
 registerAccountDataRoutes(app,db,{auth,admin,verifyPassword,mail});
 registerOperationsRoutes(app,db,{auth,admin,mail});
+ // Match common catalog and private account query patterns without changing data.
+ db.exec([
+  'CREATE INDEX IF NOT EXISTS lessons_course_public_order_idx ON lessons(course_id,published,sort_order,id)',
+  'CREATE INDEX IF NOT EXISTS orders_user_history_idx ON orders(user_id,id DESC)',
+  'CREATE INDEX IF NOT EXISTS orders_item_status_idx ON orders(kind,item_id,status)',
+  'CREATE INDEX IF NOT EXISTS orders_user_item_pending_idx ON orders(user_id,kind,item_id,status,plan)',
+  'CREATE INDEX IF NOT EXISTS payment_attempts_user_history_idx ON payment_attempts(user_id,id DESC)',
+  'CREATE INDEX IF NOT EXISTS payment_attempt_orders_order_idx ON payment_attempt_orders(order_id,attempt_id)'
+ ].join(';')+';');
 app.get('/api/admin/backup',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,reason:'Portable Cloudflare export is available only inside the live SQLite Durable Object.'}));
 app.get('/api/admin/recovery',auth,admin,(req,res)=>res.set('Cache-Control','private, no-store').json({supported:false,kind:'node-sqlite',window_days:0,restore_available_in_ui:false,checkpoints:[]}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API route not found'}));
