@@ -208,3 +208,18 @@
 .admin-lesson-order-actions .btn[disabled]{opacity:.4;cursor:not-allowed}
 #adminLessonNoResults:not([hidden]){display:block;padding:20px;border:1px solid var(--border)}
 @media(max-width:640px){.admin-course-group-heading{align-items:flex-start;flex-direction:column}.admin-lesson-order-actions span{width:100%}.admin-lesson-order-actions .btn{flex:1 1 auto;min-width:90px}}
+
+/* Batch controls use the existing admin editor's spacing and colors. */
+.admin-bulk-panel{margin:0 0 20px;padding:18px;border:1px solid var(--border);border-radius:6px;background:var(--surface,#fff)}
+.admin-bulk-heading,.admin-bulk-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.admin-bulk-heading h4{margin:0;font:700 17px/1.3 var(--font-body)}
+#adminBulkCount{font:600 12px/1.4 var(--font-body);color:var(--muted)}
+.admin-bulk-actions{justify-content:flex-start;margin:12px 0 16px}
+.admin-bulk-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.admin-bulk-fields>label{display:flex;flex-direction:column;gap:6px;min-width:0}
+.admin-bulk-fields .field{width:100%;min-width:0}
+.admin-bulk-publish{display:flex;align-items:center;gap:9px}
+.admin-bulk-lesson-check{margin:0 12px 0 2px;width:18px;height:18px;vertical-align:middle;accent-color:var(--red);cursor:pointer}
+.admin-bulk-panel button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:850px){.admin-bulk-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:440px){.admin-bulk-panel{padding:12px}.admin-bulk-fields{grid-template-columns:1fr}}
