@@ -103,4 +103,11 @@ Publication is one-way; already published lessons are not withdrawn. Publishing 
 
 Published courses are automatically listed at `/#/courses`, with course-specific pages at `/#/course/<slug>`. Legwork Lab keeps its dedicated page at `/#/course`. Published course editors link directly to their public pages. Each generic page displays its own description, public lesson cover, ordered lesson program, duration, free preview (when available), Independent/Guru prices in USD, and checkout request for the actual course ID. The existing account/payment entitlement system remains authoritative. Draft and archived courses have no public purchase page. Lesson details link to the correct parent course.
 
-Generic pages share existing course styles and EN/ES interface labels; custom course descriptions remain in their stored language. Per-course editorial sections, hero asset management and full server-rendered SEO are not implemented. Dynamic pages use hash routes; they are not added to the sitemap. Dynamic header navigation and replacement of static home course teasers are separate follow-up work.
+Generic pages share existing course styles and EN/ES interface labels; custom course descriptions remain in their stored language. Per-course editorial sections, hero asset management and full server-rendered SEO are not implemented. Dynamic pages use hash routes; they are not added to the sitemap. Header navigation and the home course section now use the same published catalog.
+
+
+## Dynamic course navigation
+
+The header course dropdown, homepage course cards, course directory, footer and store entry links use the published catalog. Legwork Lab remains the flagship when available; otherwise the first published course is featured. With one course, primary calls to action open that course; with multiple or no courses, they open the course directory. Draft and archived courses are not advertised. Static Wave Lab / Split Lab coming-soon placeholders were removed rather than presenting archived courses as upcoming releases.
+
+The admin publication, archive, restore and course edit actions refresh public catalog state and update navigation immediately in that browser. Other open sessions receive the new catalog on page reload; this is not a live push subscription. Menu controls use explicit click/keyboard state, and scrollable lists accommodate multiple courses on desktop and mobile.
