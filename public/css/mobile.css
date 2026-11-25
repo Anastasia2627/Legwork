@@ -1,0 +1,107 @@
+/* Final responsive overrides. Keep desktop layouts intact. */
+body.cart-open,body.shop-filters-open{overflow:hidden;overscroll-behavior:none}
+@media(max-width:1080px){
+ .header #nav.open{max-height:calc(100dvh - 76px);overflow-y:auto;overscroll-behavior:contain}
+ .header #nav .header-course-menu{flex-wrap:wrap}
+ .header #nav .header-course-menu>button{min-width:44px;min-height:44px}
+ .header #nav .course-menu-popup{position:static;width:100%;max-width:none;box-shadow:none}
+ .header #nav>a,.header #nav .header-course-menu>a{min-height:44px;display:flex;align-items:center}
+}
+@media(max-width:850px){
+ .cabinet{grid-template-columns:minmax(0,1fr)}
+ .cabinet-nav{min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+ .cabinet-nav button{flex:none;min-height:44px}
+ .cabinet-main,#adminMount{min-width:0;max-width:100%}
+ #adminMount .form,#adminMount .form>*{min-width:0;max-width:100%}
+ #adminMount .item-row,#adminMount details,#adminMount summary{min-width:0;overflow-wrap:anywhere}
+ #adminMount .item-row .row{flex-wrap:wrap}
+ #adminMount input[type=file]{width:100%;max-width:100%}
+ #adminMount pre{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+ #adminMount .admin-edit-lesson summary{flex-wrap:wrap}
+ #adminMount .admin-bulk-lesson-check{flex:none;min-width:18px}
+}
+@media(max-width:820px){
+ .shop-sidebar{height:100dvh;max-height:100dvh;padding-bottom:calc(24px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+ .shop-filter-panel-head button{min-width:44px;min-height:44px}
+ .shop-search-row{flex-wrap:wrap;min-width:0}
+ .shop-search-row #shopSearch{flex:1 1 130px;min-width:0}
+ .shop-search-row #shopSearchApply,.shop-search-row #shopFiltersToggle{min-height:44px;flex:0 0 auto}
+}
+@media(max-width:760px){
+ .header .actions{min-width:0}
+ .header #menuBtn,.header #cartBtn,.header #langBtn,.header #accountLink{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+ .header #accountLink{white-space:normal;text-align:center;line-height:1.2}
+ .header #nav.open{max-height:calc(100dvh - 66px)}
+ .drawer{width:min(430px,100%);height:100dvh;max-height:100dvh;overscroll-behavior:contain;padding:20px 18px calc(24px + env(safe-area-inset-bottom))}
+ .drawer-head{position:sticky;top:-20px;background:white;z-index:1;align-items:center;padding:10px 0}
+ .drawer-head button{min-width:44px;min-height:44px}
+ #cartBody .item-row{flex-wrap:wrap;gap:8px}
+ #cartBody .item-row>div{flex:1 1 135px;min-width:0;overflow-wrap:anywhere}
+ #cartBody #requestCart{width:100%;min-height:44px}
+ .field,input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file]),select,textarea{font-size:16px}
+ .form label,.form .field,.form select,.form textarea{min-width:0;max-width:100%}
+ .payment-order{display:flex;flex-wrap:wrap;align-items:center;gap:10px;overflow-wrap:anywhere}
+ .payment-order input[type=checkbox]{flex:none;width:20px;height:20px}
+ .payment-order>span{min-width:0}
+ .study-content,.study-sidebar,.study-outline{min-width:0;max-width:100%}
+}
+@media(max-width:680px){
+ .study-topline{flex-wrap:wrap;gap:10px}
+ .study-toggle{min-height:44px}
+ .study-outline{max-height:45dvh;overscroll-behavior:contain}
+ .study-lesson{min-height:44px}
+ .study-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+ .study-pagination{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .study-pagination .btn,#studyComplete{min-height:44px;white-space:normal;width:100%}
+ .study-video-empty{padding:10px;gap:6px;font-size:13px}
+ .study-play-icon{width:44px;height:44px;font-size:16px}
+ .study-video-empty .btn{min-height:44px}
+}
+@media(max-width:480px){
+ .header{gap:5px;padding-inline:10px}
+ .header .logo{flex:1 1 auto;min-width:0;white-space:normal;font-size:12px;line-height:1.05}
+ .header .logo span{display:inline}
+ .header .logo small{display:block}
+ .header #menuBtn{flex:0 0 44px;margin-left:0}
+ .header .actions{flex:none;gap:5px}
+ .header #cartBtn,.header #langBtn{padding-inline:2px;min-width:38px}
+ .header #accountLink{font-size:11px;max-width:60px}
+ .home-journey-item{grid-template-columns:minmax(85px,36%) minmax(0,1fr)}
+ .home-method-grid{grid-template-columns:minmax(0,1fr)}
+ .home-method-item:nth-child(n){min-height:0}
+ .course-fit-list,.course-results,.mentor-steps{grid-template-columns:minmax(0,1fr)}
+ .course-fit-item{min-height:0}
+ .course-hero-actions,.hero-actions,.ref-prices .row{flex-wrap:wrap}
+ .course-hero-actions .btn,.hero-actions .btn,.ref-prices .btn{width:100%;white-space:normal}
+ .course-identity{font-size:clamp(30px,9vw,40px)}
+ .shop-results-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shop-results-grid .card-body,.shop-lesson-rail .card-body{min-width:0}
+ .shop-results-grid .lesson-card .row,.shop-lesson-rail .lesson-card .row{flex-direction:column;align-items:stretch}
+ .shop-results-grid .lesson-card .btn,.shop-lesson-rail .lesson-card .btn{width:100%;white-space:normal}
+ .shop-results-grid .bundle-card{grid-column:1/-1}
+ .cabinet-main{padding-inline:16px}
+ .cabinet-main>h2{font-size:clamp(26px,8vw,36px)}
+ .cabinet-main .item-row .btn{white-space:normal;max-width:100%}
+ .account-continue{min-width:0;grid-template-columns:minmax(0,1fr)}
+ .account-continue-content{min-width:0}
+ .student-library-filters .btn{min-height:44px}
+ .student-library-group .grid{grid-template-columns:minmax(0,1fr)}
+ #adminMount .grid{grid-template-columns:minmax(0,1fr)}
+ #adminMount .item-row .btn{min-height:44px;white-space:normal}
+ #adminMount .admin-bulk-actions .btn{flex:1 1 100%;white-space:normal}
+}
+@media(max-width:360px){
+ .header{padding-inline:7px;gap:3px}
+ .header .logo{font-size:11px}
+ .header .actions{gap:3px}
+ .header #menuBtn{flex-basis:40px;min-width:40px}
+ .header #langBtn,.header #cartBtn{min-width:34px;font-size:10px}
+ .header #accountLink{font-size:10px;max-width:50px}
+ .header .logo small{font-size:6px}
+ .home-hero h1,.ref-course-hero h1,.ref-mentor-hero h1{font-size:clamp(34px,11vw,44px)}
+ .shop-search-row #shopSearch{flex-basis:100%}
+ .shop-search-row #shopSearchApply,.shop-search-row #shopFiltersToggle{flex:1 1 auto;justify-content:center}
+ .shop-results-grid{grid-template-columns:minmax(0,1fr)}
+ .shop-bundle-rail .bundle-card,.shop-results-grid .bundle-card{grid-template-columns:minmax(0,1fr)}
+ .study-material-link{flex-wrap:wrap}
+}
