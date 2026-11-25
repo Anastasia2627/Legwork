@@ -59,3 +59,14 @@ Administrator sessions now expire after 12 hours, students after 7 days. Passwor
 - **Production verification pending:** Security checks in a temporary test server cannot confirm deployed reverse-proxy trust settings, real HTTPS, SMTP sender authentication, WayForPay settlement/refunds, persistent-volume backups, firewall rules or actual operational monitoring. These require review against the real hosting environment.
 
 The in-repository tests are a defense-in-depth smoke suite, not an external penetration test. Before launch, run authenticated and unauthenticated API testing against a non-production deployment and perform independent review of payment flows and user data retention.
+
+## Release hardening pass (25 November 2026)
+
+- The origin guard now executes before MFA, email verification/reset, email outbox and all other browser write routes. Production requires a same-origin Origin or Referer and rejects cross-site Fetch Metadata. Only the exact two POST provider webhook paths are exempt; those still perform independent signature validation. Read-only requests do not require an Origin header.
+- All API responses are marked private, no-store, including anonymous authentication responses. Logout emits one explicit Max-Age=0 cookie.
+- Malformed JSON and oversized bodies return 400 and 413 respectively. Both Node and the generated Cloudflare application log only the error code/name, not parser errors that may include submitted credentials.
+- Password verification rejects malformed records and non-string or oversized credentials. The generated scrypt format and existing valid hashes are unchanged.
+- Production email verification remains required for purchases and mentorship requests even if email delivery becomes disabled; already verified users retain their normal access. Local development/test mode continues to support its existing mail-disabled workflow.
+- Regression tests are in `test/production-security.test.js` and `test/security.test.js`. The Cloudflare source-generation contract was exercised using repository source files, and generated JavaScript syntax was checked. Full Node integration tests, actual Wrangler bundling, live provider checks and deployment verification are still required.
+
+This is a targeted security review, not a penetration-test certification. Before launch, enable and verify administrator MFA, test mail delivery and signed payment callbacks in a controlled environment, review package vulnerabilities, run the full test suite, and exercise independent backup restoration. Unlisted video links remain shareable by entitled viewers.
