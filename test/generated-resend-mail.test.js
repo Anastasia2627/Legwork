@@ -11,10 +11,12 @@ test('Cloudflare generated mail sends stable idempotency key and persists Resend
  const app=express(),pending=[],sent=[];
  const ctx={waitUntil(promise){pending.push(Promise.resolve(promise))},storage:{setAlarm:async()=>{}}};
  const env={RESEND_API_KEY:'re_test_secret',MAIL_FROM:'LEGWORK <hello@example.org>'};
- const previous={SITE_ORIGIN:process.env.SITE_ORIGIN,SESSION_SECRET:process.env.SESSION_SECRET};
+ const previous={SITE_ORIGIN:process.env.SITE_ORIGIN,SESSION_SECRET:process.env.SESSION_SECRET,NODE_ENV:process.env.NODE_ENV,REGISTRATION_OPEN:process.env.REGISTRATION_OPEN};
  const originalFetch=globalThis.fetch;
  process.env.SITE_ORIGIN='https://legwork.example';
  process.env.SESSION_SECRET='32-character-test-secret-for-outbox-integrity';
+ process.env.NODE_ENV='production';
+ process.env.REGISTRATION_OPEN='false';
  globalThis.fetch=async(url,init)=>{
   assert.equal(url,'https://api.resend.com/emails');
   sent.push(init);
@@ -24,6 +26,7 @@ test('Cloudflare generated mail sends stable idempotency key and persists Resend
   const mail=createMailService(app,db,{auth:()=>{},hashPassword:()=>'',cleanText:x=>x,env,ctx});
   registerResendWebhooks(app,db,{secret:''});
   assert.equal(mail.enabled,true);
+  assert.equal(mail.registrationOpen,false,'Email credentials alone must not open production enrollment');
   assert.equal(mail.notify('student@example.org','teacher:feedback:1','Legwork · Feedback ready','See feedback in your account'),true);
   await Promise.all(pending);
   const record=db.prepare('SELECT status,provider_id,delivery_status,attempts,payload FROM mail_outbox').get();
