@@ -1,45 +1,35 @@
 import {test,expect} from '@playwright/test';
 
-test('Student account shows real accessible progress and a useful My Lessons view',async({page},testInfo)=>{
- const email='library-'+testInfo.project.name+'-'+Date.now()+'@example.test';
+test('Student account shows true owned progress and clear lesson completion',async({page},info)=>{
+ const email='library-'+info.project.name+'-'+Date.now()+'@example.test';
  await page.goto('/#/register');
  await page.locator('#authForm [name="name"]').fill('Library Student');
  await page.locator('#authForm [name="email"]').fill(email);
  await page.locator('#authForm [name="password"]').fill('StudentLibraryPassword!243');
  await page.locator('#authForm button[type="submit"]').click();
  await expect(page).toHaveURL(/#\/account/);
- const overview=page.locator('.account-continue');
- await expect(overview).toContainText('0 / 1 LESSONS · 0% COMPLETE');
- await expect(overview.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
+ await expect(page.locator('.account-continue')).toContainText('0 / 1 LESSONS · 0% COMPLETE');
+ await expect(page.locator('.account-continue [role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
 
  await page.locator('.cabinet-nav [data-tab="lessons"]').click();
  await expect(page.locator('.cabinet-main')).toContainText('0 of 1 accessible lessons completed');
- await expect(page.locator('.cabinet-main .lesson-card')).toHaveCount(1);
- const myClass=page.locator('.cabinet-main .lesson-card').first();
- await expect(myClass.locator('.lesson-library-status')).toContainText('IN YOUR LIBRARY');
- await expect(myClass.locator('.card-body .row')).not.toContainText('
- await expect(page.locator('#studyComplete')).toBeVisible();
- await page.locator('#studyComplete').click();
- await expect(page.locator('#studyComplete')).toContainText(/Completed|Completada/);
- await page.goto('/#/account');
- // Switching back from the course player preserves the last cabinet tab.
- await page.locator('.cabinet-nav [data-tab="overview"]').click();
- await expect(page.locator('.account-continue')).toContainText('1 / 1 LESSONS · 100% COMPLETE');
- await expect(page.locator('.account-continue [role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
- await page.locator('.cabinet-nav [data-tab="lessons"]').click();
- await expect(page.locator('.lesson-card.is-complete .lesson-library-status')).toContainText('COMPLETED');
- await expect(page.locator('.lesson-card.is-complete .btn')).toHaveText('Revisit');
-});
-);
- await expect(myClass.locator('a[href="#/study/1"]')).toHaveCount(3);
+ const cards=page.locator('.cabinet-main .lesson-card');
+ await expect(cards).toHaveCount(1);
+ await expect(cards.first().locator('.lesson-library-status')).toHaveText('IN YOUR LIBRARY');
+ await expect(cards.first().locator('.card-body .row')).toContainText('Study');
+ await expect(cards.first().locator('a[href="#/study/1"]')).toHaveCount(3);
 
  await page.goto('/#/study/1');
  await expect(page.locator('#studyComplete')).toBeVisible();
  await page.locator('#studyComplete').click();
  await expect(page.locator('#studyComplete')).toContainText(/Completed|Completada/);
+
  await page.goto('/#/account');
- // Switching back from the course player preserves the last cabinet tab.
+ // My Lessons tab is remembered across route navigation.
  await page.locator('.cabinet-nav [data-tab="overview"]').click();
  await expect(page.locator('.account-continue')).toContainText('1 / 1 LESSONS · 100% COMPLETE');
  await expect(page.locator('.account-continue [role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
+ await page.locator('.cabinet-nav [data-tab="lessons"]').click();
+ await expect(page.locator('.lesson-card.is-complete .lesson-library-status')).toHaveText('COMPLETED');
+ await expect(page.locator('.lesson-card.is-complete .btn')).toHaveText('Revisit');
 });
