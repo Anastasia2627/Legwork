@@ -5,6 +5,7 @@ const wave={id:99001,slug:'wave-lab',title:'Wave Lab',description:'Wave training
 const split={id:99002,slug:'split-lab',title:'Split Lab',description:'Split training.',price:9900,guru_price:19900};
 
 test('Course navigation follows public catalog in every publication state',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
  let catalog=[legwork];
  await page.route('**/api/courses',route=>route.fulfill({json:{courses:catalog}}));
  await page.route('**/api/lessons',route=>route.fulfill({json:{lessons:[]}}));
