@@ -376,9 +376,7 @@ body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:2px solid var
 .header-course-menu .course-menu-popup strong{font:800 21px/1 var(--font-display);letter-spacing:0}
 .header-course-menu .course-menu-popup small{font:500 11px var(--font-body);color:#666}
 .header-course-menu .course-menu-popup>span{color:#7a7a7a}
-.header-course-menu.is-open .course-menu-popup,
-.header-course-menu:focus-within .course-menu-popup,
-.header-course-menu:hover .course-menu-popup{display:grid}
+.header-course-menu.is-open .course-menu-popup{display:grid}
 @media(max-width:1080px){
  .header-course-menu{width:100%;justify-content:flex-start}
  .header-course-menu .course-menu-popup{top:100%;left:0}
@@ -426,3 +424,13 @@ body:has(.ref-mentor-hero) .ref-prices .price-card.featured{border:2px solid var
  .mentor-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
  .mentor-steps>div{min-width:0;padding:14px 10px}
 }
+
+
+/* Live course catalog: keep the established flagship layout with any count. */
+.home-program-grid.is-single{grid-template-columns:minmax(0,1fr)}
+.home-program-grid .home-program-links{grid-template-rows:none;grid-auto-rows:minmax(150px,auto)}
+.home-program-primary .program-name,.home-program-link h3,.course-menu-popup strong{overflow-wrap:anywhere}
+.home-program-link:not(.is-coming-soon):hover{background:#e7e7e7}
+.header-course-menu .course-menu-popup{max-height:min(60vh,420px);overflow:auto;overscroll-behavior:contain}
+.header-course-menu .course-menu-popup .course-menu-all{border-top:1px solid #e2e2e2;margin-top:4px;font-weight:600}
+@media(max-width:760px){.header-course-menu .course-menu-popup{max-height:42vh}.home-program-grid .home-program-links{grid-auto-rows:minmax(130px,auto)}}
