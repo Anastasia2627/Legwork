@@ -119,12 +119,52 @@ const editorial=(page,key)=>{
  };
  return esc(outdated[state.lang]?.[page]?.[key]?.[value]??value)
 };
-const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash.slice(2):(location.pathname.replace(/^\//,'')||'')).split(/[?#]/)[0];const page=route===''?'home':(route==='course'||route==='course/legwork-lab')?'course':route==='mentorship'?'mentorship':null;const values=page?(state.content?.[page]?.[state.lang]||EDITORIAL_DEFAULTS[page]?.[state.lang]):null;const shop=route==='shop';document.title=values?.metaTitle||(shop?'Online Dance Classes & Bundles | Legwork':'Legwork · Online Dance School');const description=document.querySelector('meta[name="description"]');const dynamic=route.startsWith('course/')&&route!=='course/legwork-lab'?courseByRoute(route):null;if(dynamic)document.title=dynamic.title+' | Legwork';else if(route==='courses')document.title=t('Online courses | Legwork','Cursos online | Legwork');if(description)description.setAttribute('content',dynamic?.description||values?.metaDescription||(shop?'Browse individual pole dance technique classes and lesson bundles.':'Online dance lessons and mentorship at Legwork.'));
- const publicPath=route===''?'/':['course','shop','mentorship'].includes(route)?'/'+route:null;
- const canonical=document.querySelector('link[rel="canonical"]');
- if(canonical&&publicPath)canonical.href=location.origin+publicPath;
+const currentRoute=()=>location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\/es(?=\/|$)/,'').replace(/^\//,'');
+const localizedRoutes=new Set(['','course','mentorship']);
+const publicRoutePath=(route,lang=state.lang)=>{
+ if(route==='course/legwork-lab')route='course';
+ if(route==='course'&&!courseByRoute('course'))return null;
+ if(!['','course','courses','shop','mentorship'].includes(route)&&!(route.startsWith('course/')&&courseByRoute(route)))return null;
+ const base='/'+route;
+ return lang==='es'&&localizedRoutes.has(route)?(base==='/'?'/es':'/es'+base):base;
+};
+const indexPermission=document.querySelector('meta[name="robots"]')?.dataset.indexEnabled==='true';
+const seoOrigin=(()=>{try{return new URL(document.querySelector('link[rel="canonical"]')?.href||location.origin).origin}catch{return location.origin}})();
+const syncPublicLinks=()=>{
+ // Existing hash-based links remain compatible in preview/private flows.
+ // Direct public landing pages and the launch build expose crawlable links.
+ if(location.hash.startsWith('#/')&&!indexPermission)return;
+ for(const anchor of document.querySelectorAll('a[href^="#/"]')){
+  const route=anchor.getAttribute('href').slice(2);
+  if(route.includes('?')||route.includes('#'))continue;
+  const path=publicRoutePath(route);
+  if(path)anchor.setAttribute('href',path);
+ }
+};
+const refreshMeta=()=>{
+ const route=currentRoute().split(/[?#]/)[0],page=route===''?'home':(route==='course'||route==='course/legwork-lab')?'course':route==='mentorship'?'mentorship':null;
+ const values=page?(state.content?.[page]?.[state.lang]||EDITORIAL_DEFAULTS[page]?.[state.lang]):null;
+ const dynamic=route.startsWith('course/')&&route!=='course/legwork-lab'?courseByRoute(route):null;
+ const shop=route==='shop',directory=route==='courses';
+ document.title=dynamic?dynamic.title+' | Legwork':values?.metaTitle||(shop?'Online Dance Classes & Bundles | Legwork':directory?'Online Dance Courses | Legwork':'Legwork · Online Dance School');
+ const description=dynamic?.description||values?.metaDescription||(shop?'Browse individual online dance technique classes and lesson bundles.':directory?'Explore published online dance courses and training programs.':'Online dance lessons and mentorship at Legwork.');
+ const setMeta=(selector,attrs,content)=>{let node=document.querySelector(selector);if(!node){node=document.createElement('meta');for(const [k,v] of Object.entries(attrs))node.setAttribute(k,v);document.head.append(node);}node.content=content;};
+ setMeta('meta[name="description"]',{name:'description'},description.slice(0,170));
+ const path=publicRoutePath(route),canonical=document.querySelector('link[rel="canonical"]');
+ if(path){const node=canonical||document.createElement('link');node.rel='canonical';node.href=seoOrigin+path;if(!canonical)document.head.append(node);}
+ else canonical?.remove();
  const robots=document.querySelector('meta[name="robots"]');
- if(robots)robots.content=publicPath&&robots.dataset.indexEnabled==='true'?'index,follow':'noindex,nofollow';
+ if(robots)robots.content=path&&indexPermission&&!state.serviceIssue?'index,follow':'noindex,nofollow';
+ else setMeta('meta[name="robots"]',{name:'robots'},'noindex,nofollow');
+ for(const node of document.querySelectorAll('link[rel="alternate"][hreflang]'))node.remove();
+ const normalized=route==='course/legwork-lab'?'course':route;
+ if(path&&localizedRoutes.has(normalized))for(const lang of ['en','es','x-default']){
+  const node=document.createElement('link');node.rel='alternate';node.hreflang=lang;node.href=seoOrigin+publicRoutePath(normalized,lang==='es'?'es':'en');document.head.append(node);
+ }
+ for(const [prop,value] of Object.entries({'og:title':document.title,'og:description':description.slice(0,170),'og:url':path?seoOrigin+path:'','og:locale':path?.startsWith('/es')?'es_ES':'en_US'}))setMeta('meta[property="'+prop+'"]',{property:prop},value);
+ const schema=document.getElementById('publicSeoSchema');
+ if(schema){try{if(!path||JSON.parse(schema.textContent).url!==seoOrigin+path)schema.remove();}catch{schema.remove();}}
+ syncPublicLinks();
 };
 function layout(markup){closeShopFilters(false);const offline=state.serviceIssue?'<div class="site-service-notice" role="status">'+t('Some school services are temporarily unavailable. You can still explore the school; account and purchase features may need attention.','Algunos servicios no están disponibles temporalmente. Puedes explorar la escuela; el acceso y las compras pueden verse afectados.')+'</div>':'';app.innerHTML=offline+markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
@@ -288,7 +328,7 @@ function bundlePage(route){
 }
 let shopSearchTimer=null;
 function applyShopSearch(value,restoreFocus=false,caret=null){
- if(!location.hash.startsWith('#/shop'))return;
+ if(currentRoute().split('?')[0]!=='shop')return;
  const params=new URLSearchParams(location.hash.split('?')[1]||'');
  const term=String(value||'').trim().slice(0,120);
  if(term)params.set('q',term);else params.delete('q');
@@ -891,8 +931,9 @@ async function loadOptionalPublic(key){
  publicOptionalLoads[key]=promise;
  return promise;
 }
-async function navigate(){releaseAdminLessonPreviews();closeCart(false);closeShopFilters(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship')){const hash=location.hash;await loadOptionalPublic('mentorship');if(location.hash===hash)mentorship();}else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register'){const hash=location.hash;await loadOptionalPublic('registration');if(location.hash===hash)authPage(true);}else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
+async function navigate(){releaseAdminLessonPreviews();closeCart(false);closeShopFilters(false);setMobileMenu(false);window.scrollTo(0,0);const route=currentRoute().split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship')){const hash=location.hash;await loadOptionalPublic('mentorship');if(location.hash===hash)mentorship();}else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register'){const hash=location.hash;await loadOptionalPublic('registration');if(location.hash===hash)authPage(true);}else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
 async function init(){
+ if(!location.hash.startsWith('#/'))state.lang=/^\/es(?:\/|$)/.test(location.pathname)?'es':'en';
  // A partial outage (including missing deployment secrets) must never hide
  // all public content. Authentication and purchases remain server-controlled.
  const results=await Promise.allSettled([
@@ -1310,7 +1351,7 @@ const mobileFiltersQuery=matchMedia('(max-width:820px)');
 mobileFiltersQuery.addEventListener('change',e=>{if(!e.matches)closeShopFilters(false)});
 const mobileNavQuery=matchMedia('(max-width:1080px)');
 mobileNavQuery.addEventListener('change',e=>{if(!e.matches)setMobileMenu(false)});
-$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
+$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);const route=currentRoute().split(/[?#]/)[0],path=publicRoutePath(route);if(path&&localizedRoutes.has(route)&&(!location.hash.startsWith('#/')||indexPermission)){location.assign(path);return;}navigate()};
 document.addEventListener('change',e=>{if(e.target.id==='studentLibraryCourse'){state.libraryCourse=e.target.value||null;refreshStudentLibrary();return;}if(e.target.matches('.admin-bulk-lesson-check')){if(bulkLessonChecks(true).filter(input=>input.checked).length>50){e.target.checked=false;notice(t('Maximum 50 lessons per operation','Máximo 50 clases por operación'));}updateAdminBulkSelection();return;}if(e.target.id==='adminLessonStatus'){updateAdminLessonFilter();return}if(e.target.id==='mentorshipPackage'){$('#deepFields')?.classList.toggle('hidden',e.target.value!=='Deep');sessionStorage.setItem('legwork_package',e.target.value)}if(['filterCategory','filterLevel','filterKind','filterTeacher','filterEquipment','filterFocus','filterDuration'].includes(e.target.id)){const p=new URLSearchParams(location.hash.split('?')[1]||'');const key={filterCategory:'category',filterLevel:'level',filterKind:'kind',filterTeacher:'teacher',filterEquipment:'equipment',filterFocus:'focus',filterDuration:'duration'}[e.target.id];e.target.value?p.set(key,e.target.value):p.delete(key);location.hash='#/shop?'+p;}});document.addEventListener('input',e=>{const previewForm=e.target?.closest?.('form[data-lesson-preview]');if(previewForm)updateAdminLessonPreview(previewForm);if(e.target.id==='adminLessonSearch'){updateAdminLessonFilter();return}if(e.target.id!=='shopSearch')return;clearTimeout(shopSearchTimer);const value=e.target.value,caret=e.target.selectionStart;shopSearchTimer=setTimeout(()=>applyShopSearch(value,true,caret),300)});document.addEventListener('keydown',e=>{if(e.target.id==='shopSearch'&&e.key==='Enter'){e.preventDefault();clearTimeout(shopSearchTimer);applyShopSearch(e.target.value,true,e.target.selectionStart)}});document.querySelector('.skip-link')?.addEventListener('click',e=>{e.preventDefault();$('#app').focus()});window.addEventListener('hashchange',navigate);
 window.addEventListener('scroll',()=>{const sticky=$('#courseSticky'),hero=$('.ref-course-hero');if(sticky&&hero){const navigationHeight=document.querySelector('.header')?.getBoundingClientRect().height||64;sticky.classList.toggle('visible',hero.getBoundingClientRect().bottom<=navigationHeight)}},{passive:true});
 document.addEventListener('click',e=>{const anchor=e.target.closest('a[href="#/course#prices"],a[href^="#/course/"][href$="#prices"],a[href="#/mentorship#request"]');if(!anchor)return;if(location.hash===anchor.getAttribute('href')){e.preventDefault();document.getElementById(anchor.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'})}});
