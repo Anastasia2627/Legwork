@@ -31,7 +31,7 @@ Verified against the application source and integration/browser tests. This is a
 ## Where staff finish setup
 
 - **Admin Studio → Public Media Library:** paste a public HTTPS URL, alt text and optional attribution. Leaving a slot blank preserves the placeholder. Lesson-specific images still live under Edit Full Lesson Details.
-- **Admin Studio → Edit Courses / Edit Lessons / Lesson Bundles:** maintain actual prices and course inventory.
+- **Admin Studio → Edit Courses / Edit Lessons / Lesson Bundles:** maintain actual prices and course inventory. Lesson creation and editing include a live, unsaved preview of the cover, title, duration, price and video-link status. Owners may upload a JPEG/PNG/WebP cover directly; the browser re-encodes it to WebP on Save. The preview does not upload images or play videos automatically. It does not verify YouTube availability or video rights.
 - **Admin Studio → Purchase requests / Mentorship reviews:** confirm external payments before granting access or giving paid feedback.
 - **Admin Studio → Waitlist Signups:** see each consent separately; unsubscribed records are excluded.
 - **Admin Studio → Email Delivery Health:** see whether SMTP is ready and whether queue entries have failed.
