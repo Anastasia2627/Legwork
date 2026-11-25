@@ -52,7 +52,7 @@ export async function renderStudy(id,{api,layout,notice,lang}){
  const metadata='<span>'+htmlEscape(l.level)+'</span><span>'+htmlEscape(l.equipment||'Any support')+'</span><span>'+l.duration+' min</span>';
  const container='<div class="study-shell">'+
  '<aside class="study-sidebar" id="studySidebar"><div class="study-sidebar-head"><a href="#/account" class="study-back">← '+(spanish?'Mis cursos':'My courses')+'</a><h3>'+htmlEscape(course.title)+'</h3><span class="badge-label">'+htmlEscape(course.tier==='guru'?'GURU':course.tier==='self'?'SELF-PACED':'SINGLE LESSON')+'</span><p class="meta">'+done+' / '+accessible.length+' '+(spanish?'clases completadas':'lessons completed')+'</p><div class="progress-bar"><i style="width:'+percent+'%"></i></div></div><nav class="study-outline" aria-label="Course curriculum">'+nav+'</nav></aside>'+
- '<article class="study-content"><div class="study-topline"><a href="#/account">← '+(spanish?'Volver al perfil':'Back to dashboard')+'</a><button class="btn btn-small btn-outline study-toggle" id="toggleSyllabus" type="button">'+(spanish?'Programa':'Curriculum')+' ☰</button></div>'+
+ '<article class="study-content"><div class="study-topline"><a href="#/account">← '+(spanish?'Volver al perfil':'Back to dashboard')+'</a><button class="btn btn-small btn-outline study-toggle" id="toggleSyllabus" type="button" aria-controls="studySidebar" aria-expanded="false">'+(spanish?'Programa':'Curriculum')+' ☰</button></div>'+
  '<p class="eyebrow">'+htmlEscape(course.title)+' · '+(index+1)+' / '+lessons.length+'</p>'+
  '<h1 class="study-title">'+htmlEscape(l.title)+'</h1><div class="study-meta">'+metadata+'</div>'+
  '<div id="studyVideoHost" class="study-video-host"></div>'+
@@ -87,7 +87,15 @@ export async function renderStudy(id,{api,layout,notice,lang}){
   notice(spanish?'Progreso guardado':'Progress saved');
   await renderStudy(l.id,{api,layout,notice,lang});
  };
- document.getElementById('toggleSyllabus')?.addEventListener('click',()=>document.getElementById('studySidebar')?.classList.toggle('open'));
+ const syllabusToggle=document.getElementById('toggleSyllabus'),sidebar=document.getElementById('studySidebar');
+ syllabusToggle?.addEventListener('click',()=>{
+  const open=sidebar?.classList.toggle('open')||false;
+  syllabusToggle.setAttribute('aria-expanded',String(open));
+  if(open)sidebar.querySelector('.study-lesson.selected')?.scrollIntoView({block:'nearest'});
+ });
+ sidebar?.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&sidebar.classList.contains('open')){sidebar.classList.remove('open');syllabusToggle?.setAttribute('aria-expanded','false');syllabusToggle?.focus();}
+ });
  document.getElementById('studyComplete')?.addEventListener('click',()=>save(!l.completed,(document.getElementById('homeworkUrl').value.trim()||(privateHomework?l.homework_url:''))).catch(e=>notice(e.message)));
  document.getElementById('studyHomeworkForm')?.addEventListener('submit',event=>{
   event.preventDefault();event.stopPropagation();
