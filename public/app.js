@@ -693,6 +693,24 @@ async function init(){
  await navigate();
 }
 const formData=form=>Object.fromEntries(new FormData(form));
+function updateAdminLessonFilter(){
+ const search=($('#adminLessonSearch')?.value||'').trim().toLowerCase();
+ const status=$('#adminLessonStatus')?.value||'all';
+ const cards=[...document.querySelectorAll('#adminLessonList .admin-edit-lesson')];
+ let shown=0;
+ for(const card of cards){
+  const hasVideo=card.dataset.hasVideo==='1',hasCover=card.dataset.hasCover==='1';
+  const matches=(!search||(card.dataset.search||'').includes(search))&&(
+   status==='all'||(status==='missing-video'&&!hasVideo)||
+   (status==='missing-cover'&&!hasCover)||(status==='complete'&&hasVideo&&hasCover)
+  );
+  card.hidden=!matches;
+  if(matches)shown++;
+ }
+ const label=$('#adminLessonCount');
+ if(label)label.textContent='Showing '+shown+' of '+cards.length;
+}
+
 async function action(e){const target=e.target,form=target.closest('form'),button=target.closest('button,a');try{
 if(form&&e.type==='submit'){e.preventDefault();const data=formData(form);
 if(form.id==='forgotPasswordForm'){const response=await api('/auth/forgot-password','POST',{email:data.email});notice(response.message);form.reset();return}
@@ -822,23 +840,6 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   });
   return;
  }
-function updateAdminLessonFilter(){
- const search=($('#adminLessonSearch')?.value||'').trim().toLowerCase();
- const status=$('#adminLessonStatus')?.value||'all';
- const cards=[...document.querySelectorAll('#adminLessonList .admin-edit-lesson')];
- let shown=0;
- for(const card of cards){
-  const hasVideo=card.dataset.hasVideo==='1',hasCover=card.dataset.hasCover==='1';
-  const matches=(!search||(card.dataset.search||'').includes(search))&&(
-   status==='all'||(status==='missing-video'&&!hasVideo)||
-   (status==='missing-cover'&&!hasCover)||(status==='complete'&&hasVideo&&hasCover)
-  );
-  card.hidden=!matches;
-  if(matches)shown++;
- }
- const label=$('#adminLessonCount');
- if(label)label.textContent='Showing '+shown+' of '+cards.length;
-}
 
  if(button.dataset.jumpAdmin){
   e.preventDefault();
