@@ -38,10 +38,13 @@ test('Lesson covers are optional, public and backward compatible',()=>{
  assert.match(read('public/app.js'),/name="cover_url"/);
 });
 
-test('Readable type hierarchy uses no third typeface',()=>{
+test('Fonts load once from the HTML head and core maintains readable hierarchy',()=>{
  const core=read('public/css/core.css');
- assert.match(core,/Archivo\+Black/);
- assert.match(core,/DM\+Sans/);
+ const html=read('public/index.html');
+ assert.match(html,/Archivo\+Black/);
+ assert.match(html,/DM\+Sans/);
+ assert.equal((html.match(/fonts\.googleapis\.com\/css2/g)||[]).length,1);
+ for(const file of ['styles.css','css/core.css','css/premium.css','css/reference-2026.css'])assert.doesNotMatch(read('public/'+file),/@import[^;]*fonts\.googleapis\.com/);
  assert.match(core,/h2,\.section h2/);
  assert.match(core,/var\(--font-body\)/);
 });
