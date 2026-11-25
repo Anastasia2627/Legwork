@@ -70,8 +70,11 @@ app.get('/health', (req, res) => {
   }
 });
 app.use((err, req, res, next) => {
-  console.error('Cloudflare API error:', err);
-  if (!res.headersSent) res.status(500).json({ error: 'Internal server error' });
+  if (res.headersSent) return next(err);
+  if (err.type === 'entity.too.large') return res.status(413).json({ error: 'Request body too large' });
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid request body' });
+  console.error('Cloudflare API error:', err.code || err.name || 'unknown');
+  res.status(500).json({ error: 'Internal server error' });
 });
 return { app, mail };
 }
