@@ -228,7 +228,13 @@ app.post('/api/mentorships',auth,mail.requireVerified,(req,res)=>{
   message:quoted?'Request saved. Your quoted order is available in your account; no payment was taken.':'Request saved. The school will confirm price and payment details before charging you.'
  });
 });
-app.patch('/api/profile',auth,(req,res)=>{const name=cleanText(req.body.name,80);if(!name)return res.status(400).json({error:'Name required'});db.prepare('UPDATE users SET name=?,instagram=? WHERE id=?').run(name,cleanText(req.body.instagram,80),req.user.id);res.json({ok:true})});
+app.patch('/api/profile',auth,(req,res)=>{
+ const body=req.body||{},name=typeof body.name==='string'?body.name.trim():'';
+ if(!name||name.length>80||(body.instagram!==undefined&&(typeof body.instagram!=='string'||body.instagram.trim().length>80)))return res.status(400).json({error:'Enter a name and optional Instagram username of up to 80 characters'});
+ const instagram=body.instagram===undefined?req.user.instagram||'':body.instagram.trim();
+ db.prepare('UPDATE users SET name=?,instagram=? WHERE id=?').run(name,instagram,req.user.id);
+ res.json({ok:true,profile:{name,instagram}});
+});
 app.get('/api/admin/overview',auth,admin,(req,res)=>res.json({users:db.prepare('SELECT id,email,name,role FROM users ORDER BY id DESC LIMIT 100').all(),orders:db.prepare('SELECT o.*,u.email FROM orders o JOIN users u ON u.id=o.user_id ORDER BY o.id DESC LIMIT 100').all(),mentorships:db.prepare('SELECT m.*,u.email FROM mentorships m JOIN users u ON u.id=m.user_id ORDER BY m.id DESC LIMIT 100').all(),courses:db.prepare('SELECT * FROM courses').all(),lessons:db.prepare('SELECT * FROM lessons ORDER BY course_id,sort_order,id').all()}));
 app.get('/api/admin/mentorship-queue',auth,admin,(req,res)=>{
  const statuses=['all','awaiting_payment','paid','answered','cancelled'];
