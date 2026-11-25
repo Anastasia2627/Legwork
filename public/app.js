@@ -126,7 +126,7 @@ const refreshMeta=()=>{const route=(location.hash.startsWith('#/')?location.hash
  const robots=document.querySelector('meta[name="robots"]');
  if(robots)robots.content=publicPath&&robots.dataset.indexEnabled==='true'?'index,follow':'noindex,nofollow';
 };
-function layout(markup){document.body.classList.remove('shop-filters-open');const offline=state.serviceIssue?'<div class="site-service-notice" role="status">'+t('Some school services are temporarily unavailable. You can still explore the school; account and purchase features may need attention.','Algunos servicios no están disponibles temporalmente. Puedes explorar la escuela; el acceso y las compras pueden verse afectados.')+'</div>':'';app.innerHTML=offline+markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
+function layout(markup){closeShopFilters(false);const offline=state.serviceIssue?'<div class="site-service-notice" role="status">'+t('Some school services are temporarily unavailable. You can still explore the school; account and purchase features may need attention.','Algunos servicios no están disponibles temporalmente. Puedes explorar la escuela; el acceso y las compras pueden verse afectados.')+'</div>':'';app.innerHTML=offline+markup;syncHeader();translatePage(app,state.lang);translatePage(document.querySelector('footer'),state.lang);refreshMeta()}
 function section(title,content,kicker='',cls=''){return '<section class="section '+cls+'"><div class="section-inner">'+(kicker?'<p class="eyebrow">'+kicker+'</p>':'')+(title?'<h2>'+title+'</h2>':'')+content+'</div></section>'}
 
 function home(){
@@ -857,18 +857,27 @@ function setMobileMenu(open){if(!open){document.querySelector('.header-course-me
  toggle.setAttribute('aria-label',open?(state.lang==='es'?'Cerrar menú de navegación':'Close navigation menu'):(state.lang==='es'?'Abrir menú de navegación':'Open navigation menu'));
 }
 function showCart(){
+ closeShopFilters(false);setMobileMenu(false);
  const lessons=state.cart.map(id=>state.lessons.find(l=>l.id===id)).filter(Boolean);
  const bundles=state.bundleCart.map(id=>state.bundles.find(b=>b.id===id)).filter(Boolean);
  const total=lessons.reduce((sum,l)=>sum+l.price,0)+bundles.reduce((sum,b)=>sum+b.price,0);
  const lessonRows=lessons.map(l=>'<div class="item-row row"><div><b>'+esc(l.title)+'</b><p>Lesson · '+money(l.price)+'</p></div><button class="btn btn-small btn-outline" data-remove="'+l.id+'">REMOVE</button></div>').join('');
  const bundleRows=bundles.map(b=>'<div class="item-row row"><div><b>'+esc(b.title)+'</b><p>Bundle · '+b.lesson_ids.length+' lessons · '+money(b.price)+'</p></div><button class="btn btn-small btn-outline" data-remove-bundle="'+b.id+'">REMOVE</button></div>').join('');
  $('#cartBody').innerHTML=(lessons.length+bundles.length)?lessonRows+bundleRows+'<h3>'+translateText('Total:',state.lang)+' '+money(total)+'</h3><button class="btn btn-red" id="requestCart">REQUEST PURCHASE</button><p class="description">Purchase requests are manual. No money is charged at this stage.</p>':'<p>Your bag is empty.</p>';translatePage($('#cartDrawer'),state.lang);
- cartPreviousFocus=document.activeElement;
- const drawer=$('#cartDrawer');drawer.inert=false;drawer.classList.add('open');
+ const drawer=$('#cartDrawer');if(!drawer.classList.contains('open'))cartPreviousFocus=document.activeElement;
+ drawer.inert=false;drawer.classList.add('open');document.body.classList.add('cart-open');
+ for(const el of [$('.header'),app,$('.site-footer')])if(el)el.inert=true;
  $('#shade').hidden=false;$('#cartBtn').setAttribute('aria-expanded','true');
  $('#closeCart').focus();
 }
-function closeCart(restoreFocus=true){const drawer=$('#cartDrawer'),wasOpen=drawer.classList.contains('open');$('#shade').hidden=true;drawer.classList.remove('open');drawer.inert=true;$('#cartBtn').setAttribute('aria-expanded','false');if(wasOpen&&restoreFocus){const target=cartPreviousFocus?.isConnected?cartPreviousFocus:$('#cartBtn');target?.focus()}cartPreviousFocus=null}
+function closeCart(restoreFocus=true){const drawer=$('#cartDrawer'),wasOpen=drawer.classList.contains('open');$('#shade').hidden=true;drawer.classList.remove('open');drawer.inert=true;document.body.classList.remove('cart-open');if(wasOpen)for(const el of [$('.header'),app,$('.site-footer')])if(el)el.inert=false;$('#cartBtn').setAttribute('aria-expanded','false');if(wasOpen&&restoreFocus){const target=cartPreviousFocus?.isConnected?cartPreviousFocus:$('#cartBtn');target?.focus()}cartPreviousFocus=null}
+function closeShopFilters(restoreFocus=true){
+ const panel=$('#shopFilterPanel'),shade=$('#shopFilterShade'),toggle=$('#shopFiltersToggle');
+ if(!panel?.classList.contains('is-open'))return;
+ panel.classList.remove('is-open');panel.removeAttribute('aria-modal');panel.removeAttribute('role');if(shade)shade.hidden=true;toggle?.setAttribute('aria-expanded','false');document.body.classList.remove('shop-filters-open');
+ for(const el of [$('.header'),$('.site-footer'),$('.shop-catalog')])if(el)el.inert=false;
+ if(restoreFocus)toggle?.focus();
+}
 function updateCart(){localStorage.setItem('legwork_cart',JSON.stringify(state.cart));localStorage.setItem('legwork_bundle_cart',JSON.stringify(state.bundleCart));syncHeader()}
 const publicOptionalLoads={};
 async function loadOptionalPublic(key){
@@ -882,7 +891,7 @@ async function loadOptionalPublic(key){
  publicOptionalLoads[key]=promise;
  return promise;
 }
-async function navigate(){releaseAdminLessonPreviews();closeCart(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship')){const hash=location.hash;await loadOptionalPublic('mentorship');if(location.hash===hash)mentorship();}else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register'){const hash=location.hash;await loadOptionalPublic('registration');if(location.hash===hash)authPage(true);}else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
+async function navigate(){releaseAdminLessonPreviews();closeCart(false);closeShopFilters(false);setMobileMenu(false);window.scrollTo(0,0);const route=(location.hash.startsWith('#/')?location.hash.slice(2):location.pathname.replace(/^\//,'')).split('?')[0];try{if(route==='')home();else if(route==='course'||route.startsWith('course#')||route.split('#')[0]==='course/legwork-lab')course();else if(route==='courses')courseDirectory();else if(route.startsWith('course/'))dynamicCourse(route.split('#')[0]);else if(route==='shop')shop();else if(route.startsWith('lesson/'))lesson(route);else if(route.startsWith('bundle/'))bundlePage(route);else if(route.startsWith('verify-certificate/'))await verifyCertificateView(route.split('/')[1],{api,layout});else if(route.startsWith('payment/')){if(!state.user)authPage(false);else await renderPaymentStatus(Number(route.split('/')[1]),{api,layout,notice})}else if(route.startsWith('study/')){if(!state.user)authPage(false);else await renderStudy(Number(route.split('/')[1]),{api,layout,notice,lang:state.lang})}else if(route.startsWith('mentorship')){const hash=location.hash;await loadOptionalPublic('mentorship');if(location.hash===hash)mentorship();}else if(route==='forgot-password')forgotPasswordPage();else if(route.startsWith('reset-password/'))resetPasswordPage(route.split('/')[1]);else if(route.startsWith('verify-email/'))await verifyEmailPage(route.split('/')[1]);else if(route.startsWith('unsubscribe/'))unsubscribePage(route.split('/')[1]);else if(route==='login')authPage();else if(route==='register'){const hash=location.hash;await loadOptionalPublic('registration');if(location.hash===hash)authPage(true);}else if(route==='account')await account();else home();if(location.hash.includes('#prices')||location.hash.includes('#request'))setTimeout(()=>document.getElementById(location.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'}),50)}catch(e){if(location.hash==='#/'+route||location.hash.startsWith('#/'+route+'?'))layout(section('Unable to load',esc(e.message)));}}
 async function init(){
  // A partial outage (including missing deployment secrets) must never hide
  // all public content. Authentication and purchases remain server-controlled.
@@ -1209,11 +1218,11 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   const panel=$('#shopFilterPanel'),shade=$('#shopFilterShade'),toggle=$('#shopFiltersToggle');
   if(!panel||!shade||!toggle)return;
   const open=button.id==='shopFiltersToggle'?!panel.classList.contains('is-open'):false;
-  panel.classList.toggle('is-open',open);
-  shade.hidden=!open;
-  toggle.setAttribute('aria-expanded',String(open));
-  document.body.classList.toggle('shop-filters-open',open);
-  if(open)$('#shopFiltersClose')?.focus();else toggle.focus();
+  if(!open){closeShopFilters();return;}
+  closeCart(false);setMobileMenu(false);panel.classList.add('is-open');panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
+  shade.hidden=false;toggle.setAttribute('aria-expanded','true');document.body.classList.add('shop-filters-open');
+  for(const el of [$('.header'),$('.site-footer'),$('.shop-catalog')])if(el)el.inert=true;
+  $('#shopFiltersClose')?.focus();
   return
  }
  if(button.id==='shopSearchApply'){
@@ -1284,18 +1293,24 @@ document.addEventListener('keydown',e=>{
  const drawer=$('#cartDrawer');
  if(e.key==='Escape'){
   if(drawer.classList.contains('open')){e.preventDefault();closeCart();return}
-  if($('#shopFilterPanel')?.classList.contains('is-open')){$('#shopFilterPanel').classList.remove('is-open');$('#shopFilterShade').hidden=true;$('#shopFiltersToggle').setAttribute('aria-expanded','false');document.body.classList.remove('shop-filters-open');$('#shopFiltersToggle').focus();return}
+  if($('#shopFilterPanel')?.classList.contains('is-open')){e.preventDefault();closeShopFilters();return}
    if($('.header-course-menu')?.classList.contains('is-open')){$('.header-course-menu').classList.remove('is-open');$('#courseMenuToggle').setAttribute('aria-expanded','false');$('#courseMenuToggle').focus();return}
    if($('#nav').classList.contains('open')){setMobileMenu(false);$('#menuBtn').focus()}
  }
- if(e.key==='Tab'&&drawer.classList.contains('open')){
-  const focusables=[...drawer.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
-  if(!focusables.length){e.preventDefault();drawer.focus();return}
+ const modal=drawer.classList.contains('open')?drawer:$('#shopFilterPanel.is-open');
+ if(e.key==='Tab'&&modal){
+  const focusables=[...modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
+  if(!focusables.length){e.preventDefault();modal.focus();return}
   const first=focusables[0],last=focusables.at(-1);
-  if(e.shiftKey&&(document.activeElement===first||!drawer.contains(document.activeElement))){e.preventDefault();last.focus()}
-  else if(!e.shiftKey&&(document.activeElement===last||!drawer.contains(document.activeElement))){e.preventDefault();first.focus()}
+  if(e.shiftKey&&(document.activeElement===first||!modal.contains(document.activeElement))){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&(document.activeElement===last||!modal.contains(document.activeElement))){e.preventDefault();first.focus()}
  }
-});$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
+});
+const mobileFiltersQuery=matchMedia('(max-width:820px)');
+mobileFiltersQuery.addEventListener('change',e=>{if(!e.matches)closeShopFilters(false)});
+const mobileNavQuery=matchMedia('(max-width:1080px)');
+mobileNavQuery.addEventListener('change',e=>{if(!e.matches)setMobileMenu(false)});
+$('#langBtn').onclick=()=>{state.lang=state.lang==='en'?'es':'en';localStorage.setItem('legwork_lang',state.lang);navigate()};
 document.addEventListener('change',e=>{if(e.target.id==='studentLibraryCourse'){state.libraryCourse=e.target.value||null;refreshStudentLibrary();return;}if(e.target.matches('.admin-bulk-lesson-check')){if(bulkLessonChecks(true).filter(input=>input.checked).length>50){e.target.checked=false;notice(t('Maximum 50 lessons per operation','Máximo 50 clases por operación'));}updateAdminBulkSelection();return;}if(e.target.id==='adminLessonStatus'){updateAdminLessonFilter();return}if(e.target.id==='mentorshipPackage'){$('#deepFields')?.classList.toggle('hidden',e.target.value!=='Deep');sessionStorage.setItem('legwork_package',e.target.value)}if(['filterCategory','filterLevel','filterKind','filterTeacher','filterEquipment','filterFocus','filterDuration'].includes(e.target.id)){const p=new URLSearchParams(location.hash.split('?')[1]||'');const key={filterCategory:'category',filterLevel:'level',filterKind:'kind',filterTeacher:'teacher',filterEquipment:'equipment',filterFocus:'focus',filterDuration:'duration'}[e.target.id];e.target.value?p.set(key,e.target.value):p.delete(key);location.hash='#/shop?'+p;}});document.addEventListener('input',e=>{const previewForm=e.target?.closest?.('form[data-lesson-preview]');if(previewForm)updateAdminLessonPreview(previewForm);if(e.target.id==='adminLessonSearch'){updateAdminLessonFilter();return}if(e.target.id!=='shopSearch')return;clearTimeout(shopSearchTimer);const value=e.target.value,caret=e.target.selectionStart;shopSearchTimer=setTimeout(()=>applyShopSearch(value,true,caret),300)});document.addEventListener('keydown',e=>{if(e.target.id==='shopSearch'&&e.key==='Enter'){e.preventDefault();clearTimeout(shopSearchTimer);applyShopSearch(e.target.value,true,e.target.selectionStart)}});document.querySelector('.skip-link')?.addEventListener('click',e=>{e.preventDefault();$('#app').focus()});window.addEventListener('hashchange',navigate);
 window.addEventListener('scroll',()=>{const sticky=$('#courseSticky'),hero=$('.ref-course-hero');if(sticky&&hero){const navigationHeight=document.querySelector('.header')?.getBoundingClientRect().height||64;sticky.classList.toggle('visible',hero.getBoundingClientRect().bottom<=navigationHeight)}},{passive:true});
 document.addEventListener('click',e=>{const anchor=e.target.closest('a[href="#/course#prices"],a[href^="#/course/"][href$="#prices"],a[href="#/mentorship#request"]');if(!anchor)return;if(location.hash===anchor.getAttribute('href')){e.preventDefault();document.getElementById(anchor.hash.split('#').pop())?.scrollIntoView({behavior:'smooth'})}});
