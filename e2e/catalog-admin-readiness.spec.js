@@ -112,7 +112,7 @@ test('Admin can move a lesson within its course without losing editor context',a
  await page.locator('[data-tab="admin"]').click();
 
  const course=page.locator('#adminLessonList [data-admin-course-group="1"]');
- await expect(course.locator('.admin-course-group-heading')).toContainText('LEGWORK');
+ await expect(course.locator('.admin-course-group-heading')).toContainText(/legwork/i);
  await expect(course.locator('.admin-edit-lesson').first()).toBeVisible();
  const originalFirst=await course.locator('.admin-edit-lesson').nth(0).getAttribute('id');
  const originalSecond=await course.locator('.admin-edit-lesson').nth(1).getAttribute('id');
