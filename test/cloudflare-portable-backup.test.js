@@ -22,8 +22,8 @@ test('Protected paginated portable export includes SQL metadata and KV images, n
  const server=app.listen(0,'127.0.0.1');await new Promise(ok=>server.once('listening',ok));
  try{
   const root='http://127.0.0.1:'+server.address().port;
-  const call=async(path,{user='admin',method='GET',token,body}={})=>{
-   const response=await fetch(root+path,{method,headers:{...(user?{'x-user':user}:{}),
+  const call=async(path,{user='admin',method='GET',token,body,session='a'.repeat(64)}={})=>{
+   const response=await fetch(root+path,{method,headers:{...(user?{'x-user':user,Cookie:'legwork_session='+session}:{}),
     ...(token?{'X-Legwork-Backup-Token':token}:{}),...(body?{'Content-Type':'application/json'}:{})},
     body:body?JSON.stringify(body):undefined});
    return {response,json:response.headers.get('content-type')?.includes('json')?await response.json():null};
@@ -37,6 +37,7 @@ test('Protected paginated portable export includes SQL metadata and KV images, n
   const token=start.json.token;
   assert.match(token,/^[a-f0-9]{64}$/);
   assert.equal((await call('/api/admin/backup/manifest')).response.status,403);
+  assert.equal((await call('/api/admin/backup/manifest',{token,session:'b'.repeat(64)})).response.status,403);
   const snapshot=await call('/api/admin/backup/manifest',{token});
   assert.equal(snapshot.response.status,200);
   assert.equal(snapshot.response.headers.get('cache-control'),'private, no-store');
@@ -47,6 +48,11 @@ test('Protected paginated portable export includes SQL metadata and KV images, n
   const rows=await call('/api/admin/backup/table/notes?offset=0&limit=1',{token});
   assert.equal(rows.json.rows[0].label,'example');
   assert.equal(rows.json.next_offset,1);
+  const digest=await call('/api/admin/backup/table/notes?offset=0&limit=1&digest=1',{token});
+  assert.equal(digest.json.sha256,rows.json.sha256);
+  assert.equal(digest.json.rows,undefined);
+  db.prepare('UPDATE notes SET label=? WHERE id=1').run('changed');
+  assert.notEqual((await call('/api/admin/backup/table/notes?offset=0&limit=1&digest=1',{token})).json.sha256,rows.json.sha256);
   assert.equal((await call('/api/admin/backup/table/sqlite_master?offset=0',{token})).response.status,404);
   assert.equal((await call('/api/admin/backup/table/notes?limit=300',{token})).response.status,400);
   const pic=await call('/api/admin/backup/media/'+imageName,{token});
