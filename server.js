@@ -21,7 +21,7 @@ import {registerPrivateLearningRoutes,homeworkFilePath} from './lib/private-lear
 import {registerBundleRoutes} from './lib/bundles.js';
 import {initMentorshipCommerce,registerMentorshipCommerceRoutes,createMentorshipWithQuote,verifyMentorshipManualPayment,mentorshipPaymentUnderReview} from './lib/mentorship-commerce.js';
 import {initPayments,registerPaymentWebhook,registerPaymentRoutes,unavailablePendingOrder} from './lib/payments.js';
-import {createMailService} from './lib/mailing.js';
+import {createMailService,emailPattern} from './lib/mailing.js';
 import {registerResendWebhooks,registerResendSuppressionAdminRoutes} from './lib/resend-webhook.js';
 import {registerCertificateRoutes} from './lib/certificates.js';
 import {registerEditorialRoutes} from './lib/editorial.js';
@@ -113,7 +113,24 @@ const login=(u,res)=>{
  res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role}});
 };
 app.get('/api/me',(req,res)=>res.json({user:current(req)}));
-app.post('/api/auth/register',(req,res)=>{if(prod&&!mail.registrationOpen)return res.status(503).json({error:'Student registration is not yet open. Email delivery must be verified first.'});const name=cleanText(req.body.name,80),email=cleanText(req.body.email,254).toLowerCase(),password=req.body.password;if(!name||!/^.+@.+\..+$/.test(email)||typeof password!=='string'||password.length<12||password.length>128)return res.status(400).json({error:'Name, valid email and 12–128 character password required'});try{const r=db.prepare('INSERT INTO users(email,name,password_hash) VALUES(?,?,?)').run(email,name,hashPassword(password));mail.signup({id:Number(r.lastInsertRowid),email,name,role:'student'});login({id:r.lastInsertRowid,email,name,role:'student'},res)}catch{res.status(409).json({error:'Email already registered'})}});
+app.post('/api/auth/register',(req,res)=>{
+ if(prod&&!mail.registrationOpen)return res.status(503).json({error:'Student registration is not yet open. Email delivery must be verified first.'});
+ const body=req.body||{},name=typeof body.name==='string'?body.name.trim():'',email=typeof body.email==='string'?body.email.trim().toLowerCase():'',password=body.password;
+ if(!name||name.length>80||email.length>254||!emailPattern.test(email)||typeof password!=='string'||password.length<12||password.length>128)return res.status(400).json({error:'Name, valid email and 12–128 character password required'});
+ let user;
+ try{
+  user=db.transaction(()=>{
+   const result=db.prepare('INSERT INTO users(email,name,password_hash) VALUES(?,?,?)').run(email,name,hashPassword(password));
+   const created={id:Number(result.lastInsertRowid),email,name,role:'student'};
+   mail.signup(created);
+   return created;
+  })();
+ }catch(err){
+  if(String(err.code||'').includes('CONSTRAINT_UNIQUE')||/UNIQUE constraint failed: users.email/i.test(String(err.message||'')))return res.status(409).json({error:'Email already registered'});
+  throw err;
+ }
+ login(user,res);
+});
 const dummyLoginHash=hashPassword('not-an-actual-login-account','0123456789abcdef0123456789abcdef');
 app.post('/api/auth/login',(req,res)=>{
  const id=cleanText(req.body?.email,254).toLowerCase(),p=req.body?.password;
