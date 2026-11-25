@@ -195,8 +195,16 @@ function course(){
   section('Frequently asked questions',faq(faqItems),'','course-faq')
  );
 }function lessonCard(l,studyMode=false){
- const destination=studyMode===true?'study':'lesson',cover=l.cover_url?'<img class="lesson-cover-image" loading="lazy" decoding="async" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+' lesson cover">':'';
- return '<article class="card lesson-card"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+destination+'/'+l.id+'" aria-label="View '+esc(l.title)+'">'+cover+'<span class="lesson-cover-top">'+esc(l.category||'LEGWORK')+'</span><span class="lesson-cover-index">'+(l.free?'FREE CLASS':'LESSON '+String(l.sort_order||l.id).padStart(2,'0'))+'</span></a><div class="card-body"><h3><a href="#/'+destination+'/'+l.id+'">'+esc(l.title)+'</a></h3><p class="meta">'+esc(l.level)+' · '+Number(l.duration||0)+' min · '+esc(l.equipment||'Any support')+'</p><div class="row"><b>'+(l.free?'FREE':money(l.price))+'</b>'+(studyMode?'<a class="btn btn-small btn-outline" href="#/study/'+l.id+'">Study</a>':l.free?'<a class="btn btn-small btn-outline" href="#/lesson/'+l.id+'">View lesson</a>':'<button class="btn btn-small btn-dark" type="button" data-cart="'+l.id+'">Add to bag</button>')+'</div></div></article>';
+ const destination=studyMode===true?'study':'lesson';
+ const cover=l.cover_url?'<img class="lesson-cover-image" loading="lazy" decoding="async" src="'+esc(l.cover_url)+'" alt="'+esc(l.title)+' lesson cover">':'';
+ const done=studyMode&&!!state.dashboard?.progress?.some(row=>Number(row.lesson_id)===Number(l.id)&&(row.completed===1||row.completed===true));
+ const accessLabel=studyMode?'<span class="lesson-library-status">'+(done?'COMPLETED':'IN YOUR LIBRARY')+'</span>':(l.free?'FREE':money(l.price));
+ const action=studyMode
+  ?'<a class="btn btn-small btn-outline" href="#/study/'+l.id+'">'+(done?'Revisit':'Study')+'</a>'
+  :l.free
+   ?'<a class="btn btn-small btn-outline" href="#/lesson/'+l.id+'">View lesson</a>'
+   :'<button class="btn btn-small btn-dark" type="button" data-cart="'+l.id+'">Add to bag</button>';
+ return '<article class="card lesson-card'+(done?' is-complete':'')+'"><a class="lesson-cover '+(cover?'has-image':'')+'" href="#/'+destination+'/'+l.id+'" aria-label="View '+esc(l.title)+'">'+cover+'<span class="lesson-cover-top">'+esc(l.category||'LEGWORK')+'</span><span class="lesson-cover-index">'+(l.free?'FREE CLASS':'LESSON '+String(l.sort_order||l.id).padStart(2,'0'))+'</span></a><div class="card-body"><h3><a href="#/'+destination+'/'+l.id+'">'+esc(l.title)+'</a></h3><p class="meta">'+esc(l.level)+' · '+Number(l.duration||0)+' min · '+esc(l.equipment||'Any support')+'</p><div class="row"><b>'+accessLabel+'</b>'+action+'</div></div></article>';
 }
 function bundleCard(bundle){
  return '<article class="card bundle-card"><a href="#/bundle/'+bundle.id+'" class="bundle-cover" aria-label="View '+esc(bundle.title)+'">'+mediaInline('shop_bundle','bundle-cover-image','<span class="bundle-cover-stack" aria-hidden="true"><i></i><i></i><i></i></span>')+'</a><div class="card-body"><h3><a href="#/bundle/'+bundle.id+'">'+esc(bundle.title)+'</a></h3><p class="bundle-lessons">'+bundle.lesson_ids.length+' lessons · '+esc(bundle.direction)+'</p><div class="row"><span><s class="meta">'+money(bundle.original_price)+'</s> <b class="price">'+money(bundle.price)+'</b></span><button type="button" class="btn btn-dark btn-small" data-cart-bundle="'+bundle.id+'">Add to bag</button></div></div></article>';
