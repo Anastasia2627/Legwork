@@ -578,6 +578,7 @@ async function adminPanel(){try{const mount=$('#adminMount'),user=state.user;con
   ['Privacy',()=>adminPrivacyPanel()],
   ['Security',()=>adminSecurityPanel()],
   ['Recovery',()=>adminRecoveryPanel()],
+  ['Portable backup',()=>adminBackupPanel()],
   ['Operations',()=>adminOperationsPanel()],
   ['Two-factor authentication',()=>adminMfaPanel()]
  ];
@@ -671,6 +672,20 @@ async function adminOperationsPanel(){
   '<p class="description">Offsite backup verified: NO. This dashboard does not provide external alerts; keep payment processing disabled until its real merchant flow has been tested.</p></section>');
 }
 
+async function adminBackupPanel(){
+ const mount=$('#adminMount'),user=state.user;
+ const info=await api('/admin/backup');
+ if(!mount||mount!==$('#adminMount')||state.user!==user||state.tab!=='admin')return;
+ const heading='<h3>'+t('INDEPENDENT BACKUP','COPIA DE SEGURIDAD INDEPENDIENTE')+'</h3>';
+ const body=info.supported?
+  '<p class="description">'+t('Export the database, public images and private learning attachments using the repository CLI on a trusted computer. The archive is encrypted locally; no password or backup is sent to GitHub.','Exporta la base de datos, imágenes y archivos privados desde un ordenador de confianza. El archivo se cifra localmente; no se envían contraseñas ni copias a GitHub.')+'</p>'+
+  '<p class="description">'+t('Run during a maintenance window without concurrent writes. A two-pass digest check reduces the risk of inconsistent data but is not an atomic snapshot.','Ejecuta durante mantenimiento sin escrituras simultáneas. La verificación en dos pasadas reduce el riesgo de incoherencia, pero no crea una instantánea atómica.')+'</p>'+
+  '<p><code>npm run backup:cloudflare -- '+esc(location.origin)+' ./backups/legwork.legwork-backup</code></p>'+
+  '<p><code>npm run backup:verify -- ./backups/legwork.legwork-backup</code></p>'+
+  '<p class="description">'+t('Choose a unique filename each time, store the encrypted file and passphrase separately, and retain a verified copy outside Cloudflare.','Elige un nombre nuevo cada vez, guarda el archivo y la contraseña por separado y conserva una copia verificada fuera de Cloudflare.')+'</p>':
+  '<p class="description">'+t('Portable export is available on the deployed Cloudflare environment. Use SQLite online backup plus the media directory for a Node deployment.','La exportación portátil está disponible en Cloudflare. En Node, usa una copia online de SQLite y el directorio de imágenes.')+'</p>';
+ mount.insertAdjacentHTML('beforeend','<section class="admin-recovery-section admin-backup-section">'+heading+body+'<p class="notice">'+t('Independent backup and live restoration have not been confirmed. Restore is deliberately not available from the website.','La copia independiente y la restauración real aún no se han confirmado. La restauración no está disponible desde el sitio.')+'</p></section>');
+}
 async function adminRecoveryPanel(){
  const info=await api('/admin/recovery'),root=$('#adminMount');if(!root)return;
  const heading='<h3>DATABASE RECOVERY POINTS</h3>';
