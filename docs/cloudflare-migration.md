@@ -183,6 +183,9 @@ reconciliation and restoration before migrating any existing users.
 
 The homepage displays only approved gallery/review assets. No fake testimonials
 or empty placeholders are published.
+See **[registration launch runbook](registration-launch.md)** for isolated staging,
+verified Resend sender configuration, owner-controlled production rollout and rollback.
+
 ## Required end-to-end acceptance checks
 
 1. `/health` returns `{"ok":true}`. Public pages load all CSS/JS.
