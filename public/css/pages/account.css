@@ -163,3 +163,11 @@
 #adminLessonList .admin-edit-lesson[hidden]{display:none!important}
 @media(max-width:760px){.admin-lesson-tools{grid-template-columns:1fr 1fr}.admin-lesson-count{grid-column:1/-1;margin:0}}
 @media(max-width:420px){.admin-lesson-tools{grid-template-columns:1fr}}
+
+/* A failed optional API should be a compact notice, not a blank admin page. */
+.admin-section-unavailable{
+ margin:20px 0;padding:17px 20px;border:1px solid var(--border);
+ background:#f6f2ef;color:var(--ink);font:400 13px/1.55 var(--font-body)
+}
+.admin-section-unavailable strong{display:block;font-weight:700;margin-bottom:4px}
+.admin-section-unavailable p{margin:0;color:var(--muted)}
