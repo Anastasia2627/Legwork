@@ -32,6 +32,8 @@ test('Dynamic course uses only its own published program, exact prices and cours
  await expect(page.locator('#prices')).toContainText('$279.50');
  await page.locator('.course-hero-actions a[href$="#prices"]').click();
  await expect(page).toHaveURL(/#prices$/);
+ await expect(page.locator('#prices button[data-plan="guru"]')).toBeVisible();
+ await page.locator('#prices button[data-plan="guru"]').scrollIntoViewIfNeeded();
  const purchase=page.waitForRequest(req=>req.url().endsWith('/api/orders')&&req.method()==='POST');
  await page.locator('#prices button[data-plan="guru"]').click();
  expect((await purchase).postDataJSON()).toEqual({kind:'course',item_id:course.id,plan:'guru'});
