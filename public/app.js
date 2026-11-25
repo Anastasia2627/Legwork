@@ -845,6 +845,13 @@ if(target.id==='shopFilterShade'){e.preventDefault();document.querySelector('#sh
   e.preventDefault();
   const el=document.getElementById(button.dataset.jumpAdmin);
   if(el){
+   // A readiness shortcut must still work after a manual lesson filter.
+   if(el.hidden&&el.classList.contains('admin-edit-lesson')){
+    const search=$('#adminLessonSearch'),status=$('#adminLessonStatus');
+    if(search)search.value='';
+    if(status)status.value='all';
+    updateAdminLessonFilter();
+   }
    if(el.tagName==='DETAILS')el.open=true;
    const focusTarget=el.tagName==='DETAILS'?el.querySelector('summary')||el:el;
    focusTarget.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
