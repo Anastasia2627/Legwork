@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700;800&display=swap');
-
 /* Shared type, rhythm and navigation. Page compositions belong in css/pages/. */
 :root{
  --ink:#1d1b1c;--muted:#696265;--red:#c90836;--cyan:#267f97;
